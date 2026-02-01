@@ -1181,16 +1181,20 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const endText = lastLetter === ">" ? "the end of the polybius table" : lastLetter
 
             if (index < this.cleanPolyKey.length) {
-                this.showStepText(target, `We see the ${numSpaces} spaces between the ${firstLetter} and ${endText}, but given how close it is to the start of the
+                if (target !== undefined) {
+                    this.showStepText(target, `We see the ${numSpaces} spaces between the ${firstLetter} and ${endText}, but given how close it is to the start of the
                 Polybius Keyword, we can't be certain whether it is alphabet or keyword, so we can't fill it in until we are sure`)
+                }
                 return;
             }
             if (numSubs === 1 && numSpaces > 0) {
+                if (target !== undefined) {
 
-                if (usableLetters.length === 1) {
-                    this.showStepText(target, `Because the only legal letter '${usableLetters[0]}' fits exactly in the single space between ${firstLetter} and ${endText} we can fill it in the gap.`)
-                } else {
-                    this.showStepText(target, `Because the only legal letters '${usableLetters.join(", ")}' fit exactly in the ${usableLetters.length} spaces between ${firstLetter} and ${endText} we can fill them in the gap.`)
+                    if (usableLetters.length === 1) {
+                        this.showStepText(target, `Because the only legal letter '${usableLetters[0]}' fits exactly in the single space between ${firstLetter} and ${endText} we can fill it in the gap.`)
+                    } else {
+                        this.showStepText(target, `Because the only legal letters '${usableLetters.join(", ")}' fit exactly in the ${usableLetters.length} spaces between ${firstLetter} and ${endText} we can fill them in the gap.`)
+                    }
                 }
             }
 
@@ -1335,7 +1339,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param lang
      * @returns count + up to 10 matched keywords
      */
-    public countKeywordMatches(possibilities: string[][], lang: string): { count: number; matches: string } {
+    public countKeywordMatches(possibilities: string[][], lang: string, maxMatches: number = 12): { count: number; matches: string } {
 
         let found = 0;
         let foundKeyword = false
@@ -1372,6 +1376,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             if (valid) {
                 tryAddMatch(word);
+                if (found > maxMatches) {
+                    break;
+                }
             }
         }
 
@@ -1400,7 +1407,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     if (valid) {
                         tryAddMatch(word);
 
-                        if (found > 10) {
+                        if (found > maxMatches) {
                             break;
                         }
                     }
@@ -2307,36 +2314,54 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                             }
                         }
                     }
-
-                    //For the PT value and the Keyword value, show as much of the number as has been
-                    // figured out already
-                    let keywordVal = '';
-                    let ptVal = '';
-
-                    // Mask the tens digit if it isn't known
-                    if (known === 'all' || known === 'tens') {
-                        keywordVal += Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
-                        ptVal += Math.floor(parseInt(mappedPlaintextNumbers[i]) / 10)
-                    } else {
-                        keywordVal += '?'
-                        ptVal += '?'
-                    }
-
-                    // The same with the ones digit
-                    if (known === 'all' || known === 'ones') {
-                        keywordVal += parseInt(mappedKeyNumbers[i]) % 10
-                        ptVal += parseInt(mappedPlaintextNumbers[i]) % 10
-                    } else {
-                        keywordVal += '?'
-                        ptVal += '?'
-                    }
                     k++;
-
                 }
             }
         }
         return changed
     }
+    /**
+     * 
+     * @param solverData 
+     */
+    public fillPossibleKeywordMappings(solverData: NihilistSolverData): void {
+
+        for (let k = 0; k < solverData.keyword.length; k++) {
+            let annotation = `K${k + 1}`
+            const isTensAmbiguous = solverData.tens[k].length > 1;
+            const isOnesAmbiguous = solverData.ones[k].length > 1;
+
+            if (!isOnesAmbiguous && !isTensAmbiguous) {
+                solverData.kwKnown[k] = 'all'
+            } else {
+                annotation += '?'
+                if (isTensAmbiguous) {
+                    if (isOnesAmbiguous) {
+                        solverData.kwKnown[k] = 'none'
+                    } else {
+                        solverData.kwKnown[k] = 'ones'
+                    }
+                } else {
+                    solverData.kwKnown[k] = 'tens'
+                }
+            }
+
+            for (const ten of solverData.tens[k]) {
+                // While we are here, we need to update the kwAnnotations
+                for (const one of solverData.ones[k]) {
+                    const spot = `${ten}${one}`
+
+                    let current = solverData.kwAnnotations.get(spot) ?? []
+                    if (!current.includes(annotation)) {
+                        current.push(annotation)
+                        solverData.kwAnnotations.set(spot, current)
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * Show a table of all the possible mappings for a keyword.  Calculate the known status of the keyword letters
      * @param target DOM element to put the output into
@@ -2390,12 +2415,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 // While we are here, we need to update the kwAnnotations
                 for (let one of solverData.ones[k]) {
                     const spot = `${ten}${one}`
-                    let current = solverData.kwAnnotations.get(spot)
-                    if (current === undefined) {
-                        current = []
+                    let current = solverData.kwAnnotations.get(spot) ?? []
+                    if (!current.includes(annotation)) {
+                        current.push(annotation)
+                        solverData.kwAnnotations.set(spot, current)
                     }
-                    current.push(annotation)
-                    solverData.kwAnnotations.set(spot, current)
                 }
             }
 
@@ -2739,6 +2763,159 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public async genEncodeSolution(target: JQuery<HTMLElement>) {
         return
+    }
+    /*
+     * See if any of the crib letters give us hints about the characters
+     * @param solverData 
+     */
+    /**
+     * This is a clone of checkForCribHints that doesn't output any text and runs more efficiently
+     * @param solverData Current solver data state (Updated)
+     * @param keywordLength Length of the keyword
+     * @param cribStart Start of the crib 
+     * @param cribEnd End of the crib
+     * @returns Boolean indicating if any changes were made
+     */
+    public addCribHints(solverData: NihilistSolverData, keywordLength: number, cribStart: number, cribEnd: number): boolean {
+        let changed = false
+        const sequencesets = this.sequencesets
+
+        //k is serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
+        let k = 0;
+
+        let discovered = true
+        while (discovered) {
+
+            discovered = false
+            for (const sequenceset of sequencesets) {
+                let ciphertextNumbers = sequenceset[0];
+                let mappedKeyNumbers = sequenceset[2];
+                let mappedPlaintextNumbers = sequenceset[3];
+                let plaintext = sequenceset[1];
+
+                for (const i in ciphertextNumbers) {
+                    let ct = ciphertextNumbers[i]
+                    //for first row, just append the unaltered ciphertext number
+                    if (isNaN(parseInt(ct)) || ct.length === 1) {
+                        continue;
+                    }
+                    // We have a cipher text character.  Have we reached the crib yet?
+                    if (k < cribStart) {
+                        k++;
+                        continue;
+                    }
+                    if (k >= cribEnd) {
+                        //     return changed;
+                        break;
+                    }
+
+                    const kpos = k % keywordLength
+                    // const ktext = `K${kpos + 1}`  ///DEBUG
+                    const known = solverData.kwKnown[kpos]
+                    const ptC = plaintext[i]
+                    const x = solverData.charMap.get(ptC)
+                    if (x !== undefined) {
+                        if (known === 'all') {
+                            // See if we don't already know the mapping for the letter
+                            if (x.length !== 1) {
+                                // if (isrealcrib) {
+                                //     target.append($('<h4/>').text(` Since we know the value of ${ktext} at position ${k} to already be ${mappedKeyNumbers[i]}
+                                //   we can subtract that from ${ct} to reveal that ${ptC} must be ${mappedPlaintextNumbers[i]}.`))
+                                // }
+                                this.setPolybiusKnown(solverData, mappedPlaintextNumbers[i], ptC)
+                                discovered = true
+                                changed = true
+                            }
+                        } else if (x.length === 1) {
+                            // if (isrealcrib) {
+                            //     target.append($('<h4/>').text(`The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
+                            //  which we can subtract from ${ct} to reveal that ${ktext} must be ${mappedKeyNumbers[i]}`))
+                            // }
+                            solverData.kwKnown[kpos] = 'all'
+                            this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
+                            discovered = true
+                            changed = true
+                        } else {
+                            // See if we can eliminate any of the letters
+                            const tens = mappedPlaintextNumbers[i].substring(0, 1)
+                            const ones = mappedPlaintextNumbers[i].substring(1)
+                            if (known === 'ones' || known == 'tens') {
+                                let result: string[] = []
+                                let pos = 0
+                                let matchC = tens
+                                if (known === 'ones') {
+                                    pos = 1
+                                    matchC = ones
+                                }
+                                result = x.filter(x => x.charAt(pos) === matchC)
+                                // If we have eliminated any options, we need to tell them
+                                if (result.length !== x.length) {
+                                    changed = true
+                                    // let prefix = `Because we know that the ${known} digit of ${ktext} at position ${k} is ${matchC} by subtraction from ${ciphertextNumbers[i]},
+                                    //  we can eliminate all the values for ${ptC} that don't have ${matchC} in the ${known} position.`
+                                    if (result.length === 1) {
+                                        // We eliminated all but one possibility, this is great!
+                                        // if (isrealcrib) {
+                                        //     target.append($('<h4/>').text(`${prefix} This leaves only ${result[0]} for the Crib letter '${ptC} at position ${k}.
+                                        // // By subtraction, this also tells us that ${ktext} must be ${mappedKeyNumbers[i]}`))
+                                        // }
+                                        this.setPolybiusKnown(solverData, result[0], ptC)
+                                        this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
+                                        discovered = true
+                                    } else {
+                                        let kwChoices: string[] = []
+                                        for (const choice of result) {
+                                            const val = parseInt(ct) - parseInt(choice)
+                                            if (val >= 11 && val <= 55) {
+                                                kwChoices.push(String(val))
+                                            }
+                                        }
+                                        // if (isrealcrib) {
+                                        //     target.append($('<h4/>').text(`${prefix} This leaves only '${result.join(', ')}' as potential values for ${ptC}
+                                        //  and '${kwChoices.join(', ')}' as potential values for ${ktext}`))
+                                        // }
+                                        this.setPolybiusChoices(solverData, result, ptC)
+                                        this.setKWAnnotations(solverData, kpos, kwChoices)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    k++
+                }
+            }
+        }
+        return changed
+    }
+    public checkCrib(cribStart: number, cribEnd: number): boolean {
+
+        const solverData: NihilistSolverData = {
+            tens: [], ones: [], keyword: this.cleanKeyword.replace('J', 'I'),
+            polybius: new Map<string, string[]>(),
+            charMap: new Map<string, string[]>(),
+            kwAnnotations: new Map<string, string[]>(),
+            kwKnown: makeFilledArray(this.cleanKeyword.length, 'none'),
+            warned: false
+        }
+        for (let tens of ["1", "2", "3", "4", "5"]) {
+            for (let ones of ["1", "2", "3", "4", "5"]) {
+                solverData.polybius.set(tens + ones, this.charset.replace('J', '').split(""))
+            }
+        }
+        let kwLength = this.cleanKeyword.length
+        this.updateCharMap(solverData)
+        let continueArray = this.buildCountArray(kwLength, true);
+        solverData.ones = this.findKeywordMappings(continueArray);
+        let tensArray = this.buildCountArray(kwLength, false);
+        solverData.tens = this.findKeywordMappings(tensArray);
+        this.fillPossibleKeywordMappings(solverData);
+        this.updateCharMap(solverData)
+        this.addCribHints(solverData, kwLength, cribStart, cribEnd)
+        this.updateCharMap(solverData)
+        this.fillLetterGaps(undefined, solverData);
+        const kwPossibilities = this.getKeywordPossibilities(solverData)
+        const { count: kwChoices, matches: kwMatches } = this.countKeywordMatches(kwPossibilities, this.state.curlang, 2);
+        return kwChoices === 1;
     }
     /**
      * Generate a solving guide for a Cryptanalysis problem
@@ -3171,17 +3348,63 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.updateOutput()
     }
 
+    public pickRandom(
+        items: readonly string[],
+        count: number = 20
+    ): string[] {
+        if (count <= 0) return [];
+        if (items.length === 0) return [];
+        if (count >= items.length) return [...items];
+
+        const copy = [...items];
+
+        for (let i = 0; i < count; i++) {
+            const j = i + Math.floor(Math.random() * (copy.length - i));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+
+        return copy.slice(0, count);
+    }
+
     public genCribSuggestions() {
         let output = $("#suggestCribOpts");
+        let msgDiv = $('<div/>')
         const divAll = $("<div/>", { class: 'grid-x' })
         const cellLeft = $('<div/>', { class: 'cell auto' })
-        const cellRight = $('<div/>', { class: 'cell auto' })
+        // const cellRight = $('<div/>', { class: 'cell auto' })
         const cellMid = $('<div/>', { class: 'cell auto' })
-        divAll.append(cellLeft).append(cellMid).append(cellRight)
-        output.empty().append(divAll)
+        divAll.append(cellLeft).append(cellMid)//.append(cellRight)
+        output.empty().append(msgDiv).append(divAll)
 
-        const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
-            console.log(`Crib found: ${found}: ${crib}`)
+        const keylen = this.cleanKeyword.length
+        const cleanCipher = this.minimizeString(this.cleanString(this.state.cipherString)).toUpperCase()
+        const cipherlen = cleanCipher.length
+
+        let foundCribs: string[] = []
+        for (let criblen = keylen * 2; criblen <= Math.min(30, cipherlen); criblen++) {
+            let found = false;
+            // console.log(`Searching for cribs with key length ${keylen} in cipher length ${cipherlen} crib length ${criblen}`)
+            for (let i = 0; i < cipherlen - criblen; i++) {
+                if (this.checkCrib(i, i + criblen)) {
+                    found = true;
+                    foundCribs.push(cleanCipher.substring(i, i + criblen))
+                    // console.log(`Possible Crib: ${cleanCipher.substring(i, i + criblen)} at position ${i}-${i + criblen}`)
+                }
+            }
+            if (found) {
+                break;
+            }
+        }
+        if (foundCribs.length === 0) {
+            msgDiv.append($('<div/>').text('No cribs found with the current keyword and Polybius key. Try a longer keyword or different Polybius key.'))
+            return
+        }
+        if (foundCribs.length > 20) {
+            foundCribs = this.pickRandom(foundCribs, 20)
+        }
+        // const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
+        foundCribs.forEach((crib, found) => {
+            // console.log(`Crib found: ${found}: ${crib}`)
             let div = $('<div/>', { class: "kwchoice" });
 
             let useButton = $("<a/>", {
@@ -3196,19 +3419,24 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             } else {
                 cellMid.append(div)
             }
-
-            return true;
         });
+        if (foundCribs[0].length > (keylen * 2 + 5)) {
+            msgDiv.append($('<div/>').text(`The minimum crib (${foundCribs[0].length}) to reveal the keyword is a bit long (minimum ${keylen * 2}). Try a different keyword or different Polybius key to find shorter cribs.`))
+        }
+        else if (foundCribs.length < 3) {
+            msgDiv.append($('<div/>').text('Try a longer keyword or different Polybius key to find more cribs.'))
+        }
         this.attachHandlers()
     }
     /**
     * Start the process to suggest cribs
     */
     public suggestCrib(): void {
-        // this.loadLanguageDictionary('en').then(() => {
-        $('#suggestCribDLG').foundation('open');
-        this.genCribSuggestions();
-        // })
+        this.loadLanguageDictionary('en').then(() => {
+            $('#suggestCribOpts').empty().text('Generating crib suggestions... (this may take a little while)');
+            $('#suggestCribDLG').foundation('open');
+            setTimeout(() => { this.genCribSuggestions(); }, 1)
+        })
     }
     /**
      * Set a keyword and offset from the recommended set

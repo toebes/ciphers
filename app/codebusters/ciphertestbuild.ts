@@ -11,6 +11,7 @@ import { IAristocratState } from './cipheraristocratencoder';
 import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
 import { CipherTest, ITestState, QueryParms, QuoteUpdates, UsedIdMap } from './ciphertest';
+import { pickRandom } from '../common/pickrandom';
 
 // Configuration for the range of questions on the test that can be Aristocrats
 const aristocratDivBCPCTMin = .35
@@ -1499,7 +1500,7 @@ export class CipherTestBuild extends CipherTest {
         if (finalData.length > 10) {
             // First we pick 3 of the legal ciphers that we will choose from
             // For the 2025-2026 season we want to ensure that one of them is a Checkerboard
-            const specialChoices = this.pickN(3, Object.keys(specialCandidates));
+            const specialChoices = pickRandom(Object.keys(specialCandidates), 3);
             // If we didn't pick a checkerboard, and there is one available, then force it to be one of the three
             if (specialChoices.findIndex((val) => val === ICipherType.Checkerboard) < 0 &&
                 specialCandidates[ICipherType.Checkerboard] !== undefined) {
@@ -1529,25 +1530,6 @@ export class CipherTestBuild extends CipherTest {
         return isSpecial;
     }
 
-    /**
-     * Pick N out of a set of arbitrary values
-     * @param topick Number of entries to pick
-     * @param list List of entries to pick from
-     * @returns a subset of the entries randomly picked
-     */
-    public pickN(topick: number, list: any[]): any[] {
-        let sortList: { weight: number, entry: any }[] = []
-        if (topick >= list.length) {
-            return list
-        }
-        list.forEach((entry) => sortList.push({ weight: Math.random(), entry: entry }))
-        sortList = sortList.sort((a, b) => a.weight - b.weight)
-        const result: any[] = []
-        for (let i = 0; i < topick; i++) {
-            result.push(sortList[i].entry)
-        }
-        return (result)
-    }
     /**
      * 
      * @param index Which question number

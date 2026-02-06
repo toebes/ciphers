@@ -1349,6 +1349,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         } else if (ones === '?') {
             known = 'tens'
         }
+        if (known === 'ones' || known === 'all') {
+            solverData.ones[kwindex] = [parseInt(ones)]
+        }
+        if (known === 'tens' || known === 'all') {
+            solverData.tens[kwindex] = [parseInt(tens)]
+        }
         solverData.kwKnown[kwindex] = known
     }
     /**
@@ -2047,7 +2053,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     } else {
                         // TODO: See if we had any guessed characters stored in the solverdata
                     }
-                    // let plainoptions: string[] = reverseMap.get(plaintextc)
                     let plainoptions: string[] = solverData.charMap.get(plaintextc)
                     if (plainoptions === undefined) {
                         plainoptions = []
@@ -2096,8 +2101,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
                     if (keyval !== undefined) {
                         const keySpot = `${keyval}`
-                        solverData.tens[kpos] = [Math.trunc(keyval / 10)]
-                        solverData.ones[kpos] = [keyval % 10]
+                        //      solverData.tens[kpos] = [Math.trunc(keyval / 10)]
+                        //      solverData.ones[kpos] = [keyval % 10]
 
                         this.setPolybiusKnown(solverData, keySpot, keyc)
                     }
@@ -2291,9 +2296,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                             } else if (x.length === 1) {
                                 this.showStepText(target, `The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
                             which we can subtract from ${ct} to reveal that ${ktext} must be ${mappedKeyNumbers[i]}`)
-                                solverData.kwKnown[kpos] = 'all'
-                                solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
-                                solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                                 this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
                                 discovered = true
                                 changed = true
@@ -2321,11 +2323,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                                         By subtraction, this also tells us that ${ktext} must be ${mappedKeyNumbers[i]}`)
                                             this.setPolybiusKnown(solverData, result[0], ptC)
                                             this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
-                                            solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
-                                            solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
-                                            if (solverData.kwKnown[kpos] === 'none') {
-                                                solverData.kwKnown[kpos] = known
-                                            }
                                             discovered = true
                                         } else {
                                             // We need to get all of the kText possibilites which are in the result set
@@ -2338,16 +2335,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                                                 for (let ones = 0; ones <= 5; ones++) {
                                                     kwResults.push(`${tensDigit}${ones}`)
                                                 }
-                                                solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
                                             } else {
                                                 const onesDigit = parseInt(mappedKeyNumbers[i]) % 10
                                                 for (let tens = 0; tens <= 5; tens++) {
                                                     kwResults.push(`${tens}${onesDigit}`)
                                                 }
-                                                solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
-                                            }
-                                            if (solverData.kwKnown[kpos] === 'none') {
-                                                solverData.kwKnown[kpos] = known
                                             }
                                             const kwChoices = this.filterKWAnnotations(solverData, kpos, kwResults)
                                             this.showStepText(target, `${prefix} This leaves only '${result.join(', ')}' as potential values for ${ptC}
@@ -2876,9 +2868,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                             //     target.append($('<h4/>').text(`The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
                             //  which we can subtract from ${ct} to reveal that ${ktext} must be ${mappedKeyNumbers[i]}`))
                             // }
-                            solverData.kwKnown[kpos] = 'all'
-                            solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
-                            solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                             this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
                             discovered = true
                             changed = true
@@ -2908,8 +2897,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                                         // }
                                         this.setPolybiusKnown(solverData, result[0], ptC)
                                         this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
-                                        solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
-                                        solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                                         discovered = true
                                     } else {
                                         let kwResults: string[] = []

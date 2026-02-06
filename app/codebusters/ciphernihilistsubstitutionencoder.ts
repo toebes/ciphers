@@ -1287,15 +1287,24 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setPolybiusChoices(solverData, [setSlot], char)
         // solverData.charMap.set(char, [setSlot])
         // Check to see if we updated one of the keywords and adjust the annotation data for it
-        if (solverData.keyword.includes(char)) {
-            // Remember that the letter might be repeated, so we have to catch all instances
-            for (let kpos = 0; kpos < solverData.keyword.length; kpos++) {
-                // Check to see if we are updating any of the known keyword characters
-                if (solverData.keyword.charAt(kpos) === char) {
-                    this.setKWAnnotations(solverData, kpos, [setSlot])
-                }
-            }
-        }
+        // THIS CODE IS PROBABLY WRONG.
+        // if (solverData.keyword.includes(char)) {
+        //     // Remember that the letter might be repeated, so we have to catch all instances
+        //     for (let kpos = 0; kpos < solverData.keyword.length; kpos++) {
+        //         // Check to see if we are updating any of the known keyword characters
+        //         if (solverData.keyword.charAt(kpos) === char) {
+        //             this.setKWAnnotations(solverData, kpos, [setSlot])
+        //         }
+        //     }
+        // }
+    }
+
+    public filterKWAnnotations(solverData: NihilistSolverData, kpos: number, valid: string[]): string[] {
+        let ktext = `K${kpos + 1}`
+        return valid.filter(x =>
+            solverData.kwAnnotations.get(x) !== undefined &&
+            (solverData.kwAnnotations.get(x).includes(ktext) || solverData.kwAnnotations.get(x).includes(ktext + '?'))
+        )
     }
     /**
      * Set the known data for a keyword
@@ -2283,6 +2292,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                                 this.showStepText(target, `The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
                             which we can subtract from ${ct} to reveal that ${ktext} must be ${mappedKeyNumbers[i]}`)
                                 solverData.kwKnown[kpos] = 'all'
+                                solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
+                                solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                                 this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
                                 discovered = true
                                 changed = true
@@ -2310,20 +2321,39 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                                         By subtraction, this also tells us that ${ktext} must be ${mappedKeyNumbers[i]}`)
                                             this.setPolybiusKnown(solverData, result[0], ptC)
                                             this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
+                                            solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
+                                            solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
+                                            if (solverData.kwKnown[kpos] === 'none') {
+                                                solverData.kwKnown[kpos] = known
+                                            }
                                             discovered = true
                                         } else {
-                                            let kwChoices: string[] = []
-                                            for (const choice of result) {
-                                                const val = parseInt(ct) - parseInt(choice)
-                                                if (val >= 11 && val <= 55) {
-                                                    kwChoices.push(String(val))
+                                            // We need to get all of the kText possibilites which are in the result set
+                                            // We correctly filtered the PT possibilities, but we also need to filter the keyword possibilities because
+                                            // they are the subtracted values.
+                                            let kwResults: string[] = []
+                                            if (matchC === tens) {
+                                                // We are matching on the tens digit, so the keyword tens digit is ct tens - pt tens
+                                                const tensDigit = Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
+                                                for (let ones = 0; ones <= 5; ones++) {
+                                                    kwResults.push(`${tensDigit}${ones}`)
                                                 }
+                                                solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
+                                            } else {
+                                                const onesDigit = parseInt(mappedKeyNumbers[i]) % 10
+                                                for (let tens = 0; tens <= 5; tens++) {
+                                                    kwResults.push(`${tens}${onesDigit}`)
+                                                }
+                                                solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                                             }
+                                            if (solverData.kwKnown[kpos] === 'none') {
+                                                solverData.kwKnown[kpos] = known
+                                            }
+                                            const kwChoices = this.filterKWAnnotations(solverData, kpos, kwResults)
                                             this.showStepText(target, `${prefix} This leaves only '${result.join(', ')}' as potential values for ${ptC}
                                             and '${kwChoices.join(', ')}' as potential values for ${ktext}`)
                                             this.setPolybiusChoices(solverData, result, ptC)
                                             this.setKWAnnotations(solverData, kpos, kwChoices)
-                                            // Eliminate
                                         }
                                     }
                                 }
@@ -2847,6 +2877,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                             //  which we can subtract from ${ct} to reveal that ${ktext} must be ${mappedKeyNumbers[i]}`))
                             // }
                             solverData.kwKnown[kpos] = 'all'
+                            solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
+                            solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                             this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
                             discovered = true
                             changed = true
@@ -2876,15 +2908,29 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                                         // }
                                         this.setPolybiusKnown(solverData, result[0], ptC)
                                         this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
+                                        solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
+                                        solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                                         discovered = true
                                     } else {
-                                        let kwChoices: string[] = []
-                                        for (const choice of result) {
-                                            const val = parseInt(ct) - parseInt(choice)
-                                            if (val >= 11 && val <= 55) {
-                                                kwChoices.push(String(val))
+                                        let kwResults: string[] = []
+                                        if (matchC === tens) {
+                                            // We are matching on the tens digit, so the keyword tens digit is ct tens - pt tens
+                                            const tensDigit = Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
+                                            for (let ones = 0; ones <= 5; ones++) {
+                                                kwResults.push(`${tensDigit}${ones}`)
                                             }
+                                            solverData.tens[kpos] = [Math.trunc(parseInt(mappedKeyNumbers[i]) / 10)]
+                                        } else {
+                                            const onesDigit = parseInt(mappedKeyNumbers[i]) % 10
+                                            for (let tens = 0; tens <= 5; tens++) {
+                                                kwResults.push(`${tens}${onesDigit}`)
+                                            }
+                                            solverData.ones[kpos] = [parseInt(mappedKeyNumbers[i]) % 10]
                                         }
+                                        if (solverData.kwKnown[kpos] === 'none') {
+                                            solverData.kwKnown[kpos] = known
+                                        }
+                                        const kwChoices = this.filterKWAnnotations(solverData, kpos, kwResults)
                                         // if (isrealcrib) {
                                         //     target.append($('<h4/>').text(`${prefix} This leaves only '${result.join(', ')}' as potential values for ${ptC}
                                         //  and '${kwChoices.join(', ')}' as potential values for ${ktext}`))

@@ -996,7 +996,7 @@ export default class CipherScoreSheetGenerator {
                     const actualToBestTimeRatio = `(${timeCalcCellAddress} / ${maxSecondsForTimedBonusAsNumber} )`
                     const rawTimedBonus = `(1 - ${actualToBestTimeRatio}) * ${this.MAX_SECONDS_FOR_TIMED_BONUS} * 2`;
                     const timedBonusRawCalc = `MAX(ROUND(${rawTimedBonus}, 5), 0)`;
-                    const timedBonusCalc = `IF(${timeCalcCellAddress} <> "", ${timedBonusRawCalc}, 0)`;
+                    const timedBonusCalc = `IF(TRIM(${timeCalcCellAddress}) <> "", ${timedBonusRawCalc}, 0)`;
                     cell.f = teamNumberConditionFormulaInject(timedBonusCalc);
                     cell.s = this.getCellStyle(
                         undefined,
@@ -1040,7 +1040,7 @@ export default class CipherScoreSheetGenerator {
 
                     const scoreCalc = `SUM(${scoreCalcCellAddress}:${scoreCalcCellAddress2})`;
                     const placementCalc = `IF(${scoreCalc} <= 0, "P", ${scoreCalc})`;
-                    cell.f = teamNumberConditionFormulaInject(`IF('Score Entry'!${attendanceCellAddress} <> "P", 'Score Entry'!${attendanceCellAddress}, ${placementCalc})`);
+                    cell.f = teamNumberConditionFormulaInject(`IF(TRIM('Score Entry'!${attendanceCellAddress}) <> "P", 'Score Entry'!${attendanceCellAddress}, ${placementCalc})`);
                     cell.s = this.getHeaderCellStyle(
                         this.getStyledBorder([BorderType.Right]),
                     );
@@ -1053,7 +1053,7 @@ export default class CipherScoreSheetGenerator {
                     const calcMistakes = `MAX('Score Entry'!${translatedCellAddress} - ${mistakeCellAddress}, 0)`;
                     const calcMistakePoints = `MIN(${pointCellAddress}, ${calcMistakes} * 100)`;
                     const safePointCalc = `MAX(${pointCellAddress} - ${calcMistakePoints}, 0)`;
-                    cell.f = teamNumberConditionFormulaInject(`IF('Score Entry'!${translatedCellAddress} <> "", ${safePointCalc}, 0)`);
+                    cell.f = teamNumberConditionFormulaInject(`IF(TRIM('Score Entry'!${translatedCellAddress}) <> "", ${safePointCalc}, 0)`);
                     cell.s = this.getCellStyle(
                         undefined,
                         Alignment.Center,
@@ -1201,7 +1201,11 @@ export default class CipherScoreSheetGenerator {
 
                 // Calculate the final score and rank
                 const scoreCalcFinalScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: i + 3, c: numQuestions + 4 });
-                const scoreAndTiebreakerPresentCalc = `AND('Score Calculation'!${scoreCalcFinalScoreAddress} <> "NS", 'Score Calculation'!${scoreCalcFinalScoreAddress} <> "P", 'Score Calculation'!${scoreCalcFinalScoreAddress} <> "DQ", ${tiebreakerCellAddress} <> "")`;
+                const noShowCondition = `TRIM('Score Calculation'!${scoreCalcFinalScoreAddress}) <> "NS"`;
+                const participationCondition = `TRIM('Score Calculation'!${scoreCalcFinalScoreAddress}) <> "P"`;
+                const disqualificationCondition = `TRIM('Score Calculation'!${scoreCalcFinalScoreAddress}) <> "DQ"`;
+                const otherCondition = `TRIM(${tiebreakerCellAddress}) <> ""`;
+                const scoreAndTiebreakerPresentCalc = `AND(${noShowCondition}, ${participationCondition}, ${disqualificationCondition}, ${otherCondition})`;
                 const scoreWithTiebreakerCalc = `SUM('Score Calculation'!${scoreCalcFinalScoreAddress}, ${tiebreakerCellAddress})`;
                 teamFinalScoreCell.f = teamNumberConditionFormulaInject(
                     `IF(${scoreAndTiebreakerPresentCalc}, ${scoreWithTiebreakerCalc}, 'Score Calculation'!${scoreCalcFinalScoreAddress})`
@@ -1213,10 +1217,10 @@ export default class CipherScoreSheetGenerator {
                 const scoreRange = `${teamMinFinalScoreCellAddress}:${teamMaxFinalScoreCellAddress}`;
                 const lastPlaceRank = `COUNTA(${scoreRange})`;
                 const rankCalc = `RANK(${teamFinalScoreCellAddress}, ${scoreRange})`;
-                const rankCalcWithDq = `IF(${teamFinalScoreCellAddress}="DQ", ${lastPlaceRank} + 2, ${rankCalc})`;
-                const rankCalcWithNsAndDq = `IF(${teamFinalScoreCellAddress}="NS", ${lastPlaceRank} + 1, ${rankCalcWithDq})`;
+                const rankCalcWithDq = `IF(TRIM(${teamFinalScoreCellAddress})="DQ", ${lastPlaceRank} + 2, ${rankCalc})`;
+                const rankCalcWithNsAndDq = `IF(TRIM(${teamFinalScoreCellAddress})="NS", ${lastPlaceRank} + 1, ${rankCalcWithDq})`;
                 teamRankCell.f = teamNumberConditionFormulaInject(
-                    `IF(${teamFinalScoreCellAddress}="P", ${lastPlaceRank}, ${rankCalcWithNsAndDq})`
+                    `IF(TRIM(${teamFinalScoreCellAddress})="P", ${lastPlaceRank}, ${rankCalcWithNsAndDq})`
                 );
 
                 // Calculate the rank display

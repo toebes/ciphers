@@ -1005,7 +1005,8 @@ export default class CipherScoreSheetGenerator {
                         undefined,
                         undefined,
                         undefined,
-                        this.LIGHT_GRAY_COLOR
+                        this.LIGHT_GRAY_COLOR,
+                        "0"
                     );
                 }
                 // If the question is the special bonus

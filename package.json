@@ -114,7 +114,7 @@
         "node-forge": "^1.3.3",
         "npm-force-resolutions": "^0.0.10",
         "qr-code-generator": "github:toebes/QR-Code-generator",
-        "qs": "^6.14.1",
+        "qs": "^6.14.2",
         "sheetjs": "^2.0.0",
         "split-grid": "^1.0.11",
         "split.js": "^1.6.4",

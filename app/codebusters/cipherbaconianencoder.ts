@@ -179,8 +179,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.guidanceButton,
     ];
     /** Work canvas for generating images */
-    workCanvas: HTMLCanvasElement;
-    canvasContext: CanvasRenderingContext2D;
+    private workCanvas: HTMLCanvasElement;
+    private canvasContext: CanvasRenderingContext2D;
+    private useAltFont: boolean = false;
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
      * the realtime answers when the test is being given.
@@ -208,6 +209,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         super.setUIDefaults();
         this.setTexta(this.state.texta);
         this.setTextb(this.state.textb);
+        this.getFontClass();
         this.setOperation(this.state.operation);
     }
     /**
@@ -235,6 +237,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.texta !== texta) {
             this.state.texta = texta;
             changed = true;
+            this.getFontClass()
         }
         return changed;
     }
@@ -248,6 +251,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.textb !== textb) {
             this.state.textb = textb;
             changed = true;
+            this.getFontClass()
         }
         return changed;
     }
@@ -472,6 +476,24 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public buildset(text: string): string[] {
         return this.buildsetbitmap(text, this.state.bitmap);
     }
+
+    private _fontReady = false;
+
+    private async ensureAltFontReady(): Promise<void> {
+        if (this._fontReady || !this.useAltFont) return;
+
+        // Wait until the browser says all fonts are ready
+        if (document.fonts?.ready) {
+            await document.fonts.ready;
+        }
+
+        // Force-load the specific face (important for custom fonts)
+        if (document.fonts?.load) {
+            await document.fonts.load('24px juliamono', "X");
+        }
+
+        this._fontReady = true;
+    }
     /**
      * Parse out an A/B set into an array of strings.
      * Note that we have to do this because some characters actually are comprised of
@@ -491,7 +513,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let result: string[] = [];
         let lastc = undefined;
         let highsurrogate = false;
-        let useAltFont = false
         for (let c of remain) {
             if (highsurrogate) {
                 lastc += c;
@@ -512,7 +533,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 // U+035x	◌͐	◌͑	◌͒	◌͓	◌͔	◌͕	◌͖	◌͗	◌͘	◌͙	◌͚	◌͛	◌͜◌	◌͝◌	◌͞◌	◌͟◌
                 // U+036x  ◌͠◌	◌͡◌	◌͢◌	◌ͣ	◌ͤ	◌ͥ	◌ͦ	◌ͧ	◌ͨ	◌ͩ	◌ͪ	◌ͫ	◌ͬ	◌ͭ	◌ͮ	◌ͯ
                 lastc += c
-                useAltFont = true
             } else if (c === ' ') {
                 if (lastc === undefined) {
                     lastc = c
@@ -535,17 +555,18 @@ export class CipherBaconianEncoder extends CipherEncoder {
             for (let i = 0; i < result.length; i++) {
                 const txt = result[i]
 
-                // Note that you have to work in px units when working with the canvar
+                // Note that you have to work in px units when working with the canvas
                 // or it ends up scaling funny.
                 const defaultFontsize = 16 * this.state.zoom / 100
-                this.workCanvas.style.font = this.canvasContext.font
-                this.workCanvas.style.fontSize = `${defaultFontsize}px`
                 let font = 'Courier New'
-                if (useAltFont) {
+                if (this.useAltFont) {
                     font = 'juliamono'
                 }
+                let fontSize = `${defaultFontsize}px ${font}`
 
-                this.canvasContext.font = `${defaultFontsize}px ${font}`
+                this.canvasContext.font = fontSize
+                this.workCanvas.style.font = fontSize
+                this.workCanvas.style.fontSize = `${defaultFontsize}px`
 
                 const txtSize = this.canvasContext.measureText(txt)
                 let ascent = Math.max(txtSize.fontBoundingBoxAscent, txtSize.actualBoundingBoxAscent)
@@ -556,13 +577,14 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 let height = Math.ceil((ascent + descent) * scaleFactor)
                 let width = Math.ceil(txtSize.width * scaleFactor)
 
-                // console.log(`${txt}  ${txtSize.actualBoundingBoxAscent + txtSize.actualBoundingBoxDescent} x ${txtSize.width} => ${height} x ${width}`)
+                // console.log(`${txt}  ${txtSize.actualBoundingBoxAscent + txtSize.actualBoundingBoxDescent} x ${txtSize.width} => ${height} x ${width} ${this.canvasContext.font} `)
 
                 this.workCanvas.width = width
                 this.workCanvas.height = height
-
                 const scaledFont = defaultFontsize * scaleFactor
-                this.canvasContext.font = `${scaledFont}px ${font}`
+                fontSize = `${scaledFont}px ${font}`
+                this.canvasContext.font = fontSize
+                this.workCanvas.style.font = fontSize
                 this.canvasContext.fillText(txt, 0, Math.ceil(ascent * scaleFactor))
 
                 // https://stackoverflow.com/questions/12328714/convert-text-to-image-using-javascript
@@ -688,7 +710,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Loads up the values for the encoder
      */
-    public load(): void {
+    public async load(): Promise<void> {
+        // The juliamono font may still be loading, make sure it is there before
+        // we attempt to measure the bitmap characters
+        await this.ensureAltFontReady()
         this.clearErrors();
         const res = this.build();
         $('#answer')
@@ -1410,6 +1435,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let result = ''
         if ((this.state.texta + this.state.textb).match(/[\u0300-\u036F]/) !== null) {
             result += ' combchar'
+            this.useAltFont = true;
+        } else {
+            this.useAltFont = false;
         }
         return result
     }

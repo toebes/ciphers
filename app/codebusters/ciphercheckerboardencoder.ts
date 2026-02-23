@@ -226,6 +226,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public setKeyword(keyword: string): boolean {
         let changed = super.setKeyword(keyword);
         this.cleanRowKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
+        this.validateKeyDifficulty(this.cleanRowKeyword, this.cleanColKeyword)
         return changed;
     }
     /**
@@ -240,8 +241,32 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             changed = true;
         }
         this.cleanColKeyword = this.minimizeString(this.cleanString(this.state.keyword2)).toUpperCase()
+        this.validateKeyDifficulty(this.cleanRowKeyword, this.cleanColKeyword)
         return changed;
     }
+
+    public validateKeyDifficulty(keyWord1: string, keyWord2: string) {
+        if (keyWord1.length === 0 || keyWord2.length === 0) {
+            return
+        }
+
+        let key1Count = this.findAnagrams(keyWord1, 5).length;
+        let key2Count = this.findAnagrams(keyWord2, 5).length;
+        let testType = this.getTestUsage();
+        let errMsg = '';
+        if (testType.includes(ITestType.cregional) || testType.includes(ITestType.bregional) || testType.includes(ITestType.None) || testType.length === 0) {
+            if (key1Count * key2Count > 6) {
+                errMsg = 'Too many row and column combinations. This may cause the question to be too difficult to solve.';
+            }
+        }
+        if (testType.includes(ITestType.cstate) || testType.includes(ITestType.bstate)) {
+            if (key1Count * key2Count > 16) {
+                errMsg = 'Too many row and column combinations. This may cause the question to be too difficult to solve.';
+            }
+        }
+        this.setErrorMsg(errMsg, 'vKeyDifficulty');
+    }
+
     public getPolybiusSequence(polybiusKey: string): string {
         let normalizedKey = this.minimizeString(polybiusKey.toUpperCase()) + this.charset;
         normalizedKey = normalizedKey.replace(/J/g, 'I'); // Normalize 'J' to 'I'

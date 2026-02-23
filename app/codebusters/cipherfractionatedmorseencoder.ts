@@ -2572,7 +2572,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     let firstLetterIndex = this.encodecharset.indexOf(theLetter);
                     thing = this.fillInContinuousPossibilitiesMap(thing, i + 1, endAt, 1, firstLetterIndex + 1);
                     endAt = this.keywordMap.indexOf(theLetter);
-                } else if (delta < 0 || delta < approximateKeywordLength) { // test to estimate if letter is in keyword.
+                } else if (delta < 0 || delta <= approximateKeywordLength) { // (sketchy?) test to estimate if letter is in keyword.
                     if (!this.mentionedLetters.has(theLetter)) {
                         let msg = $('<p/>');
                         msg.append('The letter <code>' + theLetter + '</code> is likely in the keyword');

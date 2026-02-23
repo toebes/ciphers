@@ -201,8 +201,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
     }
     /** Where we are in the editing of the words */
     public wordpos = 0;
-    public baconianWords: string[];
-    public baconianPlain: string[];
+    public baconianWords: string[] = [];
+    public baconianPlain: string[] = [];
     /** Mapping table of all baconian strings to known words */
     public wordlookup: { [index: string]: string[] };
     public setUIDefaults(): void {

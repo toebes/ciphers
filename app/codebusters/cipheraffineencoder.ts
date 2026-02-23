@@ -259,7 +259,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                         position: this.state.solclick1,
                     },
                 ];
-            } else if (this.state.solclick2 === this.state.solclick1 + 1) {
+            } else if (this.state.solclick1 === this.state.solclick2 + 1) {
                 result = [
                     {
                         plaintext: pt2 + pt1,
@@ -483,8 +483,8 @@ export class CipherAffineEncoder extends CipherEncoder {
                 msg +=
                     'You are told that the cipher text ' +
                     this.genMonoText(cribpos[0].ciphertext) +
-                    ' decodes to be ';
-                this.genMonoText(cribpos[0].plaintext);
+                    ' decodes to be ' +
+                    this.genMonoText(cribpos[0].plaintext);
             }
         } else {
             // Crib characters aren't together

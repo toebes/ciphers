@@ -1,14 +1,14 @@
-import { BoolMap, cloneObject } from "../common/ciphercommon";
-import { IOperationType, IState, ITestQuestionFields, ITestType, toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { replaceInfo, findHomonyms } from "../common/homonyms";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFIncButton } from "../common/jtfIncButton";
-import { JTFDialog } from "../common/jtfdialog";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButton } from "../common/jtradiobutton";
-import { JTTable } from "../common/jttable";
-import { CipherEncoder, IEncoderState, suggestedData } from "./cipherencoder";
+import { BoolMap, cloneObject } from '../common/ciphercommon';
+import { IOperationType, IState, ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { findHomonyms, replaceInfo } from '../common/homonyms';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFDialog } from '../common/jtfdialog';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton } from '../common/jtradiobutton';
+import { JTTable } from '../common/jttable';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 export interface IAristocratState extends IEncoderState {
     /** K1/K2/K3/K4 Keyword */
@@ -202,6 +202,11 @@ export class CipherAristocratEncoder extends CipherEncoder {
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
         $("#hint").val(this.state.hint);
+
+        // Patristocrats can NOT be keyword recovery problems by rule, so disable that option.
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            $('#crow').attr('disabled', 'disabled');
+        }
 
         this.checkRandomDifficulty();
         this.checkKeywords();

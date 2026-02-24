@@ -602,10 +602,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const key = this.minimizeString(this.state.keyword);
         this.clearErrors();
         this.validateQuestion();
-        const res = this.buildVigenere(encoded, key);
+        let res = this.buildVigenere(encoded, key);
         $('#answer')
             .empty()
             .append(res);
+        res = this.genSolution(ITestType.None);
+        $('#sol')
+            .empty()
+            .append('<hr/>')
+            .append(res);
+
         this.attachHandlers();
     }
     /**
@@ -707,6 +713,166 @@ export class CipherVigenereEncoder extends CipherEncoder {
             this.addCipherTableRows(table, keystring, strset[source], strset[dest], true);
         }
         result.append(table.generate());
+        return result;
+    }
+    public showShortTable(keychar: string): JQuery<HTMLElement> {
+        const result = $('<div/>', { class: 'grid-x' });
+        const table = new JTTable({ class: 'shrink cell unstriped instlook instvig' });
+
+        const charset = this.getCharset();
+        const keyindex = charset.indexOf(keychar.toUpperCase());
+        let headRow = table.addHeaderRow()
+        headRow.add({
+            celltype: 'td',
+            content: ' ',
+        });
+        let splitRow = undefined
+        if (keyindex > 1) {
+            splitRow = table.addBodyRow()
+            splitRow.add({
+                celltype: 'th',
+                content: '⋮',
+            });
+        }
+        let lookupRow = table.addBodyRow()
+        let colcount = (this.state.cipherType === ICipherType.Porta) ? charset.length / 2 : charset.length
+        let lookupKey = keychar.toUpperCase();
+        if (this.state.cipherType === ICipherType.Porta) {
+            let keyset = Math.floor(keyindex / 2) * 2;
+            lookupKey = charset.substring(keyset, keyset + 1) + ',' + charset.substring(keyset + 1, keyset + 2);
+        }
+
+        lookupRow.add({
+            celltype: 'th',
+            content: lookupKey,
+        });
+
+        for (let i = 0; i < colcount; i++) {
+            const messageChar = charset.substring(i, i + 1);
+            const cipherChar = this.ciphermap.encode(messageChar, keychar.toUpperCase());
+            headRow.add(messageChar);
+            if (splitRow !== undefined) {
+                splitRow.add('⋮');
+            }
+            lookupRow.add(cipherChar);
+        }
+        result.append(table.generate());
+        return result;
+    }
+    public genPortaCryptanalysisSolution(testType: ITestType): JQuery<HTMLElement> {
+        const cribpos = this.placeCrib();
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to solve'));
+        return result
+    }
+    /**
+     * This function generates a table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out. 
+     * This is used for showing the partial solution as you solve each letter of the key for the cipher.
+     * @param strings Array of encoded strings
+     * @param extraclass Extra class to put on the table
+     * @param solved  String of letters in the key that have been solved so far to show the partial solution in the table
+     * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
+     */
+    public showPortaDecodeStatus(strings: string[][], extraclass: string, solved: string): JQuery<HTMLElement> {
+        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        let source = 0;
+        if (this.state.operation === 'encode') {
+            source = 1;
+        }
+        for (const strset of strings) {
+            let repeatedKey = ''
+            let solution = '';
+            let pos = 0;
+            for (let cpos = 0; cpos < strset[0].length; cpos++) {
+                let c = strset[0].substring(cpos, cpos + 1);
+                if (this.isValidChar(c)) {
+                    let keyc = this.state.keyword.substring(pos, pos + 1)
+                    repeatedKey += keyc;
+                    pos = (pos + 1) % this.state.keyword.length;
+                    if (solved !== undefined && solved.indexOf(keyc) >= 0) {
+                        solution += strset[1].substring(cpos, cpos + 1);
+                    } else {
+                        solution += ' ';
+                    }
+                } else {
+                    repeatedKey += ' ';
+                    solution += ' ';
+                }
+            }
+            this.addCipherTableRows(table, repeatedKey, strset[source], solution, true);
+        }
+        return table.generate();
+    }
+    public genDecodeSolution(testType: ITestType): JQuery<HTMLElement> {
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to solve'));
+        result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
+        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
+        const strings = this.buildReplacementVigenere(
+            this.state.cipherString,
+            this.state.keyword,
+            width
+        );
+        result.append(this.showPortaDecodeStatus(strings, extraclass, ''));
+        let remaining = this.undupeString(this.state.keyword).split('')
+        let firstletter = remaining.shift()
+        let discovered = firstletter
+        result.append($('<h4/>').text(`We start with the first letter of the keyword: ${firstletter} and use that to find the corresponding row of the decode table.  Here's the subset of that table`));
+
+        result.append(this.showShortTable(firstletter))
+
+        result.append($('<p/>').text(`We can use this table to decode all the letters in the cipher text that have ${firstletter} as the corresponding letter in the key. This gives us a partial solution:`));
+        if (this.state.cipherType === ICipherType.Porta) {
+            result.append($('<p/>').text(`Remember for the Porta cipher, if the letter you are looking up is between A and M, you look at the top of the table and pick the letter from the corresponding column.  
+                if the letter you are looking up is between N and Z, you look for it in the row of the table and pick the letter from the top of the column.`))
+        }
+        result.append(this.showPortaDecodeStatus(strings, extraclass, discovered));
+
+        result.append($('<p/>').text(`You can repeat this process for each letter in the keyword until you have the full solution.`));
+
+        while (remaining.length > 0) {
+            const letter = remaining.shift()
+            const prefix = remaining.length > 0 ? "Next, " : "Finally, "
+            result.append($('<h4/>').text(`${prefix}we take the letter ${letter} from the keyword and look at the corresponding row in the Porta table:`))
+            discovered += letter
+            result.append(this.showShortTable(letter))
+            result.append($('<p/>').text(`This allows us to decode all the letters in the cipher text that have ${letter} as the corresponding letter in the key, giving us a more complete solution:`));
+            result.append(this.showPortaDecodeStatus(strings, extraclass, discovered));
+        }
+        result.append($('<p/>').text(`After repeating this process for each letter in the keyword, we will have the full decoded solution.`));
+        return result
+    }
+    public genCryptanalysisSolution(testType: ITestType): JQuery<HTMLElement> {
+        const cribpos = this.placeCrib();
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to solve'));
+        return result
+    }
+    /**
+     * Generate the HTML to display the solution for the cipher.
+     * @param testType Type of test
+     */
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        if (this.state.operation === 'crypt') {
+            if (this.state.cipherType === ICipherType.Porta) {
+                return this.genPortaCryptanalysisSolution(testType);
+            }
+            return this.genCryptanalysisSolution(testType);
+        }
+
+        if (this.state.operation === 'decode') {
+            if (this.state.cipherType === ICipherType.Porta) {
+                return this.genDecodeSolution(testType);
+            }
+            return this.genDecodeSolution(testType)
+        }
+        const result = $('<div/>');
         return result;
     }
     /**

@@ -763,6 +763,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const cribpos = this.placeCrib();
         const result = $('<div/>');
         result.append($('<h3/>').text('How to solve'));
+        result.append($('<p/>').text(`Based on the crib information, we can use that information to determine the potential key.`));
+
         return result
     }
     /**

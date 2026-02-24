@@ -252,7 +252,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             ciphertext: this.minimizeString(strings[0][0]).substring(cribpos, cribpos + crib.length),
             position: cribpos,
             criblen: crib.length,
-            cipherlen: strings[0][0].length,
+            cipherlen: this.minimizeString(strings[0][0]).length,
         };
     }
     /**
@@ -310,9 +310,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (cribpos === undefined) {
             msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
         } else if (cribpos.position === 0) {
-            msg += `The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}.`;
+            msg += `The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}`;
         } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
-            msg += `The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}.`;
+            msg += `The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}`;
         } else {
             const startpos = this.getPositionText(cribpos.position + 1);
             const endpos = this.getPositionText(cribpos.position + cribpos.criblen);

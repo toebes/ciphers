@@ -17,6 +17,21 @@ import { Mapper } from '../common/mapper';
 import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
+interface ISolverData {
+    /** The possible replacements for each letter based on the current crib and keyword */
+    replacements: Array<[string, string]>;
+    /** The type of test we are trying to solve for */
+    testType: ITestType;
+    /** Extra class to add to any output tables */
+    extraclass: string;
+    /** The known Row keyword */
+    keyword: string[];
+    /** Indicates where we already have warned them about this being too hard to solve */
+    warned: boolean;
+    /** Array indicating which letters in the key are already solved */
+    known: boolean[];
+}
+
 interface IVigenereState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
@@ -494,13 +509,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
         msg: string,
         keystring: string,
         maxEncodeWidth: number
-    ): string[][] {
+    ): Array<[string, string]> {
         let key = keystring;
         if (key === '') {
             key = 'A';
         }
         const encoded = this.chunk(msg, this.state.blocksize);
-        const result: string[][] = [];
+        const result: Array<[string, string]> = [];
         const charset = this.getCharset();
         let message = '';
         let keyIndex = 0;
@@ -770,29 +785,36 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * This function generates a table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out. 
      * This is used for showing the partial solution as you solve each letter of the key for the cipher.
-     * @param strings Array of encoded strings
-     * @param extraclass Extra class to put on the table
-     * @param solved  String of letters in the key that have been solved so far to show the partial solution in the table
+     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
      */
-    public showPortaDecodeStatus(strings: string[][], extraclass: string, solved: string): JQuery<HTMLElement> {
-        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
-        let source = 0;
-        if (this.state.operation === 'encode') {
-            source = 1;
-        }
-        for (const strset of strings) {
+    public showPortaDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
+        const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
+        const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
+        const [source, dest] = this.state.operation === 'encode' ? [1, 0] : [0, 1];
+
+        let keywordpos = 0;
+        // Make sure we have something in the keyword to avoid errors, we'll just show blanks in the table if we don't have a key
+        for (const strset of solvingdata.replacements) {
+            const src = strset[source] ?? '';
+            const dst = strset[dest] ?? '';
+            const n = src.length;
+
             let repeatedKey = ''
             let solution = '';
-            let pos = 0;
-            for (let cpos = 0; cpos < strset[0].length; cpos++) {
-                let c = strset[0].substring(cpos, cpos + 1);
+            for (let cpos = 0; cpos < n; cpos++) {
+                const c = src[cpos];
+
                 if (this.isValidChar(c)) {
-                    let keyc = this.state.keyword.substring(pos, pos + 1)
+                    const keyc = solvingdata.keyword[keywordpos] ?? '?';
+                    const isKnown = solvingdata.known[keywordpos] ?? false;
+                    keywordpos++
                     repeatedKey += keyc;
-                    pos = (pos + 1) % this.state.keyword.length;
-                    if (solved !== undefined && solved.indexOf(keyc) >= 0) {
-                        solution += strset[1].substring(cpos, cpos + 1);
+
+                    if (keyc === '?') {
+                        solution += ' ';
+                    } else if (isKnown) {
+                        solution += dst[cpos] ?? ' ';
                     } else {
                         solution += ' ';
                     }
@@ -801,27 +823,61 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     solution += ' ';
                 }
             }
-            this.addCipherTableRows(table, repeatedKey, strset[source], solution, true);
+            this.addCipherTableRows(table, repeatedKey, src, solution, true);
         }
         return table.generate();
     }
+    /**
+     * Generate a keyword for mapping the solved letters to show the current decode status of the cipher with the solved letters filled in and the unsolved letters replaced with a question mark.
+     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @param keyword Known keyword
+     * @param solved Solved letters
+     */
+    public setMappedKeyword(solvingdata: ISolverData, keyword: string, solved: string): void {
+        solvingdata.keyword = [];
+        solvingdata.known = [];
+
+        const source = this.state.operation === 'encode' ? 1 : 0;
+        const solvedSet = new Set(solved.split(''));
+        let keypos = 0;
+        for (const strset of solvingdata.replacements) {
+            const src = strset[source] ?? '';
+            for (const c of src) {
+                if (this.isValidChar(c)) {
+                    const keyc = keyword[keypos % keyword.length];
+                    solvingdata.keyword.push(keyc);
+                    solvingdata.known.push(solvedSet.has(keyc));
+                    keypos++;
+                }
+            }
+        }
+    }
     public genDecodeSolution(testType: ITestType): JQuery<HTMLElement> {
+        const solvingData: ISolverData = {
+            replacements: [],
+            testType: testType,
+            extraclass: '',
+            keyword: [],
+            warned: false,
+            known: []
+        }
         let width = 40;
-        let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 30;
-            extraclass = ' atest';
+            solvingData.extraclass = ' atest';
         }
         const result = $('<div/>');
         result.append($('<h3/>').text('How to solve'));
         result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
         result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
-        const strings = this.buildReplacementVigenere(
+        solvingData.replacements = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             width
         );
-        result.append(this.showPortaDecodeStatus(strings, extraclass, ''));
+        this.setMappedKeyword(solvingData, this.state.keyword, this.state.keyword)
+
+        result.append(this.showPortaDecodeStatus(solvingData));
         let remaining = this.undupeString(this.state.keyword).split('')
         let firstletter = remaining.shift()
         let discovered = firstletter
@@ -834,7 +890,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             result.append($('<p/>').text(`Remember for the Porta cipher, if the letter you are looking up is between A and M, you look at the top of the table and pick the letter from the corresponding column.  
                 if the letter you are looking up is between N and Z, you look for it in the row of the table and pick the letter from the top of the column.`))
         }
-        result.append(this.showPortaDecodeStatus(strings, extraclass, discovered));
+        this.setMappedKeyword(solvingData, this.state.keyword, discovered)
+        result.append(this.showPortaDecodeStatus(solvingData));
 
         result.append($('<p/>').text(`You can repeat this process for each letter in the keyword until you have the full solution.`));
 
@@ -845,7 +902,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             discovered += letter
             result.append(this.showShortTable(letter))
             result.append($('<p/>').text(`This allows us to decode all the letters in the cipher text that have ${letter} as the corresponding letter in the key, giving us a more complete solution:`));
-            result.append(this.showPortaDecodeStatus(strings, extraclass, discovered));
+            this.setMappedKeyword(solvingData, this.state.keyword, discovered)
+            result.append(this.showPortaDecodeStatus(solvingData));
         }
         result.append($('<p/>').text(`After repeating this process for each letter in the keyword, we will have the full decoded solution.`));
         return result

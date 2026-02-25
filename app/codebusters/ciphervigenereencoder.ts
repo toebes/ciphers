@@ -1,3 +1,4 @@
+import { r } from 'tar';
 import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
@@ -612,7 +613,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Loads up the values for vigenere
      */
-    public load(): void {
+    public async load(): Promise<void> {
         /* If they want different sizes, rebuild the string in the chunk size */
         const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
 
@@ -814,13 +815,91 @@ export class CipherVigenereEncoder extends CipherEncoder {
             ? slice
             : slice.slice(off).concat(slice.slice(0, off));
     }
+    public mapPattern(word: string): string {
+        if (this.state.cipherType !== ICipherType.Porta) {
+            return word
+        }
+        let result = '';
+        const charset = this.getCharset();
+        for (const c of word) {
+            const keyindex = charset.indexOf(c.toUpperCase());
+            let keyset = Math.floor(keyindex / 2) * 2;
+            result += charset[keyset]
+        }
+        return result;
+    }
+    public allEquivalent(words: string[]): boolean {
+        if (this.state.cipherType === ICipherType.Vigenere) {
+            return words.length > 1
+        }
+        if (words.length < 2) {
+            return true;
+        }
+        const pattern = this.mapPattern(words[0]);
+        for (const word of words) {
+            if (this.mapPattern(word) !== pattern) {
+                return false;
+            }
+        }
+        return true;
+    }
+    public findWords(solvingData: ISolverData, result: JQuery<HTMLElement>, keycheck: string[]): string[] {
+        const keylen = keycheck.length
+        const found = []
+        let patterns = Object.keys(this.Frequent['en'])
+            .filter(key => key.length === keylen && !key.includes("'"));
+        let pattern = '^'
+        for (let keyc of keycheck) {
+            if (keyc === ' ' || keyc === undefined || keyc === '?') {
+                pattern += '.'
+            } else if (keyc.length === 1) {
+                pattern += keyc;
+            } else {
+                pattern += '[' + keyc.split(',').join('') + ']';
+            }
+        }
+        pattern += '$'
+
+        const re = new RegExp(pattern.toUpperCase());
+        for (const pat of patterns) {
+            for (const entry of this.Frequent['en'][pat]) {
+                if (re.test(entry[0])) {
+                    found.push(entry[0]);
+                    if (found.length >= 10) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (found.length >= 10) {
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find at least ${found.length} possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
+            Since there are so many possibilities, we cannot determine the correct keyword yet.`));
+            return keycheck
+        } else if (found.length == 1) {
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find one matching possibility: <strong>${found[0]}</strong> so we will use it.`));
+            return found[0].split('')
+        } else if (found.length > 0) {
+            if (this.allEquivalent(found)) {
+                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
+            Since they all share the same pattern letters, we will just pick the first one.`));
+                return found[0].split('')
+            } else {
+                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
+            However, since they don't all share the same pattern letters, we can't pick one.`));
+                return keycheck
+            }
+        } else {
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we don't find any possibilities for the keyword based on the letters we found.`));
+            return keycheck
+        }
+
+    }
     /**
      * Generate HTML content showing the step by step solution based on the crib placement and key deduction steps, including the important characters in the crib placement and key deduction steps and how to orient the found key characters based on the crib placement.
      * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
      * @returns HTML content
      */
-    public genCryptanalysisSolution(solvingData: ISolverData): JQuery<HTMLElement> {
-        const result = $('<div/>');
+    public async genCryptanalysisSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
         const cribpos = this.placeCrib();
         if (cribpos === undefined) {
             result.append($('<h3/>').text('Unable to place the crib'));
@@ -828,12 +907,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         solvingData.known = new Array<boolean>(cribpos.cipherlen);
         solvingData.known.fill(false);
+        solvingData.keyword = new Array<string>(cribpos.cipherlen);
+        solvingData.keyword.fill(' ');
 
         for (let pos = cribpos.position; pos < cribpos.position + cribpos.criblen; pos++) {
             solvingData.known[pos] = true;
         }
 
-        result.append($('<h3/>').text('How to solve'));
         this.showStep(result, "Step 1: Place the crib and determine the known letters of the key");
 
         result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.`));
@@ -913,15 +993,22 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
                 }
             }
-        }
-
-        this.showStep(result, "Step 3: Fill out the remainder of the keywords and decode");
-        for (let i = 0; i < cribpos.cipherlen; i++) {
-            if (!solvingData.known[i]) {
-                const keyChar = solvingData.keyword[i % keylen];
-                solvingData.keyword[i] = keyChar
-                solvingData.known[i] = true;
+            this.showStep(result, "Step 2A: See if we can fill in the missing letters of the key.");
+            if (this.state.blocksize === 0) {
+                result.append($('<p/>').html(`Since we have the original spacing, we can find words that have only one missing letter to see if we recognize them.
+                    Taking the longest word will give us the most likely chance of figuring out the key.`));
+            } else {
+                result.append($('<p/>').html(`Since we don't have the original spacing, we can look at the start or the end to see if we recongize any words.`));
             }
+        }
+        this.showStep(result, "Step 3: (Optional) Find possible keywords which match the key characters we looked up");
+        keycheck = this.findWords(solvingData, result, keycheck);
+
+        this.showStep(result, "Step 4: Fill out the remainder of the keywords and decode");
+        for (let i = 0; i < cribpos.cipherlen; i++) {
+            const keyChar = keycheck[i % keylen];
+            solvingData.keyword[i] = keyChar
+            solvingData.known[i] = true;
         }
         result.append(this.showPortaDecodeStatus(solvingData));
         return result;
@@ -1020,6 +1107,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
                         let sol = this.ciphermap.decode(c, keyc[0]);
+                        if (keyc[0] === ' ') {
+                            sol = dst[cpos]
+                        }
                         if (sol !== undefined && keyc[0] != '?' && sol.toUpperCase() !== dst[cpos].toUpperCase()) {
                             solvingdata.valid = false;
                         }
@@ -1061,9 +1151,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
         }
     }
-    public genDecodeSolution(solvingData: ISolverData): JQuery<HTMLElement> {
-        const result = $('<div/>');
-        result.append($('<h3/>').text('How to solve'));
+    public async genDecodeSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
         result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
         result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
 
@@ -1105,6 +1193,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to solve'));
+
         const solvingData: ISolverData = {
             replacements: [],
             testType: testType,
@@ -1125,11 +1216,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
             width
         );
 
-        if (this.state.operation === 'crypt') {
-            return this.genCryptanalysisSolution(solvingData);
-        }
+        this.stopGenerating = false;
+        this.isLoading = true
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
+            if (this.state.operation === 'crypt') {
+                this.genCryptanalysisSolution(solvingData, result);
+            } else {
+                this.genDecodeSolution(solvingData, result);
+            }
+        })
 
-        return this.genDecodeSolution(solvingData);
+        return result;
     }
     /**
      * Generate the HTML to display the question for a cipher

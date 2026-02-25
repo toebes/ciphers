@@ -30,6 +30,8 @@ interface ISolverData {
     warned: boolean;
     /** Array indicating which letters in the key are already solved */
     known: boolean[];
+    /** Last key check was valid */
+    valid: boolean;
 }
 
 interface IVigenereState extends IEncoderState {
@@ -730,6 +732,15 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
+    public getRowKey(keychar: string): string {
+        if (this.state.cipherType === ICipherType.Porta) {
+            const charset = this.getCharset();
+            const keyindex = charset.indexOf(keychar.toUpperCase());
+            let keyset = Math.floor(keyindex / 2) * 2;
+            return charset[keyset] + ',' + charset[keyset + 1];
+        }
+        return keychar
+    }
     public showShortTable(keychar: string): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         const table = new JTTable({ class: 'shrink cell unstriped instlook instvig' });
@@ -751,11 +762,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         let lookupRow = table.addBodyRow()
         let colcount = (this.state.cipherType === ICipherType.Porta) ? charset.length / 2 : charset.length
-        let lookupKey = keychar.toUpperCase();
-        if (this.state.cipherType === ICipherType.Porta) {
-            let keyset = Math.floor(keyindex / 2) * 2;
-            lookupKey = charset.substring(keyset, keyset + 1) + ',' + charset.substring(keyset + 1, keyset + 2);
-        }
+        let lookupKey = this.getRowKey(keychar.toUpperCase());
 
         lookupRow.add({
             celltype: 'th',
@@ -774,14 +781,167 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
-    public genPortaCryptanalysisSolution(testType: ITestType): JQuery<HTMLElement> {
-        const cribpos = this.placeCrib();
-        const result = $('<div/>');
-        result.append($('<h3/>').text('How to solve'));
-        result.append($('<p/>').text(`Based on the crib information, we can use that information to determine the potential key.`));
-
-        return result
+    public fixedC(val: string): string {
+        return `<span class="hl">${val}</span>`;
     }
+    public rotatedKey(keys: string[], keylen: number, keyoff: number): string[] {
+        const slice = keys.slice(0, keylen);
+        const off = keyoff % slice.length;
+
+        return off === 0
+            ? slice
+            : slice.slice(off).concat(slice.slice(0, off));
+    }
+    public genCryptanalysisSolution(solvingData: ISolverData): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        const cribpos = this.placeCrib();
+        if (cribpos === undefined) {
+            result.append($('<h3/>').text('Unable to place the crib'));
+            return result;
+        }
+        solvingData.known = new Array<boolean>(cribpos.cipherlen);
+        solvingData.known.fill(false);
+
+        for (let pos = cribpos.position; pos < cribpos.position + cribpos.criblen; pos++) {
+            solvingData.known[pos] = true;
+        }
+
+        result.append($('<h3/>').text('How to solve'));
+        this.showStep(result, "Step 1: Place the crib and determine the known letters of the key");
+
+        result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.`));
+        result.append(this.showPortaDecodeStatus(solvingData));
+
+        result.append($('<p/>').text(`Since we know the mapping of these letters, we can look at the corresponding letters in the Porta table to determine the corresponding letters in the key:`));
+
+        let keywords = []
+        for (let pos = 0; pos < cribpos.criblen; pos++) {
+            const cipherChar = cribpos.ciphertext[pos]
+            const plainChar = cribpos.plaintext[pos]
+            const keyChar = this.getRowKey(this.ciphermap.decodeKey(cipherChar, plainChar));
+            solvingData.keyword[cribpos.position + pos] = keyChar;
+            keywords.push(keyChar)
+            if (cipherChar < plainChar) {
+                result.append($('<p/>').html(`Because the cipher character ${this.fixedC(cipherChar)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedC(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedC(keyChar)}.`));
+            } else {
+                result.append($('<p/>').html(`Because the plaintext character ${this.fixedC(plainChar)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedC(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedC(keyChar)}.`));
+            }
+        }
+        result.append(this.showPortaDecodeStatus(solvingData));
+        let keylen = 2;
+        // Let's see if we think that we have the full keyword figured out.
+        if (keywords.length > 0) {
+            keylen = keywords.length
+            const first = keywords[0];
+            const occursindex = keywords.indexOf(first, 1)
+            if (occursindex >= 0) {
+                // We have a repeat, let's see if anything after the repeat is the same.
+                let size = keywords.length - occursindex
+                keylen = occursindex
+                if (keywords.slice(0, size).join('') === keywords.slice(occursindex, occursindex + size).join('')) {
+                    if (size === 1) {
+                        result.append($('<p/>').html(`We can see that the keyword letter ${this.fixedC(first)} repeats at the end, which is a good possibility that we have a ${keylen} letter keyword.`));
+                    } else {
+                        result.append($('<p/>').html(`We can see that the first ${size} keyword letters repeat at the end, which is a strong indication that we have a ${keylen} letter keyword.`));
+                    }
+                }
+            }
+        }
+        this.showStep(result, "Step 2: Figure out the length of the keyword");
+        result.append($('<p/>').text(`Based on the letters revealed by the crib, we know that the keyword must be at least ${keylen} letters long.`));
+        let keyoff = keylen - (cribpos.position % keylen);
+        result.append($('<p/>').text(`With the crib starting at position ${cribpos.position + 1}, we divide the position by the keyword length to determine that the keyword would start at ${cribpos.position + keyoff} and repeat every ${keylen} letters.
+            We can test this out by filling the first 10 letters of the cipher with the corresponding key letters and decoding them to see what we get.
+            Note that we don't have to actually figure out the keyword, just copy the letters we know down.`));
+        // Make it easier by building a properly oriented keyword. 
+        let keycheck = this.rotatedKey(keywords.slice(0, keylen), keylen, keyoff)
+
+        for (let i = 0; i < 10; i++) {
+            const keychar = keycheck[i % keylen]
+            solvingData.keyword[i] = keychar;
+            solvingData.known[i] = true;
+        }
+        result.append(this.showPortaDecodeStatus(solvingData));
+        if (solvingData.valid) {
+            result.append($('<p/>').html(`This looks like a valid solution.`));
+        } else {
+            result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
+        }
+
+        this.showStep(result, "Step 3: Fill out the remainder of the keywords and decode");
+        for (let i = 0; i < cribpos.cipherlen; i++) {
+            if (!solvingData.known[i]) {
+                const keyChar = solvingData.keyword[i % keylen];
+                solvingData.keyword[i] = keyChar
+                solvingData.known[i] = true;
+            }
+        }
+        result.append(this.showPortaDecodeStatus(solvingData));
+        return result;
+    }
+    /**
+     * Adds a set of answer rows to a table.
+     * @param table Table to add the rows to
+     * @param overline specifies answer characters (typically from a vigenere or running key)
+     *                 that someone would use to compute the answer.  undefined indicates not to use it
+     * @param cipherline the line that they are being asked to encode/decode
+     * @param answerline the answer (if any).  undefined to leave it blank
+     * @param blankline true=add an extra line to the table.
+     */
+    public addAnnotatedCipherTableRows(
+        table: JTTable,
+        overline: string[],
+        cipherline: string,
+        answerline: string,
+    ): void {
+        let rowover;
+        if (overline !== undefined) {
+            rowover = table.addBodyRow();
+        }
+        const rowcipher = table.addBodyRow();
+        const rowanswer = table.addBodyRow();
+        // Blank rows aren't on the tiny answer key
+        const rowblank = table.addBodyRow({ class: "notiny" });
+
+        for (let i = 0; i < cipherline.length; i++) {
+            const c = cipherline.substring(i, i + 1);
+            let aclass = 'e v';
+            let a = ' ';
+            if (answerline !== undefined) {
+                a = answerline.substring(i, i + 1);
+                aclass = 'a v';
+            }
+            if (overline !== undefined) {
+                if (this.isValidChar(c)) {
+                    rowover.add({
+                        settings: { class: 'o v' },
+                        content: overline[i],
+                    });
+                } else {
+                    rowover.add(overline[i]);
+                }
+            }
+            if (this.isValidChar(c)) {
+                rowcipher.add({
+                    settings: { class: 'q v' },
+                    content: c,
+                });
+                rowanswer.add({
+                    settings: { class: aclass },
+                    content: a,
+                });
+            } else {
+                if (answerline === undefined) {
+                    a = c;
+                }
+                rowcipher.add(c);
+                rowanswer.add(a);
+            }
+            rowblank.add('');
+        }
+        return;
+    }
+
     /**
      * This function generates a table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out. 
      * This is used for showing the partial solution as you solve each letter of the key for the cipher.
@@ -789,6 +949,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
      */
     public showPortaDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
+        solvingdata.valid = true;
         const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
         const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
         const [source, dest] = this.state.operation === 'encode' ? [1, 0] : [0, 1];
@@ -800,7 +961,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             const dst = strset[dest] ?? '';
             const n = src.length;
 
-            let repeatedKey = ''
+            let repeatedKey = []
             let solution = '';
             for (let cpos = 0; cpos < n; cpos++) {
                 const c = src[cpos];
@@ -809,21 +970,23 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     const keyc = solvingdata.keyword[keywordpos] ?? '?';
                     const isKnown = solvingdata.known[keywordpos] ?? false;
                     keywordpos++
-                    repeatedKey += keyc;
-
-                    if (keyc === '?') {
-                        solution += ' ';
-                    } else if (isKnown) {
-                        solution += dst[cpos] ?? ' ';
+                    repeatedKey.push(keyc);
+                    // We can't actually use the computed solution because we may be testing a bad key
+                    if (isKnown) {
+                        let sol = this.ciphermap.decode(c, keyc[0]);
+                        if (sol !== undefined && sol.toUpperCase() !== dst[cpos].toUpperCase()) {
+                            solvingdata.valid = false;
+                        }
+                        solution += sol ?? ' ';
                     } else {
                         solution += ' ';
                     }
                 } else {
-                    repeatedKey += ' ';
+                    repeatedKey.push(' ');
                     solution += ' ';
                 }
             }
-            this.addCipherTableRows(table, repeatedKey, src, solution, true);
+            this.addAnnotatedCipherTableRows(table, repeatedKey, src, solution);
         }
         return table.generate();
     }
@@ -852,29 +1015,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
         }
     }
-    public genDecodeSolution(testType: ITestType): JQuery<HTMLElement> {
-        const solvingData: ISolverData = {
-            replacements: [],
-            testType: testType,
-            extraclass: '',
-            keyword: [],
-            warned: false,
-            known: []
-        }
-        let width = 40;
-        if (testType === ITestType.aregional) {
-            width = 30;
-            solvingData.extraclass = ' atest';
-        }
+    public genDecodeSolution(solvingData: ISolverData): JQuery<HTMLElement> {
         const result = $('<div/>');
         result.append($('<h3/>').text('How to solve'));
         result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
         result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
-        solvingData.replacements = this.buildReplacementVigenere(
-            this.state.cipherString,
-            this.state.keyword,
-            width
-        );
+
         this.setMappedKeyword(solvingData, this.state.keyword, this.state.keyword)
 
         result.append(this.showPortaDecodeStatus(solvingData));
@@ -908,32 +1054,36 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append($('<p/>').text(`After repeating this process for each letter in the keyword, we will have the full decoded solution.`));
         return result
     }
-    public genCryptanalysisSolution(testType: ITestType): JQuery<HTMLElement> {
-        const cribpos = this.placeCrib();
-        const result = $('<div/>');
-        result.append($('<h3/>').text('How to solve'));
-        return result
-    }
     /**
      * Generate the HTML to display the solution for the cipher.
      * @param testType Type of test
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        const solvingData: ISolverData = {
+            replacements: [],
+            testType: testType,
+            extraclass: '',
+            keyword: [],
+            warned: false,
+            known: [],
+            valid: false
+        }
+        let width = 40;
+        if (testType === ITestType.aregional) {
+            width = 30;
+            solvingData.extraclass = ' atest';
+        }
+        solvingData.replacements = this.buildReplacementVigenere(
+            this.state.cipherString,
+            this.state.keyword,
+            width
+        );
+
         if (this.state.operation === 'crypt') {
-            if (this.state.cipherType === ICipherType.Porta) {
-                return this.genPortaCryptanalysisSolution(testType);
-            }
-            return this.genCryptanalysisSolution(testType);
+            return this.genCryptanalysisSolution(solvingData);
         }
 
-        if (this.state.operation === 'decode') {
-            if (this.state.cipherType === ICipherType.Porta) {
-                return this.genDecodeSolution(testType);
-            }
-            return this.genDecodeSolution(testType)
-        }
-        const result = $('<div/>');
-        return result;
+        return this.genDecodeSolution(solvingData);
     }
     /**
      * Generate the HTML to display the question for a cipher

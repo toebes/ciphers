@@ -732,6 +732,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
+    /**
+     * Map a character to the row lookup.  For Porta this is a pair of characters, for Vigenere it's just the character itself.
+     * @param keychar Keyword character
+     * @returns Printable row title
+     */
     public getRowKey(keychar: string): string {
         if (this.state.cipherType === ICipherType.Porta) {
             const charset = this.getCharset();
@@ -741,6 +746,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         return keychar
     }
+    /**
+     * Show a single row of the Vigenere or Porta table for a given keyword character.  This is used in the solution to show how to look up the cipher character based on the key and message character.
+     * @param keychar 
+     * @returns HTML rendered table
+     */
     public showShortTable(keychar: string): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         const table = new JTTable({ class: 'shrink cell unstriped instlook instvig' });
@@ -781,9 +791,21 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
+    /**
+     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
+     * @param val Character to annotate
+     * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
+     */
     public fixedC(val: string): string {
         return `<span class="hl">${val}</span>`;
     }
+    /**
+     * Map the found key characters to the correct positions in the keyword based on the crib placement and return a properly oriented keyword for display in the solution.  This is used in the solution to show how to orient the found key characters based on the crib placement.
+     * @param keys Key characters found based on the crib placement
+     * @param keylen Length of the keyword based on the crib placement
+     * @param keyoff Offset to apply to the key characters based on the crib placement
+     * @returns Rotated key characters for display in the solution
+     */
     public rotatedKey(keys: string[], keylen: number, keyoff: number): string[] {
         const slice = keys.slice(0, keylen);
         const off = keyoff % slice.length;
@@ -792,6 +814,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
             ? slice
             : slice.slice(off).concat(slice.slice(0, off));
     }
+    /**
+     * Generate HTML content showing the step by step solution based on the crib placement and key deduction steps, including the important characters in the crib placement and key deduction steps and how to orient the found key characters based on the crib placement.
+     * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
+     * @returns HTML content
+     */
     public genCryptanalysisSolution(solvingData: ISolverData): JQuery<HTMLElement> {
         const result = $('<div/>');
         const cribpos = this.placeCrib();
@@ -906,7 +933,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
      *                 that someone would use to compute the answer.  undefined indicates not to use it
      * @param cipherline the line that they are being asked to encode/decode
      * @param answerline the answer (if any).  undefined to leave it blank
-     * @param blankline true=add an extra line to the table.
      */
     public addAnnotatedCipherTableRows(
         table: JTTable,

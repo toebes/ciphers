@@ -866,6 +866,26 @@ export class CipherVigenereEncoder extends CipherEncoder {
             result.append($('<p/>').html(`This looks like a valid solution.`));
         } else {
             result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
+            let keyoptions = keywords.slice(0, keylen).concat(Array(10).fill('?'));
+            for (let extrakeylen = keylen + 1; extrakeylen < 10; extrakeylen++) {
+                // Let's try adding an extra unknown letter to the key and see if it looks better
+                keyoff = extrakeylen - (cribpos.position % extrakeylen);
+                keycheck = this.rotatedKey(keyoptions.slice(0, extrakeylen), extrakeylen, keyoff)
+                const minextra = Math.min(Math.ceil(10 / keylen) * extrakeylen, cribpos.cipherlen)
+                for (let i = 0; i < minextra; i++) {
+                    const keychar = keycheck[i % extrakeylen]
+                    solvingData.keyword[i] = keychar;
+                    solvingData.known[i] = true;
+                }
+                result.append(this.showPortaDecodeStatus(solvingData));
+                if (solvingData.valid) {
+                    result.append($('<p/>').html(`This looks like a valid solution, so we have likely found the correct keyword length of ${extrakeylen}.`));
+                    keylen = extrakeylen;
+                    break;
+                } else {
+                    result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
+                }
+            }
         }
 
         this.showStep(result, "Step 3: Fill out the remainder of the keywords and decode");
@@ -974,7 +994,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
                         let sol = this.ciphermap.decode(c, keyc[0]);
-                        if (sol !== undefined && sol.toUpperCase() !== dst[cpos].toUpperCase()) {
+                        if (sol !== undefined && keyc[0] != '?' && sol.toUpperCase() !== dst[cpos].toUpperCase()) {
                             solvingdata.valid = false;
                         }
                         solution += sol ?? ' ';

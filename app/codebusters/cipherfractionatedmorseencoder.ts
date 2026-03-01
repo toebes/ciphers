@@ -1862,7 +1862,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             let backup = i - 1;
             // Counts the number of slots between known mappings
             let count = 0;
-            while (this.possibilitiesMap[backup].length !== 1) {
+            while (backup >= 0 && this.possibilitiesMap[backup].length !== 1) {
                 count += 1;
                 backup--;
             }
@@ -2723,7 +2723,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             hintString[ptindex] = hintString[ptindex].replace(new RegExp('/', 'g'), ' ');
         }
 
-        const hint = this.checkHintCrib(testType, result, hintStrings);
+        const hint = this.checkHintCrib(testType, result, strings);
         if (hint === undefined) {
             return result;
         }

@@ -532,18 +532,25 @@ export class CipherMorseEncoder extends CipherEncoder {
             let startAdjustment = 0;
 
             // For fractionated morse, adjust the start to get the entire morse triplet of the first crib letter.
-            while ((startCribPosition + startAdjustment) % 3 != 0) {
-                startAdjustment += 1;
+            if ((startCribPosition % 3 === 0)) {
+                startAdjustment = 3;
+            } else {
+                while ((startCribPosition - startAdjustment) % 3 != 0) {
+                    startAdjustment += 1;
+                }
             }
             // back up start
             startCribPosition -= startAdjustment;
 
+            // include adjustment now for the length
+            lengthCribPosition += startAdjustment
+
             // For fractionated morse, we need to have a multiple of 3 to pick up the last ciphertext character.
-            while ((match[0].length + lengthAdjustment) % 3 != 0) {
-                lengthAdjustment += 1;
+            while ((lengthCribPosition + lengthAdjustment) % 3 != 0) {
+                lengthAdjustment += 1
             }
             // extend length
-            lengthCribPosition += (startAdjustment + lengthAdjustment);
+            lengthCribPosition += lengthAdjustment;
         }
         // The indexes are directly corresponding between letter location and cipher text.
         const cipherCrib = cipherText.substring(startCribPosition, startCribPosition + lengthCribPosition);

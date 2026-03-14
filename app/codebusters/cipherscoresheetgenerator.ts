@@ -100,6 +100,12 @@ export default class CipherScoreSheetGenerator {
     private static MAX_TEAMS: number = 100;
 
     /**
+     * Deduction per question (depending on the divison, 50 for A, 100 for B/C).
+     * @default 100
+     */
+    private static MAX_Q_DEDUCTION: number = 100;
+
+    /**
      * Width of the header column in the score sheet.
      * @default 15
      */
@@ -155,6 +161,10 @@ export default class CipherScoreSheetGenerator {
             exportTestData[Object.keys(exportTestData).filter(key => key.startsWith('TEST')).sort()[0]] as ITest;
 
         const testType: ITestType = testData.testtype as ITestType;
+
+        if (testType === ITestType.aregional || testType === ITestType.astate) {
+            this.MAX_Q_DEDUCTION = 50;
+        }
 
         const testTitle: string = `${testData.title} ${testTypeNames[testType]} Score Sheet`;
 
@@ -1052,7 +1062,7 @@ export default class CipherScoreSheetGenerator {
                     const mistakeCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 1, c: j });
                     const pointCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 2, c: j });
                     const calcMistakes = `MAX('Score Entry'!${translatedCellAddress} - ${mistakeCellAddress}, 0)`;
-                    const calcMistakePoints = `MIN(${pointCellAddress}, ${calcMistakes} * 100)`;
+                    const calcMistakePoints = `MIN(${pointCellAddress}, ${calcMistakes} * ${this.MAX_Q_DEDUCTION})`;
                     const safePointCalc = `MAX(${pointCellAddress} - ${calcMistakePoints}, 0)`;
                     cell.f = teamNumberConditionFormulaInject(`IF(TRIM('Score Entry'!${translatedCellAddress}) <> "", ${safePointCalc}, 0)`);
                     cell.s = this.getCellStyle(

@@ -91,6 +91,10 @@ export class CipherEncoder extends CipherHandler {
         this.pointsButton,
         this.guidanceButton,
     ];
+
+    // String to hold search text for suggested questions
+    private questionSearchText = '';
+
     /**
      * Make a copy of the current state
      */
@@ -293,6 +297,16 @@ export class CipherEncoder extends CipherHandler {
         let changed = false;
         if (this.state.crib !== crib) {
             this.state.crib = crib;
+            changed = true;
+        }
+        return changed;
+    }
+
+    // Updates search string from input field
+    private setQuestionSearchText(qst: string): boolean {
+        let changed = false;
+        if (this.questionSearchText !== qst) {
+            this.questionSearchText = qst;
             changed = true;
         }
         return changed;
@@ -936,6 +950,12 @@ export class CipherEncoder extends CipherHandler {
      */
     public createQuestionTextDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<div/>');
+
+        // Add search field
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        xDiv.append(JTFLabeledInput('Search', 'text', 'questionsearch', '', 'auto'))
+        dlgContents.append(xDiv)
+
         dlgContents.append($('<div/>', { id: 'sqtext', class: '' }));
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'questionopts' }))
         dlgContents.append(
@@ -1814,7 +1834,7 @@ export class CipherEncoder extends CipherHandler {
                 'Frozen inside an ice core sample from Antarctica: this ${fixedName} message${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
                 'A mysterious app update added this ${fixedName} lock screen${langtext}—it\'s actually ${this.state.author}\'s quote${operationtext2}.${hinttext}${operationtext}',
                 'Projected by a broken laser pointer during physics class, solve this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'The school\'s ancient overhead projector flickered and burned this ${fixedName} message${langtext} onto the screen—decode ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'The school\'s ancient overhead projector flickered and burned this ${fixedName} Cipher message${langtext} onto the screen—decode the quote from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
                 'Your solar-powered calculator started flashing this ${fixedName} sequence${langtext}—it\'s ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
                 'Etched into the bottom of the cafeteria\'s mystery-cookie tray: this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'Hidden in the margin of a library book on black holes: decode this ${fixedName} version${langtext} of ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
@@ -1921,6 +1941,17 @@ export class CipherEncoder extends CipherHandler {
 
         // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
         let found = 0
+
+        // Find all questions with search string first, so they are at the top.
+        for (let i = 0; found < qcount && i < qOptions.length; i++) {
+            const question = qOptions[i];
+            if (question.toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
+                picked[question] = true;
+                if (action(found, question)) {
+                    found++;
+                }
+            }
+        }
 
         for (let tval = 0; found < qcount && tval < 50; tval++) {
             // Pick a random number from the set of choices
@@ -2334,6 +2365,12 @@ export class CipherEncoder extends CipherHandler {
             .off('click')
             .on('click', () => {
                 this.genQuestionSuggestions()
+            });
+        $('#questionsearch')
+            .off('input')
+            .on('input', (e) => {
+                const searchtext = $(e.target).val() as string
+                this.setQuestionSearchText(searchtext);
             });
 
         $('.kwset')

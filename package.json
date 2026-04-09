@@ -120,7 +120,7 @@
         "split.js": "^1.6.4",
         "syllable": "^5.0.0",
         "tar": "^7.5.11",
-        "underscore": "^1.13.1",
+        "underscore": "^1.13.8",
         "what-input": "^5.2.10",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
         "xlsx-js-style": "github:gitbrent/xlsx-js-style"

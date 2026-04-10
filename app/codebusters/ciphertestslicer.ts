@@ -149,7 +149,7 @@ export class CipherTestSlicer extends CipherTest {
                 }).text('No Input Test')
             );
         }
-        // Go through all the tests weknow about
+        // Go through all the tests we know about
         const testcount = this.getTestCount()
         for (let test = 0; test < testcount; test++) {
             // If it is a valid entry, add it to the selection list

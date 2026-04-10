@@ -237,21 +237,23 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             return
         }
 
-        let key1Count = this.findAnagrams(keyWord1, 5).length;
-        let key2Count = this.findAnagrams(keyWord2, 5).length;
-        let testType = this.getTestUsage();
-        let errMsg = '';
-        if (testType.includes(ITestType.cregional) || testType.includes(ITestType.bregional) || testType.includes(ITestType.None) || testType.length === 0) {
-            if (key1Count * key2Count > 6) {
-                errMsg = 'Too many row and column combinations. This may cause the question to be too difficult to solve.';
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
+            let key1Count = this.findAnagrams(keyWord1, 5).length;
+            let key2Count = this.findAnagrams(keyWord2, 5).length;
+            let testType = this.getTestUsage();
+            let errMsg = '';
+            if (testType.includes(ITestType.cregional) || testType.includes(ITestType.bregional) || testType.includes(ITestType.None) || testType.length === 0) {
+                if (key1Count * key2Count > 6) {
+                    errMsg = 'Too many row and column combinations. This may cause the question to be too difficult to solve.';
+                }
             }
-        }
-        if (testType.includes(ITestType.cstate) || testType.includes(ITestType.bstate)) {
-            if (key1Count * key2Count > 16) {
-                errMsg = 'Too many row and column combinations. This may cause the question to be too difficult to solve.';
+            if (testType.includes(ITestType.cstate) || testType.includes(ITestType.bstate)) {
+                if (key1Count * key2Count > 16) {
+                    errMsg = 'Too many row and column combinations. This may cause the question to be too difficult to solve.';
+                }
             }
-        }
-        this.setErrorMsg(errMsg, 'vKeyDifficulty');
+            this.setErrorMsg(errMsg, 'vKeyDifficulty');
+        })
     }
 
     public getPolybiusSequence(polybiusKey: string): string {

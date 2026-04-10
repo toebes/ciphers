@@ -7,6 +7,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { buttonInfo, CipherTest, ITestState } from './ciphertest';
 import { IEncoderState } from './cipherencoder';
+import { JTFDialog } from '../common/jtfdialog';
 
 type Bounds = Readonly<{ min: number; max: number }>;
 
@@ -41,6 +42,7 @@ export class CipherTestGenerator extends CipherTest {
         { title: 'Show Custom Header', color: 'primary', id: 'show-custom-header' },
         { title: 'Adjust Scores', color: 'primary', id: 'adjust' },
         { title: 'Export Test', color: 'primary', id: 'export' },
+        { title: 'Append Another Test', color: 'primary', id: 'append' },
         { title: 'Import Tests from File', color: 'primary', id: 'import' },
         { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
@@ -69,13 +71,13 @@ export class CipherTestGenerator extends CipherTest {
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         let errorcount = 0;
-        let hasOddScores = false;
+        let hasNon5Scores = false;
         let specialBonusTypes: BoolMap = {}
         if (testcount === 0) {
             result.append($('<h3>').text('No Tests Created Yet'));
             return result;
         }
-        if (this.state.test > testcount) {
+        if (this.state.test >= testcount) {
             result.append($('<h3>').text('Test not found'));
             return result;
         }
@@ -186,7 +188,7 @@ export class CipherTestGenerator extends CipherTest {
                     SpecialBonusCount++;
                 }
                 if (qstate.errorcount) { errorcount += qstate.errorcount; }
-                if (qstate.points % 5) { hasOddScores = true }
+                if (qstate.points % 5) { hasNon5Scores = true }
             }
         }
 
@@ -208,7 +210,7 @@ export class CipherTestGenerator extends CipherTest {
         });
         $('.testerrors').empty();
 
-        if (test.count > 0 && !hasOddScores) {
+        if (test.count > 0 && !hasNon5Scores) {
             errors.push(`All of the question scores end in 0 or 5 which makes it more likely to have a tie.`)
         }
         /**
@@ -494,6 +496,131 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
+    /**
+     * Generate the drop down to allow selection of a test
+     * @returns HTML Elements for the select within a cell
+     */
+    public makeTestDropdown(): JQuery<HTMLElement> {
+        const result = $('<div>', { class: 'cell large-4 medium-6' })
+        const inputgroupdiv = $('<div/>', { class: "input-group" })
+        const titlespan = $('<span/>', { class: "input-group-label" }).text(`Test`)
+
+        // Build the selection of the tests
+        const select = $('<select/>', { id: `its`, class: 'itsel input-group-field' })
+        select.append(
+            $('<option />', {
+                value: '',
+                selected: 'selected',
+            }).text('-- Select test to append --')
+        );
+        // Go through all the tests we know about
+        const testcount = this.getTestCount()
+        for (let test = 0; test < testcount; test++) {
+            // Of course skip the test that we are currently on
+            if (test === this.state.test) {
+                continue
+            }
+            // Add it to the list of options to select
+            const testentry = this.getTestEntry(test)
+            let testTitle = testentry.title || `Test ${test + 1}`
+            testTitle += `: ${testentry.count} questions`
+            if (testentry.timed === -1 && testentry.testtype !== ITestType.aregional) {
+                testTitle += ' (no timed question)'
+            }
+
+            select.append(
+                $('<option />', {
+                    value: test,
+                }).text(testTitle)
+            );
+        }
+        inputgroupdiv.append(titlespan)
+        inputgroupdiv.append(select)
+
+        result.append(inputgroupdiv)
+        return result
+    }
+
+    /**
+     * Append the questions from another test to this one.
+     * This is basically a merge of the two tests with no duplicates.
+     * The timed question from the new test goes in the timed slot if there is not
+     * already a timed question and appended to the list of questions otherwise.
+     * The rest of the questions are appended in order after that.
+     * @param testnum Test number to append
+     */
+    public appendTest(testnum: number): void {
+        const test = this.getTestEntry(this.state.test);
+        const appendTest = this.getTestEntry(testnum);
+        // Build a map of the questions we already have so we can skip them when we append.
+        // This includes the timed question since that is basically just a special slot in the list of questions.
+        const skipQuestions: { [index: number]: boolean } = {};
+        if (test.timed !== -1) {
+            skipQuestions[test.timed] = true;
+        }
+        for (const entry of test.questions) {
+            skipQuestions[entry] = true;
+        }
+        // First we check the timed question.
+        // If it exists and we don't already have it, then we add it.
+        // If we already have a timed question, then we just add it to the list of questions.
+        if (appendTest.timed !== -1 && !skipQuestions[appendTest.timed]) {
+            if (test.timed === -1) {
+                test.timed = appendTest.timed;
+            } else {
+                test.questions.push(appendTest.timed);
+                test.count++;
+            }
+            skipQuestions[appendTest.timed] = true;
+        }
+        // Next we add all the remaining questions in order if we don't already have them.
+        for (const entry of appendTest.questions) {
+            if (!skipQuestions[entry]) {
+                test.questions.push(entry);
+                test.count++;
+                skipQuestions[entry] = true;
+            }
+        }
+        // Remember to save the test back after we are done
+        this.setTestEntry(this.state.test, test);
+        // And refresh the UI to show the new questions
+        this.updateOutput();
+    }
+    /**
+     * Bring up the dialog to select a test to append and then append it to the current test.
+     */
+    public appendQuestions(): void {
+        this.openAppendDialog();
+    }
+
+    /**
+     * Open the dialog to select a test to append and then append it to the current test.
+     */
+    public openAppendDialog(): void {
+        let testnum = -1;
+        // Disable the OK button until they select a test
+        $('#okappend').attr('disabled', 'disabled');
+        // Populate the list of tests to append
+        $('#appendtst').replaceWith(this.makeTestDropdown());
+        // Watch for any change in the selection and enable the OK button when they select something
+        $('#its')
+            .prop('selectedIndex', 0)
+            .off('change')
+            .on('change', (e) => {
+                $('#okappend').removeAttr('disabled');
+                testnum = $(e.target).val() ? Number($(e.target).val()) : -1;
+            });
+        // When they click the OK button, append the selected test and close the dialog
+        $('#okappend')
+            .off('click')
+            .on('click', (e) => {
+                $('#AppendTest').foundation('close');
+                if (testnum !== -1) {
+                    this.appendTest(testnum);
+                }
+            });
+        $('#AppendTest').foundation('open');
+    }
 
     public loadCustomHeaderImage(): void {
         this.openImportImage();
@@ -505,6 +632,26 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
+    public createMainMenu(): JQuery<HTMLElement> {
+        const result = super.createMainMenu();
+        result.append(this.createAppendDialog())
+        return result;
+    }
+    private createAppendDialog(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>', {
+            id: 'appendtst',
+            class: 'appendlist',
+            size: 10,
+        });
+        const openFileDlg = JTFDialog(
+            'AppendTest',
+            'Select Test to Append',
+            dlgContents,
+            'okappend',
+            'OK'
+        );
+        return openFileDlg;
+    }
 
     public attachHandlers(): void {
         super.attachHandlers();
@@ -512,6 +659,11 @@ export class CipherTestGenerator extends CipherTest {
             .off('click')
             .on('click', (e) => {
                 this.exportTest($(e.target));
+            });
+        $('#append')
+            .off('click')
+            .on('click', () => {
+                this.appendQuestions();
             });
         $('#import')
             .off('click')

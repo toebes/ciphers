@@ -425,6 +425,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         JTRadioButtonSet('operation', this.state.operation);
         this.validateQuestion();
         super.updateOutput();
+        this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
         this.updateWordSelects();
         if (this.state.operation === 'sequence') {
             $("#suggestab").removeAttr('disabled').show()

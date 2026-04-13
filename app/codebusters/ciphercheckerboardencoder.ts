@@ -578,6 +578,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             keyLetterError = 'Not all row and column keyword letters appear in cipher text.';
         }
         this.setErrorMsg(keyLetterError, 'vKeywordLetters');
+        this.checkDuplicateKeys();
+        this.attachHandlers();
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

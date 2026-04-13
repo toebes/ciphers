@@ -15,7 +15,7 @@ import { countHomonyms } from '../common/homonyms';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
 import CipherScoreSheetGenerator from './cipherscoresheetgenerator';
 
@@ -100,8 +100,6 @@ export interface RealtimePermissionSet {
 }
 
 export interface ITestState extends IState {
-    /** Number of points a question is worth */
-    points?: number;
     /** Which test the handler is working on */
     test?: number;
     /** Show the solutions on the answers */
@@ -201,7 +199,7 @@ export type KeyRangeMap = Record<string, IDBKeyRange>;
 /**
  * Base support for all the test generation handlers
  */
-export class CipherTest extends CipherHandler {
+export class CipherTest extends CipherEncoder {
 
     public readonly cipherSubTypes = [
         'Aristocrat',
@@ -1410,6 +1408,8 @@ export class CipherTest extends CipherHandler {
             errContent = errContent.filter(':not(div[data-msg="polgs"])');
             // Remove complete columnar crib length warning messages, also...
             errContent = errContent.filter(':not(div[data-msg="cribl"])');
+            // As well as the duplicate keys because we will generate them differently
+            errContent = errContent.filter(':not(div[data-msg="vDuplicateKeys"])');
 
             $('.err').empty();
 
@@ -1807,6 +1807,48 @@ export class CipherTest extends CipherHandler {
         if (SpecialBonusCount > 3) {
             errors.push('No more than three special bonus questions allowed on ' + this.getTestTypeName(test.testtype))
         }
+        const duplicates = this.findDuplicateKeys(this.state.test);
+        if (Object.keys(duplicates).length > 0) {
+            for (const [key, entries] of Object.entries(duplicates)) {
+                let duplicateKeysText = '';
+                // Remove any entries which are not associated with this.state.test since we are only concerned about duplicates on this test
+                const testEntries = entries.filter(e => e.testid === this.state.test);
+                if (testEntries.length === 0) {
+                    continue;
+                }
+                // FIrst figure out if the dupliate key is identical or similar across all entries.  If so, then we can give a more helpful message to the user about where else they used the same key.  If not, then we just want to alert them that they have a duplicate key but that it is different across the entries so they should check them all.
+                const allSame = testEntries.every(e => e.value === testEntries[0].value);
+                if (allSame) {
+                    duplicateKeysText += `Duplicate Key: '${testEntries[0].value}' is used on:`;
+                } else {
+                    duplicateKeysText += `Potential Duplicate Keys: `;
+                }
+                let extra = ' ';
+                // We want to sort the testids in ascending order and then the qnums in ascending order so that it is easier to read
+                testEntries.sort((a, b) => a.testid - b.testid || a.qnum - b.qnum);
+                let remain = testEntries.length;
+                for (const e of testEntries) {
+                    remain--;
+                    if (remain <= 0) {
+                        extra = ' and ';
+                    }
+                    if (!allSame) {
+                        duplicateKeysText += `${extra}'${e.value}' in `;
+                        extra = ' ';
+                    }
+                    if (e.qnum === 0) {
+                        duplicateKeysText += `${extra}Timed Question`
+                    } else {
+                        duplicateKeysText += `${extra}Q#${e.qnum}`
+                    }
+                    extra = ', ';
+                }
+                errors.push(duplicateKeysText);
+            }
+        }
+
+
+
         if (errors.length === 1) {
             $('.testerrors').append(
                 $('<div/>', {

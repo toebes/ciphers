@@ -5,7 +5,6 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
-    QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -189,6 +188,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         $('#blocksize').val(this.state.blocksize);
         this.validateQuestion();
+        this.checkDuplicateKeys();
         this.attachHandlers();
     }
     public setQuestionText(question: string): void {

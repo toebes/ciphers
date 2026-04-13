@@ -244,6 +244,8 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 .show();
         }
         this.setkvalinputs();
+        this.checkDuplicateKeys();
+        this.attachHandlers();
         super.updateOutput()
     }
     /**

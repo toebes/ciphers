@@ -166,6 +166,8 @@ export class CipherTableEncoder extends CipherEncoder {
         JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
+        this.checkDuplicateKeys();
+        this.attachHandlers();
     }
 
     /**

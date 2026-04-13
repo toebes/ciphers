@@ -9,7 +9,6 @@ import {
 import { ICipherType } from '../common/ciphertypes';
 import { hill4, hill9 } from '../common/hillkeys';
 import { JTButtonItem } from '../common/jtbuttongroup';
-import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
@@ -153,6 +152,7 @@ export class CipherHillEncoder extends CipherEncoder {
         JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
         this.validateQuestion();
+        this.checkDuplicateKeys();
         this.attachHandlers();
     }
     /**

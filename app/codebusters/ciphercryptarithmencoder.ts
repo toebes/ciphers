@@ -369,7 +369,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         this.showMapping(false);
 
         this.validateQuestion();
-        this.attachHandlers();
         if (this.generatemode) {
             $('.probwork').show()
             $('.cipherwork').hide()
@@ -378,6 +377,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             $('.cipherwork').show()
 
         }
+        this.checkDuplicateKeys();
+        this.attachHandlers();
     }
     public setQuestionText(question: string): void {
         super.setQuestionText(question);

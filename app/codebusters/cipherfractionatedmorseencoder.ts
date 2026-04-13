@@ -271,6 +271,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
     public updateOutput(): void {
         super.updateOutput();
+        this.checkDuplicateKeys();
+        this.attachHandlers();
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

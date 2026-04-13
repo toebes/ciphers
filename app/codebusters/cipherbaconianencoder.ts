@@ -25,7 +25,6 @@ import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
 import { createDocumentElement, getCSSRule, getElementSizeInInches } from '../common/htmldom';
-import { boolean } from 'yargs';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -424,6 +423,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('operation', this.state.operation);
         this.validateQuestion();
+        this.checkDuplicateKeys();
         super.updateOutput();
         this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
         this.updateWordSelects();
@@ -434,6 +434,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
         }
         this.setOutputZoom();
+        this.attachHandlers();
     }
     /**
      * Update the question string (and validate if necessary)

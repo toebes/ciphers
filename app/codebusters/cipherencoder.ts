@@ -42,6 +42,14 @@ export interface suggestedData {
     text?: string;
 }
 
+export interface KeywordTrack {
+    testid: number;
+    qnum: number;
+    entry: number;
+    field: string;
+    value: string;
+}
+
 /**
  * CipherEncoder - This class handles all of the actions associated with encoding
  * a cipher.
@@ -1237,6 +1245,164 @@ export class CipherEncoder extends CipherHandler {
             this.suggestKeyBase()
         });
     }
+
+    /**
+     * Scan all tests that include this entry, then scan all questions on those tests,
+ * and detect duplicates among the fields:
+ *   keyword, keyword2, polybiusKey, soltext
+ *
+ * Returns a map where each duplicated value lists all entries that contain it.
+ */
+
+    /**
+     * 
+     * @param limitTestId Test to limit search to (-1 for all tests)
+     * @returns 
+     */
+    public findDuplicateKeys(limitTestId: number): Record<string, KeywordTrack[]> {
+        const duplicates: Record<string, KeywordTrack[]> = {};
+        const seen: Record<string, KeywordTrack[]> = {};
+
+        if (limitTestId === undefined) {
+            limitTestId = -1;
+        }
+
+        let firstTest = 0;
+        let lastTest = this.getTestCount() - 1;
+
+        if (limitTestId !== -1) {
+            firstTest = limitTestId;
+            lastTest = limitTestId;
+        }
+
+        const fileEntry = limitTestId === -1 ? this.savefileentry : undefined;
+
+        for (let testid = firstTest; testid <= lastTest; testid++) {
+            const test = this.getTestEntry(testid);
+
+            // Skip tests that do not include this entry
+            const useThisTest =
+                limitTestId !== -1 ||
+                test.timed === fileEntry ||
+                test.questions.includes(fileEntry);
+
+            if (!useThisTest) continue;
+
+            // Collect all question indices on this test
+            const allEntries = [test.timed, ...test.questions];
+
+            // Now scan each entry on this test
+            for (let qnum = 0; qnum < allEntries.length; qnum++) {
+                const entry = allEntries[qnum];
+                if (entry === -1) continue;
+
+                let state: IState = this.state
+                if (entry !== fileEntry) {
+                    state = this.getFileEntry(entry);
+                }
+                if (!state) continue;
+
+                const fieldsToCheck = [
+                    "keyword",
+                    "keyword2",
+                    "polybiusKey",
+                    "soltext",
+                ] as const;
+
+                for (const field of fieldsToCheck) {
+                    const rawValue = this.minimizeString(state[field]);
+                    if (!rawValue) continue;
+
+                    // Normalize and split into components
+                    const components = rawValue.split(/\s+/);
+
+                    for (const component of components) {
+                        const key = component.substring(0, 5);
+                        if (!key) continue;
+
+                        if (!seen[key]) {
+                            seen[key] = [];
+                        }
+
+                        seen[key].push({
+                            testid: testid,
+                            qnum: qnum,
+                            entry: entry,
+                            field: field,
+                            value: rawValue
+                        });
+                    }
+                }
+            }
+        }
+        console.log(seen);
+        // Filter only values that appear more than once
+        for (const [key, entries] of Object.entries(seen)) {
+            if (entries.length > 1) {
+                // See if we need to keep it.  If they gave us a testid to limit to, then only keep it if it appears more than once on that test
+                // Otherwise, keep it if any one of the entries has a entry that matches fileEntry (i.e. it is associated with the current entry we are editing)
+                if (limitTestId !== -1 || entries.some(e => e.entry === fileEntry)) {
+                    duplicates[key] = entries;
+                }
+            }
+        }
+        console.log('Found duplicates')
+        console.log(duplicates);
+
+        return duplicates;
+    }
+    /**
+      * Check to see if there are any duplicate keys across the tests and if so, alert the user with a message about where they are. 
+      * This is designed to help them avoid accidentally using the same keyword on multiple questions which can lead to confusion
+      * for the solver and also make it easier for them to find all related questions if they do want to reuse a keyword.    
+      */
+    public checkDuplicateKeys(): void {
+        const duplicates = this.findDuplicateKeys(-1);
+        let duplicateKeysText = '';
+        let duplicateKeysHTML = '';
+        if (Object.keys(duplicates).length > 0) {
+            duplicateKeysText = ' '
+            for (const [key, entries] of Object.entries(duplicates)) {
+                // FIrst figure out if the dupliate key is identical or similar across all entries.  If so, then we can give a more helpful message to the user about where else they used the same key.  If not, then we just want to alert them that they have a duplicate key but that it is different across the entries so they should check them all.
+                const allSame = entries.every(e => e.value === entries[0].value);
+                if (allSame) {
+                    duplicateKeysHTML += `<div>Duplicate Key: '${entries[0].value}' is also used on:`;
+                } else {
+                    duplicateKeysHTML += `<div>Potential Duplicate Key: '${key}' is also used on:`;
+                }
+                let extra = ' ';
+                // We want to sort the testids in ascending order and then the qnums in ascending order so that it is easier to read
+                entries.sort((a, b) => a.testid - b.testid || a.qnum - b.qnum);
+                let lastTestId = -1;
+                for (const e of entries) {
+                    // Skip the current entry we are editing since of course it is going to be a duplicate of itself
+                    if (e.entry === this.savefileentry) {
+                        continue;
+                    }
+                    if (e.testid !== lastTestId) {
+                        const test = this.getTestEntry(e.testid);
+                        duplicateKeysHTML += `${extra}<a class='chkmod' href='TestGenerator.html?test=${e.testid}'>${test.title}</a>`
+                        extra = ' ';
+                        lastTestId = e.testid;
+                    }
+                    if (!allSame) {
+                        duplicateKeysHTML += `${extra}'${e.value}' in `;
+                        extra = ' ';
+                    }
+                    if (e.qnum === 0) {
+                        duplicateKeysHTML += `${extra}<a class='chkmod' href='${this.getEntryURL(e.entry)}'>Timed Question</a>`
+                    } else {
+                        duplicateKeysHTML += `${extra}<a class='chkmod' href='${this.getEntryURL(e.entry)}'>Q#${e.qnum}</a>`
+                    }
+                    extra = ', ';
+                }
+                duplicateKeysHTML += '</div>';
+            }
+        }
+        this.setErrorMsg(duplicateKeysText, 'vDuplicateKeys', $(duplicateKeysHTML));
+    }
+
+
     /**
       * Find words with all unique letters in a given range of length
       * @param kwcount Number of keywords to find (broken into groups by keyword length)

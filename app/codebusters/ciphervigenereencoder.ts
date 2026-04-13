@@ -446,6 +446,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         $('#blocksize').val(this.state.blocksize);
         $('#crib').val(this.state.crib);
         super.updateOutput();
+        this.checkDuplicateKeys();
+        this.attachHandlers();
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

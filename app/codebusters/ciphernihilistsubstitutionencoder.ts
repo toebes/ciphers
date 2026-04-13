@@ -765,6 +765,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         $('#crib').val(this.state.crib);
         $('#solverkeylength').val(this.state.solverKeyLength);
         super.updateOutput();
+        this.checkDuplicateKeys();
+        this.attachHandlers();
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

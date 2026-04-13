@@ -14,12 +14,11 @@ import { CipherSolver } from "./ciphersolver";
 export class CipherVigenereSolver extends CipherSolver {
     public activeToolMode: toolMode = toolMode.aca;
     public defaultstate: IState = {
-        /** The current cipher type we are working on */
-        cipherType: ICipherType.Vigenere /** Currently selected keyword */,
-        keyword: "" /** The current cipher we are working on */,
-        cipherString: "" /** The current string we are looking for */,
-        findString: "" /** Replacement characters */,
-        replacement: {},
+        cipherType: ICipherType.Vigenere /** The current cipher type we are working on */,
+        keyword: "" /** Currently selected keyword */,
+        cipherString: "" /** The current cipher we are working on */,
+        findString: "" /** The current string we are looking for */,
+        replacement: {}, /** Replacement characters */
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
     /** Map of indexes into which character of the string is at that index */

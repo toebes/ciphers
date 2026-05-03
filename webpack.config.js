@@ -5,7 +5,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WebpackShellPlugin = require('webpack-shell-plugin-next');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const { styles } = require('@ckeditor/ckeditor5-dev-utils');
 
 const package = require('./package.json');
 const toolsVersion = package.version;
@@ -29,6 +28,14 @@ config = {
         umdNamedDefine: true,
         devtoolModuleFilenameTemplate: '[absolute-resource-path]',
         clean: true
+    },
+    devServer: {
+        hot: false,
+        liveReload: true,
+        client: {
+            logging: 'warn',
+            overlay: true
+        }
     },
     resolve: {
         alias: {
@@ -79,21 +86,10 @@ config = {
             // All .css files are processed with the css-loader, style-loader
             {
                 test: /\.css$/,
-                include: __dirname,
-                use: ['style-loader',
-                    'css-loader',
-                    {
-                        loader: 'postcss-loader',
-                        options: {
-                            postcssOptions: styles.getPostCssConfig({
-                                themeImporter: {
-                                    themePath: require.resolve('@ckeditor/ckeditor5-theme-lark')
-                                },
-                                minify: true
-                            })
-                        }
-                    },
-                ],
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
             },
             // All small .png files (mostly the icons for jqueryui) are inlined
             // with the URL loader

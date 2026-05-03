@@ -1335,7 +1335,6 @@ export class CipherEncoder extends CipherHandler {
                 }
             }
         }
-        console.log(seen);
         // Filter only values that appear more than once
         for (const [key, entries] of Object.entries(seen)) {
             if (entries.length > 1) {
@@ -1346,8 +1345,6 @@ export class CipherEncoder extends CipherHandler {
                 }
             }
         }
-        console.log('Found duplicates')
-        console.log(duplicates);
 
         return duplicates;
     }

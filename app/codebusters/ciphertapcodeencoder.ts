@@ -10,7 +10,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
-import tapcode = require('../images/tapcode.png');
+import tapcode from '../images/tapcode.png';
 /**
  * CipherTapCodeEncoder - This class handles all of the actions associated with encoding
  * a TapCode cipher.

@@ -314,7 +314,7 @@ export class CipherEncoder extends CipherHandler {
     private setQuestionSearchText(qst: string): boolean {
         let changed = false;
         if (this.questionSearchText !== qst) {
-            this.questionSearchText = qst;
+            this.questionSearchText = qst.trim();
             changed = true;
         }
         return changed;
@@ -2106,12 +2106,14 @@ export class CipherEncoder extends CipherHandler {
         let found = 0
 
         // Find all questions with search string first, so they are at the top.
-        for (let i = 0; found < qcount && i < qOptions.length; i++) {
-            const question = qOptions[i];
-            if (question.toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
-                picked[question] = true;
-                if (action(found, question)) {
-                    found++;
+        if (this.questionSearchText !== undefined && this.questionSearchText.length > 0) {
+            for (let i = 0; found < qcount && i < qOptions.length; i++) {
+                const question = qOptions[i];
+                if (question.toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
+                    picked[question] = true;
+                    if (action(found, question)) {
+                        found++;
+                    }
                 }
             }
         }

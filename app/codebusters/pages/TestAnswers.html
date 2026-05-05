@@ -7,6 +7,113 @@
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
+    <style>
+        .ulx {
+            border-bottom: 1px solid black;
+        }
+
+        .wr {
+            font-weight: bold;
+            font-size: larger;
+            font-family: "Patrick Hand", "Segoe Print",
+                "Bradley Hand",
+                "Comic Sans MS", cursive;
+            color: blue !important;
+        }
+
+        .testexample td.wr {
+            text-align: center;
+        }
+
+        .testexample td.nomistakes {
+            text-align: left;
+            position: relative;
+        }
+
+        .testexample td.specialindicator {
+            text-align: right;
+            position: relative;
+        }
+
+        .testexample td .wr {
+            display: inline;
+        }
+
+        .testexample td.nomistakes .wr {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            text-align: right;
+        }
+
+        .testexample td.specialindicator .wr {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            text-align: right;
+            box-sizing: border-box;
+        }
+
+        div.testexample {
+            width: 95%;
+        }
+
+        .testexample table.testscores {
+            width: 100%;
+        }
+
+        .testexample .circle {
+            display: inline-block;
+
+            padding: 5px;
+
+            border: 2px solid blue;
+            border-radius: 50%;
+        }
+
+        .bonuscell {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .bonuslabel {
+            width: 40%;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .addition {
+            width: 40%;
+            text-align: right;
+            font-weight: bold;
+            font-size: larger;
+
+            font-family:
+                "Patrick Hand",
+                "Segoe Print",
+                "Bradley Hand",
+                "Comic Sans MS",
+                cursive;
+
+            color: blue !important;
+        }
+
+        .addition div {
+            color: blue !important;
+        }
+
+        .addition .underline {
+            border-bottom: 2px solid black;
+            padding-bottom: 2px;
+            margin-bottom: 2px;
+        }
+    </style>
 </head>
 
 <body>
@@ -726,6 +833,145 @@
                     </table>
                     <h4>Tie Breaker Question Order</h4>
                     <div id="tinytie"></div>
+                </div>
+
+                <div class="testexample">
+                    <h2>Monica to put description of example here.</h2>
+                    <p>this is a simple example of how the test answers will be displayed.</p>
+                    <p class="timed2"><b>Scoring:</b>&nbsp;&nbsp;Time to solve first problem:
+                        <span class="ulx" style="width:1in;">&nbsp;<span
+                                class="wr">4:35</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        (use to calculate
+                        Bonus below)
+                    </p>
+                    <div id="scoretable" class="grid-x">
+                        <table class="cell testscores">
+                            <thead>
+                                <tr>
+                                    <th>Question</th>
+                                    <th>Value</th>
+                                    <th>Incorrect letters</th>
+                                    <th>Deduction</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="t">Timed</td>
+                                    <td class="v">200</td>
+                                    <td class="wr">0</td>
+                                    <td class="nomistakes"></td>
+                                    <td class="specialindicator"><span class="wr">200</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">1★</td>
+                                    <td class="v">292</td>
+                                    <td class="wr">1</td>
+                                    <td class="nomistakes"><span class="wr">0</span></td>
+                                    <td class="specialindicator"><span class="wr">292</span><span
+                                            class="circle">★</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="t">2</td>
+                                    <td class="v">218</td>
+                                    <td class="wr">99</td>
+                                    <td class="nomistakes">≡<span class="wr">218</span></td>
+                                    <td class="specialindicator"><span class="wr">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">3</td>
+                                    <td class="v">199</td>
+                                    <td class="wr">&mdash;</td>
+                                    <td class="nomistakes"></td>
+                                    <td class="specialindicator"></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">4</td>
+                                    <td class="v">374</td>
+                                    <td class="wr">99</td>
+                                    <td class="nomistakes"><span class="wr">374</span></td>
+                                    <td class="specialindicator"><span class="wr">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">5</td>
+                                    <td class="v">145</td>
+                                    <td class="wr">2</td>
+                                    <td class="nomistakes"><span class="wr">0</span></td>
+                                    <td class="specialindicator"><span class="wr">145</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">6★</td>
+                                    <td class="v">199</td>
+                                    <td class="wr">3</td>
+                                    <td class="nomistakes"><span class="wr">100</span></td>
+                                    <td class="specialindicator"><span class="wr">99</span>★</td>
+                                </tr>
+                                <tr>
+                                    <td class="t">7</td>
+                                    <td class="v">264</td>
+                                    <td class="wr">1</td>
+                                    <td class="nomistakes">≡<span class="wr">100</span></td>
+                                    <td class="specialindicator"><span class="wr">164</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">8</td>
+                                    <td class="v">256</td>
+                                    <td class="wr">4</td>
+                                    <td class="nomistakes"><span class="wr">200</span></td>
+                                    <td class="specialindicator"><span class="wr">56</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">9★</td>
+                                    <td class="v">428</td>
+                                    <td class="wr">0</td>
+                                    <td class="nomistakes"></td>
+                                    <td class="specialindicator"><span class="wr">428</span><span
+                                            class="circle">★</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="t">10</td>
+                                    <td class="v">221</td>
+                                    <td class="wr">&mdash;</td>
+                                    <td class="nomistakes">≡</td>
+                                    <td class="specialindicator"></td>
+                                </tr>
+                                <tr>
+                                    <td class="t">11</td>
+                                    <td class="v">111</td>
+                                    <td class="wr">&mdash;</td>
+                                    <td class="nomistakes"></td>
+                                    <td class="specialindicator"></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>Bonuses</td>
+                                    <td>
+                                        <div class="bonuscell">
+                                            <div class="bonuslabel">Timed:</div>
+
+                                            <div class="addition">
+                                                <div>600</div>
+                                                <div class="underline">+50</div>
+                                                <div>650</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td colspan="2" class="grey spb">Special Bonus:&nbsp;&nbsp;★ = 150;&nbsp;&nbsp;<span
+                                            class="circle">★★ =
+                                            400;</span>&nbsp;&nbsp;★★★ = 750</td>
+                                    <td class="wr">1050</td>
+                                </tr>
+                                <tr>
+                                    <td>Final Score</td>
+                                    <td colspan="4" style="text-align:right;"><span class="wr"
+                                            style="width:20%;">2434</span></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="testcontent"></div>

@@ -8,6 +8,10 @@
     width: 600px;
 }
 
+.ck.ck-powered-by-balloon {
+    display: none !important;
+}
+
 .version ul > li {
     font-weight: bold;
     border-top: 1px solid #cacaca;

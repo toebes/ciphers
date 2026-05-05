@@ -1,29 +1,34 @@
-const FtpDeploy = require('ftp-deploy');
-const ftpDeploy1 = new FtpDeploy();
+const ftp = require('basic-ftp');
+const path = require('path');
 const settings = require('./.ftpdeploy.js');
 
-const config1 = {
-    user: settings.user,
-    // Password optional, prompted if none given
-    password: settings.password,
-    host: settings.host,
-    port: settings.port,
-    localRoot: __dirname + '/samples',
-    remoteRoot: settings.remoteRoot + 'Samples',
-    include: ["*",],
-    // DON'T delete ALL existing files at destination before uploading, if true
-    deleteRemote: false,
-    // Passive mode is forced (EPSV command is not sent)
-    forcePasv: true,
-    // use sftp or ftp
-    sftp: false,
-};
+async function deployExtra() {
+    const client = new ftp.Client();
+    client.ftp.verbose = falce;
 
-ftpDeploy1
-    .deploy(config1)
-    .then((res) => {
-        for (let i in res[0]) {
-            console.log(res[0][i]);
-        }
-    })
-    .catch((err) => console.log(err));
+    try {
+        await client.access({
+            host: settings.host,
+            port: settings.port,
+            user: settings.user,
+            password: settings.password,
+            secure: false // FTP. Use true for FTPS
+        });
+
+        const localRoot = path.join(__dirname, 'samples');
+        const remoteRoot = settings.remoteRoot + 'Samples';
+
+        await client.ensureDir(remoteRoot);
+
+        // Upload everything (matches your old include: ["*"])
+        await client.uploadFromDir(localRoot);
+
+        console.log('Extra deploy complete');
+    } catch (err) {
+        console.error(err);
+    } finally {
+        client.close();
+    }
+}
+
+deployExtra();

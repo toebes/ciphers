@@ -1,58 +1,64 @@
-const FtpDeploy = require('ftp-deploy');
-const ftpDeploy1 = new FtpDeploy();
-const ftpDeploy2 = new FtpDeploy();
+const ftp = require('basic-ftp');
+const path = require('path');
 const settings = require('./.ftpdeploy.js');
 
-const config1 = {
-    user: settings.user,
-    // Password optional, prompted if none given
-    password: settings.password,
-    host: settings.host,
-    port: settings.port,
-    localRoot: __dirname + '/dist',
-    remoteRoot: settings.remoteRoot,
-    include: ["*.js*",],
-    // DON'T delete ALL existing files at destination before uploading, if true
-    deleteRemote: false,
-    // Passive mode is forced (EPSV command is not sent)
-    forcePasv: true,
-    // use sftp or ftp
-    sftp: false,
-};
+async function deploy() {
+    const client = new ftp.Client();
+    client.ftp.verbose = false;
 
-const config2 = {
-    user: settings.user,
-    // Password optional, prompted if none given
-    password: settings.password,
-    host: settings.host,
-    port: settings.port,
-    localRoot: __dirname + '/dist',
-    remoteRoot: settings.remoteRoot,
-    include: ['*'], // this would upload everything except dot files
-    // e.g. do not copy what was copied in config1.  Also skip fonts and images because
-    //      they (almost) never change and if they do, just add them one time.
-    exclude: ['*.js*', 'font/*', 'images/*'],
-    // DON'T delete ALL existing files at destination before uploading, if true
-    deleteRemote: false,
-    // Passive mode is forced (EPSV command is not sent)
-    forcePasv: true,
-    // use sftp or ftp
-    sftp: false,
-};
+    try {
+        await client.access({
+            host: settings.host,
+            port: settings.port,
+            user: settings.user,
+            password: settings.password,
+            secure: false // set true if using FTPS
+        });
 
-ftpDeploy1
-    .deploy(config1)
-    .then((res) => {
-        for (let i in res[0]) {
-            console.log(res[0][i]);
+        const localRoot = path.join(__dirname, 'dist');
+        const remoteRoot = settings.remoteRoot;
+
+        // --- PASS 1: Upload JS files ---
+        await uploadFiltered(client, localRoot, remoteRoot, (file) => {
+            return file.endsWith('.js') || file.includes('.js.');
+        });
+
+        // --- PASS 2: Upload everything else except excluded ---
+        await uploadFiltered(client, localRoot, remoteRoot, (file) => {
+            if (file.endsWith('.js') || file.includes('.js.')) return false;
+            if (file.startsWith('font/') || file.startsWith('images/')) return false;
+            return true;
+        });
+
+        console.log('Deploy complete');
+    } catch (err) {
+        console.error(err);
+    }
+
+    client.close();
+}
+
+const fs = require('fs');
+
+async function uploadFiltered(client, localDir, remoteDir, filterFn, baseDir = localDir) {
+    const entries = fs.readdirSync(localDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const localPath = path.join(localDir, entry.name);
+        const relativePath = path.relative(baseDir, localPath).replace(/\\/g, '/');
+        const remotePath = `${remoteDir}/${relativePath}`;
+
+        if (entry.isDirectory()) {
+            await uploadFiltered(client, localPath, remoteDir, filterFn, baseDir);
+        } else {
+            if (!filterFn(relativePath)) continue;
+
+            await client.ensureDir(path.dirname(remotePath));
+            await client.uploadFrom(localPath, remotePath);
+
+            console.log(`Uploaded: ${relativePath}`);
         }
-        ftpDeploy2
-            .deploy(config2)
-            .then((res) => {
-                for (let i in res[0]) {
-                    console.log(res[0][i]);
-                }
-            })
-            .catch((err) => console.log(err));
-    })
-    .catch((err) => console.log(err));
+    }
+}
+
+deploy();

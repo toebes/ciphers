@@ -1154,6 +1154,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
     }
     public async genDecodeSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
+
+        if (this.state.keyword === '') {
+            result.append($('<h3/>').text('You must select a keyword.'));
+            return result;
+        }
         result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
         result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
 

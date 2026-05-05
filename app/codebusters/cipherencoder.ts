@@ -1518,11 +1518,11 @@ export class CipherEncoder extends CipherHandler {
         // Filter down the words to nominally the grade level.
         // This isn't a perfect match, but at least it reduces the chance of a word
         // being out of grade level
-        let rangeScale = 0.5
+        let rangeScale = 0.75
         if (usedOnA) {
-            rangeScale = 0.1
+            rangeScale = 0.2
         } else if (usedOnB) {
-            rangeScale = 0.25
+            rangeScale = 0.4
         }
 
         let pat14 = this.makeUniquePattern("ABCDEFGHIJKLMN", 1);

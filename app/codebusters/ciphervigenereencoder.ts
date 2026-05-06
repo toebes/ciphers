@@ -80,6 +80,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
     // Default the valid tests to the Vigenere which is the default cipher
     public validTests = this.validVigenereTests
 
+    public maxencodeWidth = 40;
+    public maxencodeWidthDivA = 30;
+
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
@@ -579,6 +582,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     public buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
         const result = $('<div/>');
+        const { width, extraclass } = this.getEncodeWidth(ITestType.None);
         let source = 1;
         let dest = 0;
         let emsg = '';
@@ -605,7 +609,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         this.setErrorMsg(emsg, 'vcrib');
 
-        const strings = this.buildReplacementVigenere(msg, key, this.maxEncodeWidth);
+        const strings = this.buildReplacementVigenere(msg, key, width);
         for (const stringset of strings) {
             result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
             result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
@@ -668,10 +672,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
+        const { width, extraclass } = this.getEncodeWidth(ITestType.None);
         const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
-            40
+            width
         );
         let dest = 1;
         if (this.state.operation === 'encode') {
@@ -687,19 +692,26 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         return this.calculateScore(solution, answer, this.state.points);
     }
+    /**
+     * Get the encoding information for a test
+     * @param testType Type of test to generate for
+     * @returns Width and extraclass to use for the encode table based on the type of test.
+     *          For Division A, we less letters and a larger font for each line.
+     */
+    public getEncodeWidth(testType: ITestType): { width: number; extraclass: string } {
+        if (testType == ITestType.aregional || testType == ITestType.astate) {
+            return { width: this.maxencodeWidthDivA, extraclass: ' atest' };
+        }
+        return { width: this.maxencodeWidth, extraclass: '' };
 
+    }
     /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let keypos = 0;
         const result = $('<div/>', { class: 'grid-x' });
-        let width = 40;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width = 30;
-            extraclass = ' atest';
-        }
+        const { width, extraclass } = this.getEncodeWidth(testType);
+        let keypos = 0;
 
         const strings = this.buildReplacementVigenere(
             this.state.cipherString,
@@ -1201,6 +1213,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
+        const { width, extraclass } = this.getEncodeWidth(testType);
+
         result.append($('<h3/>').text('How to solve'));
 
         const solvingData: ISolverData = {
@@ -1212,11 +1226,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             known: [],
             valid: false
         }
-        let width = 40;
-        if (testType === ITestType.aregional) {
-            width = 30;
-            solvingData.extraclass = ' atest';
-        }
+
         solvingData.replacements = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
@@ -1241,12 +1251,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
-        let width = 40;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width = 30;
-            extraclass = ' atest';
-        }
+        const { width, extraclass } = this.getEncodeWidth(testType);
         const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
@@ -1271,12 +1276,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
         const result = $('<div/>', { id: 'Q' + qnumdisp });
-        let width = 40;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width = 30;
-            extraclass = ' atest';
-        }
+        const { width, extraclass } = this.getEncodeWidth(testType);
         const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,

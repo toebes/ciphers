@@ -33,7 +33,6 @@
         "@teamsupercell/typings-for-css-modules-loader": "^2.5.2",
         "@types/gapi": "^0.0.39",
         "@types/gapi.auth2": "^0.0.54",
-        "@types/yargs": "^17.0.0",
         "@typescript-eslint/eslint-plugin": "^4.33.0",
         "@typescript-eslint/parser": "^4.33.0",
         "acorn": "^8.3.0",
@@ -70,8 +69,7 @@
         "webpack-bundle-analyzer": "^4.4.2",
         "webpack-cli": "^7.0.2",
         "webpack-dev-server": "^5.2.3",
-        "webpack-shell-plugin-next": "^2.2.2",
-        "yargs": "^17.0.1"
+        "webpack-shell-plugin-next": "^2.2.2"
     },
     "dependencies": {
         "@azure/msal-browser": "^2.14.2",

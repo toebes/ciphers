@@ -1320,6 +1320,30 @@ export class CipherTest extends CipherEncoder {
                     cipherString: '',
                 };
             }
+            // TODO: This code really belongs in the individual cipher handlers
+            let cipherType = state.cipherType as string;
+            if (state.curlang == 'es') {
+                if (state.cipherType === ICipherType.Aristocrat) {
+                    cipherType = 'Xenocrypt';
+                } else {
+                    cipherType = 'Spanish ' + state.cipherType;
+                }
+            } else {
+                if (state.cipherType === ICipherType.Aristocrat) {
+                    if (state.operation === 'keyword') {
+                        cipherType = 'Keyword Aristocrat';
+                    } else {
+                        cipherType = 'Aristocrat';
+                    }
+                } else if (state.cipherType === ICipherType.Baconian) {
+                    cipherType = 'Baconian';
+                    if (state.operation === 'sequence') {
+                        cipherType = 'Sequence Baconian';
+                    } else if (state.operation === 'words') {
+                        cipherType = 'Word Baconian';
+                    }
+                }
+            }
             if (testtype === ITestType.aregional && order === -1) {
                 qerror = 'Timed question not allowed for ' + this.getTestTypeName(testtype);
             } else if (testtype !== undefined) {
@@ -1350,7 +1374,7 @@ export class CipherTest extends CipherEncoder {
                 }
                 buttonset.append(button);
             }
-            row.add($('<div/>', { class: 'grid-x' }).append(buttonset)).add(state.cipherType);
+            row.add($('<div/>', { class: 'grid-x' }).append(buttonset)).add(cipherType);
             if (prevuse !== undefined) {
                 row.add(prevuse);
             }

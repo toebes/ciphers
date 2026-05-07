@@ -496,6 +496,33 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
         this._fontReady = true;
     }
+    public splitGraphemes(str: string): string[] {
+        const result: string[] = [];
+
+        for (const c of str) {
+            // Combining marks
+            if (/[\u0300-\u036F]/u.test(c) && result.length > 0) {
+                result[result.length - 1] += c;
+            }
+            // Variation selectors
+            else if (/[\uFE00-\uFE0F]/u.test(c) && result.length > 0) {
+                result[result.length - 1] += c;
+            }
+            // Skin tone modifiers
+            else if (/[\u{1F3FB}-\u{1F3FF}]/u.test(c) && result.length > 0) {
+                result[result.length - 1] += c;
+            }
+            // Zero-width joiner
+            else if (c === '\u200D' && result.length > 0) {
+                result[result.length - 1] += c;
+            }
+            else {
+                result.push(c);
+            }
+        }
+
+        return result;
+    }
     /**
      * Parse out an A/B set into an array of strings.
      * Note that we have to do this because some characters actually are comprised of
@@ -514,32 +541,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // All the entities need to be converted 
         let result: string[] = [];
         let lastc = undefined;
-        let highsurrogate = false;
-        for (let c of remain) {
-            if (highsurrogate) {
-                lastc += c;
-                highsurrogate = false;
-            } else if (/[\uD800-\uDFFF]/.test(c)) {
-                if (lastc !== undefined) {
-                    result.push(lastc);
-                }
-                highsurrogate = true;
-                lastc = c;
-            } else if (/[\u0300-\u036F]/.test(c)) {
-                // We have a combining character to add to the previous one
-                // U+030x	◌̀	◌́	◌̂	◌̃	◌̄	◌̅	◌̆	◌̇	◌̈	◌̉	◌̊	◌̋	◌̌	◌̍	◌̎	◌̏
-                // U+031x	◌̐	◌̑	◌̒	◌̓	◌̔	◌̕	◌̖	◌̗	◌̘	◌̙	◌̚	◌̛	◌̜	◌̝	◌̞	◌̟
-                // U+032x	◌̠	◌̡	◌̢	◌̣	◌̤	◌̥	◌̦	◌̧	◌̨	◌̩	◌̪	◌̫	◌̬	◌̭	◌̮	◌̯
-                // U+033x	◌̰	◌̱	◌̲	◌̳	◌̴	◌̵	◌̶	◌̷	◌̸	◌̹	◌̺	◌̻	◌̼	◌̽	◌̾	◌̿
-                // U+034x	◌̀	◌́	◌͂	◌̓	◌̈́	◌ͅ	◌͆	◌͇	◌͈	◌͉	◌͊	◌͋	◌͌	◌͍	◌͎	 CGJ 
-                // U+035x	◌͐	◌͑	◌͒	◌͓	◌͔	◌͕	◌͖	◌͗	◌͘	◌͙	◌͚	◌͛	◌͜◌	◌͝◌	◌͞◌	◌͟◌
-                // U+036x  ◌͠◌	◌͡◌	◌͢◌	◌ͣ	◌ͤ	◌ͥ	◌ͦ	◌ͧ	◌ͨ	◌ͩ	◌ͪ	◌ͫ	◌ͬ	◌ͭ	◌ͮ	◌ͯ
-                lastc += c
-            } else if (c === ' ') {
+        const Segmenter = (Intl as any).Segmenter;
+
+        const chars: string[] =
+            typeof Segmenter === 'function'
+                ? Array.from(new Segmenter(undefined, { granularity: 'grapheme' }).segment(remain), (s: any) => s.segment)
+                : this.splitGraphemes(remain);
+
+        for (const c of chars) {
+            if (c === ' ') {
                 if (lastc === undefined) {
-                    lastc = c
+                    lastc = c;
                 } else {
-                    lastc += c
+                    lastc += c;
                 }
             } else {
                 if (lastc !== undefined) {

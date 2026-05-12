@@ -116,6 +116,8 @@ export class CipherTestAnswers extends CipherTest {
             // Remove extra padding from cryptarithm answers
             $(".cell").removeClass("cell")
             $(".align-spaced").removeClass("align-spaced")
+            // Remove the text example
+            $(".testexample").remove();
         }
         this.attachHandlers();
     }

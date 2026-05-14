@@ -131,14 +131,21 @@ export class CipherTest extends CipherHandler {
         if (a === "" || a === undefined || a === null) {
             return true;
         }
+
+        if (a === b) {
+            return true;
+        }
+
         // If we have an object on the left, the right better be an object too
-        if (typeof a === "object") {
-            if (typeof b !== "object") {
+        if (a && typeof a === "object") {
+            if (!b || typeof b !== "object") {
                 return false;
             }
+            const keys = Object.keys(a);
+
             // Both are objects, if any element of the object doesn't match
             // then they are not equivalent
-            for (let elem of a) {
+            for (const elem of keys) {
                 if (!this.isEquivalent(a[elem], b[elem])) {
                     return false;
                 }
@@ -147,7 +154,7 @@ export class CipherTest extends CipherHandler {
             return true;
         }
         // Simple item, result is if they match
-        return a === b;
+        return false;
     }
     /**
      * Compare two saved cipher states to see if they are indeed identical

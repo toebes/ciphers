@@ -1895,6 +1895,11 @@ div.vsolv {
 }
 
 @font-face {
+    font-family: standardgalacticalphabet;
+    src: url(fonts/StandardGalacticAlphabetSO.woff);
+}
+
+@font-face {
     font-family: juliamono;
     src: url(fonts/JuliaMono-Regular.woff2) format('woff2'),
         url(fonts/JuliaMono-Regular.woff) format('woff');
@@ -1902,7 +1907,8 @@ div.vsolv {
 
 .pigpen.ansblock td.a,
 .ktemplar.ansblock td.a,
-.dancingmen.ansblock td.a {
+.dancingmen.ansblock td.a,
+.sga.ansblock td.a {
     border: 1px solid block;
 }
 
@@ -1914,6 +1920,17 @@ div.vsolv {
 
 p.dancingmen {
     font-family: dancingmen;
+    font-size: 24pt;
+}
+
+.sga.ansblock .q.v {
+    border: none;
+    font-size: 24pt;
+    font-family: standardgalacticalphabet;
+}
+
+p.sga {
+    font-family: standardgalacticalphabet;
     font-size: 24pt;
 }
 

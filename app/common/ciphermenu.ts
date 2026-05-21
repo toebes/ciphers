@@ -157,6 +157,12 @@ export const CipherMenu: menuItem[] = [
             //     classname: 'chkmod menua menub menuc'
             // },
             {
+                title: 'Standard Galactic Alphabet',
+                href: 'StandardGalacticAlphabetEncrypt.html',
+                cipherType: ICipherType.StandardGalacticAlphabet,
+                classname: 'chkmod menua',
+            },
+            {
                 title: 'Tap Code',
                 href: 'TapCodeEncrypt.html',
                 cipherType: ICipherType.TapCode,

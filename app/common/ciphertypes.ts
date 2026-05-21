@@ -68,6 +68,7 @@ export enum ICipherType {
     SeriatedPlayfair = 'seriatedplayfair',
     Slidefair = 'slidefair',
     Standard = 'standard',
+    StandardGalacticAlphabet = 'standardgalacticalphabet',
     Sudoku = 'sudoku',
     Swagman = 'swagman',
     Syllabary = 'syllabary',

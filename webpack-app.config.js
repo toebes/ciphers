@@ -314,6 +314,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'SGA.html',
+            template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
+            cipher: 'SGA',
+            title: 'Solve an Standard Galactic Alphabet Cipher',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'Caesar.html',
             template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
             cipher: 'Caesar',

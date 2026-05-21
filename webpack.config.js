@@ -373,6 +373,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'StandardGalacticAlphabetEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'StandardGalacticAlphabet',
+            title: 'Standard Galactic Alphabet Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'FractionatedMorseEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'FractionatedMorse',

@@ -18,6 +18,7 @@ import { CipherRailFenceEncoder } from './cipherrailfenceencoder';
 import { CipherRSAEncoder } from './cipherrsaencoder';
 import { CipherRunningKeyEdit } from './cipherrunningkeyedit';
 import { CipherRunningKeyEncoder } from './cipherrunningkeyencoder';
+import { CipherStandardGalacticAlphabetEncoder } from './cipherstandardgalacticalphabetencoder';
 import { CipherTableEncoder } from './ciphertableencoder';
 import { CipherTapCodeEncoder } from './ciphertapcodeencoder';
 import { CipherTestAnswers } from './ciphertestanswers';
@@ -169,6 +170,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
+        canPrint: true,
+    },
+    StandardGalacticAlphabet: {
+        cipherType: ICipherType.StandardGalacticAlphabet,
+        cipherClass: CipherStandardGalacticAlphabetEncoder,
         canPrint: true,
     },
     TapCode: {

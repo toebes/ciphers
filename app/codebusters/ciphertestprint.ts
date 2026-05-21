@@ -100,6 +100,7 @@ export class CipherTestPrint extends CipherTest {
         let usesPortaTable = false;
         let usesVigenereTable = false;
         let usesDancingMenTable = false;
+        let usesStandardGalacticAlphabetTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         elem.empty();
@@ -282,6 +283,9 @@ export class CipherTestPrint extends CipherTest {
             if (cipherhandler.usesDancingMenTable) {
                 usesDancingMenTable = true;
             }
+            if (cipherhandler.usesStandardGalacticAlphabetTable) {
+                usesStandardGalacticAlphabetTable = true;
+            }
             // In order to determine the size of the question, we need to
             // insert it into a temporary div that is part of the document
             // We set the style as if it is a print element (with the help of code in styles.css)
@@ -373,6 +377,14 @@ export class CipherTestPrint extends CipherTest {
             $('.dancingmentable').show();
         } else {
             $('.dancingmentable').hide();
+        }
+        /**
+         * See if we need to show/hide the Standard Galactic Alphabet Table
+         */
+        if (usesStandardGalacticAlphabetTable) {
+            $('.sgatable').show();
+        } else {
+            $('.sgatable').hide();
         }
         /**
          * Lastly we need to print out the score table

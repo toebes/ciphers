@@ -989,6 +989,8 @@ export class CipherHandler {
     public usesVigenereTable = false;
     /** Indicates that the cipher uses a Dancing Men Table */
     public usesDancingMenTable = false;
+    /** Indicates that the cipher uses a Standard Galactic Alphabet Table */
+    public usesStandardGalacticAlphabetTable = false;
     /** The direction of the last advance */
     public advancedir = 0;
     /** The Jquery element associated with a keypress */

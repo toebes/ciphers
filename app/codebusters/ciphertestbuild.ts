@@ -275,6 +275,12 @@ export class CipherTestBuild extends CipherTest {
             group: 3, weight: 0.5, cipherType: ICipherType.DancingMen,
         },
         {
+            title: "Standard Galactic Alphabet",
+            guidance: '[20-30 Characters]',
+            len: [20, 30],
+            group: 3, weight: 0.5, cipherType: ICipherType.StandardGalacticAlphabet,
+        },
+        {
             title: 'Atbash',
             guidance: '[45-80 Characters]',
             len: [45, 80],
@@ -1140,6 +1146,7 @@ export class CipherTestBuild extends CipherTest {
         'DancingMen',
         'PigPen',
         'KnightsTemplar',
+        'StandardGalacticAlphabet',
         'TapCode',
         'Other'
     ];

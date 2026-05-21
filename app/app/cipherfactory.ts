@@ -19,6 +19,7 @@ import { CipherNihilistSubstitutionApp } from './ciphernihilistsubstitutionapp'
 import { CipherPatristocratApp } from './cipherpatristocratapp'
 import { CipherPigPenApp } from './cipherpigpenapp'
 import { CipherPortaApp } from './cipherportaapp'
+import { CipherStandardGalacticAlphabetApp } from './cipherstandardgalacticalphabetapp'
 import { CipherTapCodeApp } from './ciphertapcodeapp'
 import { CipherVigenereApp } from './ciphervigenereapp'
 import { CipherXenocryptApp } from './cipherxenocryptapp'
@@ -114,6 +115,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherPortaApp,
         canPrint: false
     },
+    StandardGalacticAlphabet: {
+        cipherType: ICipherType.StandardGalacticAlphabet,
+        cipherClass: CipherStandardGalacticAlphabetApp,
+        canPrint: false
+    },
+
     TapCode: {
         cipherType: ICipherType.TapCode,
         cipherClass: CipherTapCodeApp,

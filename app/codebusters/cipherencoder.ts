@@ -523,13 +523,16 @@ export class CipherEncoder extends CipherHandler {
             extraclass = ' atest';
         }
 
+        const wrapper = $('<div/>');
+        wrapper.attr('style', 'margin: 0 auto; width: max-content;');
         for (const strset of strings) {
-            result.append(
+            wrapper.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ' + extraclass,
                 }).text(strset[0])
             );
         }
+        result.append(wrapper);
         return result;
     }
     /**

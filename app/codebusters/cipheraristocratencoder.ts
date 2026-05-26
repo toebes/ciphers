@@ -424,13 +424,16 @@ export class CipherAristocratEncoder extends CipherEncoder {
             result.append(table.generate());
             result.append($('<p/>').append($("<b/>").text("Cipher:")))
         }
+        const wrapper = $('<div/>');
+        wrapper.attr('style', 'margin: 0 auto; width: max-content;');
         for (const strset of strings) {
-            result.append(
+            wrapper.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ' + extraclass,
                 }).text(strset[0])
             );
         }
+        result.append(wrapper);
         result.append(this.genFreqTable(false, this.state.encodeType, extraclass));
         return result;
     }

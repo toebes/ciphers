@@ -1629,16 +1629,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const result = $('<div/>');
         const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
         if (this.state.operation === 'words') {
+            const wrapper = $('<div/>');
+            wrapper.attr('style', 'margin: 0 auto; width: max-content;');
             for (const line of encoded.lines) {
-                result.append(
+                wrapper.append(
                     $('<div/>', {
                         class: 'BACON TOSOLVEQ' + this.getFontClass(),
                     }).text(line.ciphertext.join(''))
                 );
             }
+            result.append(wrapper);
             result.append(this.genReplacementTable(''));
         } else {
             const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' + this.getFontClass() });
+            const wrapper = $('<div/>');
+            wrapper.attr('style', 'margin: 0 auto; width: max-content;');
             for (const line of encoded.lines) {
                 const rowcipher = table.addBodyRow();
                 const rowblank = table.addBodyRow();
@@ -1660,7 +1665,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
                 rowblank.add({ settings: { class: "w" }, content: '\xa0' });
             }
-            result.append(table.generate())
+            wrapper.append(table.generate());
+            result.append(wrapper);
         }
         this.setOutputZoom();
         return result;

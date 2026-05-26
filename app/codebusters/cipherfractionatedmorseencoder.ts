@@ -445,15 +445,18 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.genAlphabet();
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
 
+        const wrapper = $('<div/>');
+        wrapper.attr('style', 'margin: 0 auto; width: max-content;');
         for (const strset of strings) {
             const ctext = strset[ctindex].replace(/ /g, '&nbsp;');
-            result.append(
+            wrapper.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ',
                 })
                     .html(ctext)
             );
         }
+        result.append(wrapper);
         result.append(this.generateReplacementTable(false, this.state.encodeType, ''));
         return result;
     }

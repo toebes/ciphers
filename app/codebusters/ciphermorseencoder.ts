@@ -250,9 +250,11 @@ export class CipherMorseEncoder extends CipherEncoder {
         this.genAlphabet();
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
 
+        const wrapper = $('<div/>');
+        wrapper.attr('style', 'margin: 0 auto; width: max-content;');
         for (const strset of strings) {
             const ctext = strset[ctindex].replace(/ /g, '&nbsp;&nbsp;');
-            result.append(
+            wrapper.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ',
                 })
@@ -260,6 +262,7 @@ export class CipherMorseEncoder extends CipherEncoder {
                     .append($('<br/><br/>'))
             );
         }
+        result.append(wrapper);
         return result;
     }
 

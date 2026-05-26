@@ -4,7 +4,7 @@ const settings = require('./.ftpdeploy.js');
 
 async function deployExtra() {
     const client = new ftp.Client();
-    client.ftp.verbose = falce;
+    client.ftp.verbose = false;
 
     try {
         await client.access({

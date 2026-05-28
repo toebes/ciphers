@@ -38,7 +38,12 @@ export class CipherHillEncoder extends CipherEncoder {
     public guidanceURL = 'TestGuidance.html#Hill_Matrix';
     public cipherName = 'Hill'
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.cregional, ITestType.cstate];
+    public validTests: ITestType[] = [
+        ITestType.None,
+        // Hill gets dropped for Division C for the 2026-2027 season
+        // ITestType.cregional,
+        // ITestType.cstate
+    ];
     public defaultstate: IState = {
         cipherString: '',
         keyword: '' /** The type of cipher we are doing */,

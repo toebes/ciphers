@@ -57,8 +57,9 @@ export class CipherAffineEncoder extends CipherEncoder {
         // Affine gets dropped for Division C for the 2022-2023 season
         // ITestType.cregional, 
         // ITestType.cstate,
-        ITestType.bregional,
-        ITestType.bstate,
+        // Affine gets dropped for Division B for the 2026-2027 season
+        // ITestType.bregional,
+        // ITestType.bstate,
     ];
 
     public defaultstate: IAffineState = {

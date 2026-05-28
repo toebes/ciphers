@@ -310,6 +310,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Rule-Summary-2027.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Rule-Summary-2027.html'),
+            cipher: 'TestManage',
+            title: '2026-2027 Season Science Olympiad Rules Summary',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestGuidance.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestGuidance.html'),
             cipher: '',

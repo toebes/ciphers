@@ -21,7 +21,8 @@ export class CipherDancingMenEncoder extends CipherEncoder {
     public usesDancingMenTable = true;
     public cipherName = 'Dancing Men'
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
+    // No longer valid for the 2027 season, but leaving in for now in case we want to use it again.
+    public validTests: ITestType[] = [ITestType.None /*, ITestType.aregional*/];
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.DancingMen,

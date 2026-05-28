@@ -571,6 +571,14 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
         },
     ],
     [
+        ICipherType.StandardGalacticAlphabet,
+        {
+            title: 'Standard Galactic Alphabet',
+            id: 'standardgalacticalphabet',
+            equiv: [ICipherType.StandardGalacticAlphabet],
+        },
+    ],
+    [
         ICipherType.Swagman,
         /* Not Yet Implemented */ {
             title: 'Swagman',

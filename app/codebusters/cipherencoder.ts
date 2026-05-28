@@ -362,7 +362,7 @@ export class CipherEncoder extends CipherHandler {
         let msg = '';
         // console.log("Set Replacement cset=" + cset + " repl=" + repl);
         // Figure out what letters map to the destination letters.  Note that
-        // the input chracterset alphabet may not be in the same order as the
+        // the input characterset alphabet may not be in the same order as the
         // actual alphabet.
         for (let i = 0, len = repl.length; i < len; i++) {
             const repc = repl.charAt(i);

@@ -19,7 +19,7 @@ export interface IAristocratState extends IEncoderState {
     offset2?: number;
     /** The source character map */
     alphabetSource?: string;
-    /** The restination character map */
+    /** The destination character map */
     alphabetDest?: string;
     /** Optional translation string for non-english ciphers */
     translation?: string;
@@ -27,6 +27,14 @@ export interface IAristocratState extends IEncoderState {
     hint?: string;
     /** Optional crib tracking string */
     crib?: string;
+}
+
+interface ICribInfo {
+    plaintext: string;
+    ciphertext: string;
+    position: number;
+    criblen: number;
+    cipherlen: number;
 }
 
 export class CipherAristocratEncoder extends CipherEncoder {
@@ -517,15 +525,74 @@ export class CipherAristocratEncoder extends CipherEncoder {
         }
         return changed;
     }
+
+    public genHintText(hint: string): string {
+        let hinttext = ''
+
+        const cribpos = this.placeCrib();
+        if (cribpos == undefined) return '';
+        hinttext = "";
+
+        if (cribpos.position === 0) {
+            hinttext += ` The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}. `;
+        } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
+            hinttext += ` The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}. `;
+        } else {
+            const startpos = this.getPositionText(cribpos.position + 1);
+            const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
+            hinttext += ` The ${startpos} through ${endpos} cipher units (${this.genMonoText(cribpos.ciphertext)})
+                decode to be ${this.genMonoText(cribpos.plaintext)}. `
+        }
+        return hinttext;
+    }
+
+    /**
+     * Locate the crib in the current cipher text (if it exists)
+     * @returns ICribInfo object describing the crib placement, or undefined if not found
+     */
+    public placeCrib(): ICribInfo {
+
+        let errorMessage = '';
+        const plaintext = this.minimizeString(this.state.cipherString);
+        const hint = this.minimizeString(this.state.hint);
+        if (plaintext.indexOf(hint) === -1) {
+            errorMessage = `The hint ${this.state.hint} is not found in the plaintext`;
+            this.setErrorMsg(errorMessage, 'cribmiss', null);
+        } else {
+            this.setErrorMsg('', 'cribmiss', null);
+        }
+        const cribpos = plaintext.indexOf(hint);
+        if (cribpos < 0) {
+            return undefined;
+        }
+        // console.log(this.encipherString("VJYV", this.state.alphabetDest));
+        return {
+            plaintext: plaintext.substring(cribpos, cribpos + hint.length),
+            ciphertext: this.makeReplacement(plaintext, 9999)[0][0].substring(cribpos, cribpos + hint.length),
+            position: cribpos,
+            criblen: hint.length,
+            cipherlen: plaintext.length,
+        };
+    }
+
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
         if (this.state.usehint) {
             if (this.state.hint === undefined) {
                 // Display error message-usehint is true but no hint specified...
+                hinttext = '';
                 $("#sqtext").addClass('usemsg').text('Optional Hint is selected, but no hint has been entered.');
             }
             else {
-                hinttext = ` You are told that the cipher contains ${this.genMonoText(this.state.hint)}.`;
+                if (this.state.cipherType === ICipherType.Patristocrat) {
+                    hinttext = this.genHintText(this.state.hint);
+                }
+                else {
+                    hinttext = ` You are told that the cipher contains ${this.genMonoText(this.state.hint)}.`;
+                }
             }
+        }
+        else {
+            hinttext = '';
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
     }
@@ -997,6 +1064,26 @@ export class CipherAristocratEncoder extends CipherEncoder {
      */
     public prepGenScoring(): Promise<boolean> {
         return this.loadLanguageDictionary(this.state.curlang);
+    }
+    /**
+     * Converts a number to corresponding to the positional text version of
+     *  the number like 2nd, 55th, etc.
+     * @param val Number to generate string for
+     * @returns Positional text version of string
+     */
+    public getPositionText(val: number): string {
+        let suffix = 'th';
+        if (val < 4 || val > 20) {
+            const ones = val % 10;
+            if (ones === 1) {
+                suffix = 'st';
+            } else if (ones === 2) {
+                suffix = 'nd';
+            } else if (ones === 3) {
+                suffix = 'rd';
+            }
+        }
+        return String(val) + '<sup>' + suffix + '</sup>';
     }
     /**
      * Compute the score ranges for an Aristocrat/Patristocrat/Xenocrypt

@@ -99,7 +99,7 @@ export interface IState {
     // testLines?: string[];
     // /** Frequency of source characters **/
     // testFreq?: { [key: string]: number };
-    /** Maping to check the solution with */
+    /** Mapping to check the solution with */
     solMap?: string;
     /** Encoded solution to match against */
     solCheck?: string;

@@ -1571,6 +1571,7 @@ export class CipherTest extends CipherEncoder {
                     class: 'timed',
                 }).text('Timed Question')
             );
+            result.attr('style', 'border: 5px double black;');
             extratext =
                 '  When you have solved it, raise your hand so that the time can be recorded and the solution checked.';
         } else {

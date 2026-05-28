@@ -168,8 +168,10 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         const result = $('<div/>');
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         const tosolve = 0;
+        const wrapper = $('<div/>');
+        wrapper.attr('style', 'margin: 0 auto; width: max-content;');
         for (const strset of strings) {
-            result.append(
+            wrapper.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ',
                 })
@@ -177,6 +179,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
                     .append($('<br/>'))
             );
         }
+        result.append(wrapper);
         return result;
     }
     /**

@@ -411,11 +411,8 @@ export class CipherAristocratEncoder extends CipherEncoder {
             if (this.minimizeString(keyanswer).length !== keyanswer.length) {
                 keytype = "Key Phrase"
             }
-            result.append(
-                $('<p/>', { class: "reduced" }).append($("<b/>").text(`Enter the ${keytype} here`))
-
-            )
-            const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+            const enterKey = $('<div/>', { class: "reduced cell shrink" }).append($("<b/>").text(`Enter the ${keytype} here: `))
+            const table = new JTTable({ class: 'ansblock shrink auto cell unstriped' + extraclass });
             const rowanswer = table.addBodyRow();
 
             for (let i = 0; i < keyanswer.length; i++) {
@@ -429,8 +426,10 @@ export class CipherAristocratEncoder extends CipherEncoder {
                     rowanswer.add(c);
                 }
             }
-            result.append(table.generate());
-            result.append($('<p/>').append($("<b/>").text("Cipher:")))
+
+            result.append($('<div/>', { class: "grid-x" })
+                .append(enterKey)
+                .append(table.generate()));
         }
         const wrapper = $('<div/>');
         wrapper.attr('style', 'margin: 0 auto; width: max-content;');

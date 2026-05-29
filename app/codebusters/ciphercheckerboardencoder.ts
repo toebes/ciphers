@@ -1651,7 +1651,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         return [this.undupeString(rowLetters), this.undupeString(colLetters)]
     }
     public encodeFixed(val: string): JQuery<HTMLElement> {
-        return $('<span/>', { class: 'hl' }).text(val)
+        return $('<span/>', { class: 'fpt' }).text(val)
     }
 
     public canonicalForm(s: string): string {
@@ -2057,7 +2057,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 .append('pick out which is the correct letter for the final answer. Based on that ')
         }
 
-        let answer = $('<span/>', { class: 'hl' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
+        let answer = $('<span/>', { class: 'fpt' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
 
         result.append(`Here's our answer: `).append(answer)
     }

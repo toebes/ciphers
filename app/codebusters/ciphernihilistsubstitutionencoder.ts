@@ -1671,7 +1671,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
                         if (typeof pair[0] === 'string') {
                             if (state === 'k1example' && localValidIndex === 1) {
-                                row.append($('<td class="hl" width="33px"/>').text('K1'));
+                                row.append($('<td class="fpt" width="33px"/>').text('K1'));
                             } else {
                                 row.append($('<td width="33px"/>').text('K' + localValidIndex));
                             }
@@ -1697,7 +1697,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     //         row.append($('<td width="33px"/>').text(char));
                     //     } else {
                     //         if (state === 'k1example' && index === 1) {
-                    //             row.append($('<td class="hl" width="33px"/>').text('K' + index));
+                    //             row.append($('<td class="fpt" width="33px"/>').text('K' + index));
 
                     //         } else {
                     //             row.append($('<td width="33px"/>').text('K' + index));
@@ -2693,9 +2693,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.showStep(result, "Step 1: Fill out the Polybius Table");
 
-        let polyKeySpan = $('<span/>', { class: 'hl' }).text(cleanPolybiusKey)
+        let polyKeySpan = $('<span/>', { class: 'fpt' }).text(cleanPolybiusKey)
 
-        let polyLenSpan = $('<span/>', { class: 'hl' }).text(this.undupeString(cleanPolybiusKey).length)
+        let polyLenSpan = $('<span/>', { class: 'fpt' }).text(this.undupeString(cleanPolybiusKey).length)
 
         result.append('Given the Polybius Key ')
             .append(polyKeySpan)
@@ -2720,7 +2720,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.showStep(result, "Step 2: Construct the Keyword Numbers");
 
-        let keywordSpan = $('<span/>', { class: 'hl' }).text(cleanKey)
+        let keywordSpan = $('<span/>', { class: 'fpt' }).text(cleanKey)
 
         result.append('Take the given keyword ')
             .append(keywordSpan)
@@ -2744,9 +2744,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         let firstLetter = cleanKey.substring(0, 1)
         let tMap = this.getNumFromPolybiusMap(firstLetter)
-        let tMapSpan = $('<span/>', { class: 'hl' }).text(tMap)
-        let tMap1Span = $('<span/>', { class: 'hl' }).text(tMap.substring(0, 1))
-        let tMap2Span = $('<span/>', { class: 'hl' }).text(tMap.substring(1, 2))
+        let tMapSpan = $('<span/>', { class: 'fpt' }).text(tMap)
+        let tMap1Span = $('<span/>', { class: 'fpt' }).text(tMap.substring(0, 1))
+        let tMap2Span = $('<span/>', { class: 'fpt' }).text(tMap.substring(1, 2))
         result.append($('<div/>', { class: 'callout primary small' }).text(`For example, the letter ${firstLetter} would convert to `)
             .append(tMapSpan)
             .append(` since it is on row `)
@@ -2775,7 +2775,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append($('<p/>'))
 
-        let answer = $('<span/>', { class: 'hl' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
+        let answer = $('<span/>', { class: 'fpt' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
 
         result.append(`Here's our answer: `).append(answer)
 

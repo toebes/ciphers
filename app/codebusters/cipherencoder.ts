@@ -1719,7 +1719,22 @@ export class CipherEncoder extends CipherHandler {
         return hint !== undefined ? ` You are told that ${hint}` : '';
     }
 
-
+    /**
+     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
+     * @param val Character to annotate
+     * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
+     */
+    public fixedCt(val: string): string {
+        return `<span class="fct">${val}</span>`;
+    }
+    /**
+     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
+     * @param val Character to annotate
+     * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
+     */
+    public fixedPt(val: string): string {
+        return `<span class="fpt">${val}</span>`;
+    }
     /**
      * Fills in a question template with values in the Record map.
      * @param template the template file to be filled in

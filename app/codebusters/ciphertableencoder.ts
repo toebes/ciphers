@@ -196,7 +196,9 @@ export class CipherTableEncoder extends CipherEncoder {
                 .reverse()
                 .join('');
         } else {
-            replacement = charset.substr(this.state.offset) + charset.substr(0, this.state.offset);
+            replacement =
+                charset.slice(this.state.offset) +
+                charset.slice(0, this.state.offset);
         }
         // Remember that the replacement is backwards because the class is built
         // around decodeing.
@@ -218,6 +220,49 @@ export class CipherTableEncoder extends CipherEncoder {
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+    }
+
+    /**
+     * Using the currently selected replacement set, encodes a string
+     * This breaks it up into lines of maxEncodeWidth characters or less so that
+     * it can be easily pasted into the text.  This returns the result
+     * as the HTML to be displayed
+     */
+    public build(): JQuery<HTMLElement> {
+        const result = $('<div/>');
+
+        // Provide correct guidance message as to which line is
+        // plain text and which is cipher text.
+        let topLine = ' Cipher Text is on ';
+        let highlightedLine = ' Plain Text is ';
+        if (this.state.operation === 'encode') {
+            topLine = ' Plain Text is on ';
+            highlightedLine = ' Cipher Text is ';
+        }
+        const testtype = this.isUsedOnDivisionA() ? ITestType.aregional : ITestType.None;
+
+        result.append(
+            $('<div/>', {
+                class: 'callout small success',
+            })
+                .text('Note:')
+                .append(topLine)
+                .append(
+                    $('<span/>', {
+                        class: 'TOSOLVE',
+                    }).text('top line')
+                )
+                .append(',')
+                .append(highlightedLine)
+                .append(
+                    $('<span/>', {
+                        class: 'TOANSWER',
+                    }).text('highlighted')
+                )
+        );
+        result.append(this.genAnswer(testtype));
+        result.append(this.genSolution(testtype));
+        return result;
     }
 
     public makeFreqEditField(c: string): JQuery<HTMLElement> {
@@ -300,8 +345,7 @@ export class CipherTableEncoder extends CipherEncoder {
       */
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
-        let testUsage = this.getTestUsage();
-        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnA = this.isUsedOnDivisionA();
 
         let text = ''
         let rangetext = ''
@@ -362,6 +406,16 @@ export class CipherTableEncoder extends CipherEncoder {
              We suggest you try a score of ${suggested}${rangetext}</p>`
         }
         return { suggested: suggested, min: min, max: max, text: text }
+    }
+
+    /**
+     * Checks if the cipher is used on Division A
+     * @returns True if used on Division A, false otherwise
+     */
+    public isUsedOnDivisionA() {
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        return usedOnA;
     }
     /**
      * Generate the HTML to display the answer for a cipher
@@ -498,248 +552,60 @@ export class CipherTableEncoder extends CipherEncoder {
         }
         return result;
     }
-    // tslint:disable-next-line:cyclomatic-complexity
+    /**
+     * Generates the printable solution for a cipher
+     * @param testType The type of test
+     * @returns The HTML for the solution
+     */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
-        const result = $('<div/>');
-        let needsbrute = false;
+        $('#answer').removeClass('ans').addClass('ansclean');
         this.genAlphabet();
         this.ciphermap = mapperFactory(ICipherType.Vigenere);
         if (this.state.operation === 'decode' && this.state.cipherType === ICipherType.Caesar) {
-            result.append($('<h3/>').text('How to solve'));
+            return this.genCaesarSolution(testType);
+        }
+        if (this.state.operation === 'decode' && this.state.cipherType === ICipherType.Atbash) {
+            return this.genAtbashSolution(testType);
+        }
+        return $('<div/>');
+    }
 
-            const strings = this.makeReplacement(
-                this.state.cipherString,
-                this.state.cipherString.length
-            );
-            const words = this.findWords(strings[0][0]);
-            const realkey = this.ciphermap.decodeKey(
-                strings[0][0].substr(0, 1),
-                strings[0][1].substr(0, 1)
-            );
-            let longword = words[2][0];
-            let todecode = " the first long word '" + longword + "'";
-            if (longword === '') {
-                longword = strings[0][0].substr(0, 10);
-                todecode = " the first few characters '" + longword + "'";
-            }
-            if (words[0].length) {
-                const let1word = words[0][0];
-                const akey = this.ciphermap.decodeKey(let1word, 'A');
-                const ikey = this.ciphermap.decodeKey(let1word, 'I');
-                let p = $('<p/>').text(
-                    'We start out by looking for short words to decode and then see if that encoding makes sense. '
-                );
-                p.append(
-                    'Since we have a single letter word, we try out ' +
-                    let1word +
-                    '=A and ' +
-                    let1word +
-                    '=I.'
-                );
-                result.append(p);
-                p = $('<p/>').text(
-                    'With ' +
-                    let1word +
-                    '=A we look in the decoding table for a ' +
-                    let1word +
-                    ' in the A column'
-                );
-                p.append(' and see that it is the ' + akey + ' row');
-                result.append(p);
-                p = $('<p/>').text('Using the ' + akey + ' row to decode ' + todecode);
-                p.append(", it comes out as '" + this.decodeCaesar(longword, akey) + "'");
-                result.append(p);
-                p = $('<p/>').text(
-                    'With ' +
-                    let1word +
-                    '=I we look in the decoding table for a ' +
-                    let1word +
-                    ' in the I column'
-                );
-                p.append(' and see that it is the ' + ikey + ' row');
-                result.append(p);
-                p = $('<p/>').text('Using the ' + ikey + ' row to decode ' + todecode);
-                p.append(", it comes out as '" + this.decodeCaesar(longword, ikey) + "'");
-                result.append(p);
-                if (ikey === realkey || akey === realkey) {
-                    result.append(
-                        $('<p/>').text(
-                            'Based on this, we believe that the key row is ' +
-                            realkey +
-                            ' which we can use to decode the remaining letters'
-                        )
-                    );
-                } else {
-                    needsbrute = true;
-                }
-            } else if (words[1].length) {
-                const let2list = [
-                    'AS',
-                    'AT',
-                    'AN',
-                    'AM',
-                    'BE',
-                    'BY',
-                    'IN',
-                    'IT',
-                    'IS',
-                    'IF',
-                    'ME',
-                    'MY',
-                    'OF',
-                    'OR',
-                    'ON',
-                    'UP',
-                    'US',
-                    'DO',
-                    'GO',
-                    'NO',
-                    'SO',
-                    'TO',
-                    'HE',
-                    'WE',
-                    'AB',
-                    'AD',
-                    'AH',
-                    'HI',
-                    'HO',
-                    'ID',
-                    'MU',
-                    'OH',
-                    'OK',
-                    'OX',
-                    'UH',
-                    'UM',
-                ];
+    /**
+     * Generates the solution for a Caesar cipher
+     * @param testType The type of test
+     * @returns The HTML for the solution
+     */
+    public genCaesarSolution(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>', { class: 'ansclean' });
+        const isDivisionA = testType === ITestType.aregional || testType === ITestType.astate;
+        let foundAnswer = false;
+        let charset = this.getCharset();
+        result.append($('<h3/>').text('How to solve'));
 
-                let p = $('<p/>').text(
-                    'Since there are no single letter words we look for the double letter words and find '
-                );
-                let extra = '';
-                const possible: BoolMap = {};
-                for (const word of words[1]) {
-                    p.append(extra + word);
-                    extra = ' and ';
-                }
-                p.append('.');
-                result.append(p);
-                p = $('<p/>').text(
-                    'We can use a simple trick to test them quickly which only requires looking up 8 characters:'
-                );
-                p.append(
-                    ' six letters mapping the beginning (A B I M O U) and two letters at the end (O E).'
-                );
-                p.append('The letters are  for the beginning and  for the end.');
-                result.append(p);
-                p = $('<p/>').text('The starting letters match against ');
-                p.append('As/At/An/Am, Be/By, In/It/Is/If, Me/My, Of/Or/On, and Up/Us.');
-                p.append(' The ending letters match against ');
-                p.append('dO/gO/nO/sO/tO and hE/wE.');
-                result.append(p);
-
-                for (const c of ['A', 'B', 'I', 'M', 'O', 'U']) {
-                    p = $('<p/>').text('Using the beginning letter ' + c + ' gives ');
-                    extra = '';
-                    for (const word of words[1]) {
-                        const key = this.ciphermap.decodeKey(word, c);
-                        const decoded = this.decodeCaesar(word, key);
-                        // See if it is one of the possible two letter words
-                        if (let2list.indexOf(decoded) !== -1) {
-                            p.append(' a common word ');
-                            if (possible[key] !== false) {
-                                possible[key] = true;
-                            }
-                        } else {
-                            possible[key] = false;
-                        }
-                        p.append(extra + decoded + ' with a key of ' + key);
-                        extra = ' and ';
-                    }
-                    result.append(p);
-                }
-                for (const c of ['O', 'E']) {
-                    p = $('<p/>').text('Using the ending letter ' + c + ' gives ');
-                    extra = '';
-                    for (const word of words[1]) {
-                        const key = this.ciphermap.decodeKey(word.substr(1, 1), c);
-                        const decoded = this.decodeCaesar(word, key);
-                        // See if it is one of the possible two letter words
-                        if (let2list.indexOf(decoded) !== -1) {
-                            p.append(' a common word ');
-                            if (possible[key] !== false) {
-                                possible[key] = true;
-                            }
-                        } else {
-                            possible[key] = false;
-                        }
-                        p.append(extra + "'" + decoded + "' with a key of " + key);
-                        extra = ' and ';
-                    }
-                    result.append(p);
-                }
-                // Now find out what common words produced testable keys
-                const goodkeys = [];
-                for (const c in possible) {
-                    if (possible[c] === true) {
-                        goodkeys.push(c);
-                    }
-                }
-                //
-                if (goodkeys.length === 0) {
-                    result.append($('<p/>').text("We didn't find any matches"));
-                } else if (goodkeys.length === 1) {
-                    result.append(
-                        $('<p/>').text(
-                            'Based on this, we believe that the key row is ' +
-                            goodkeys[0] +
-                            ' which we can use to decode the remaining letters'
-                        )
-                    );
-                    p = $('<p/>').text(
-                        'We can confirm it by using the ' +
-                        goodkeys[0] +
-                        ' row to decode ' +
-                        todecode
-                    );
-                    p.append(
-                        ", we see it comes out as '" +
-                        this.decodeCaesar(longword, goodkeys[0]) +
-                        "'"
-                    );
-                    if (goodkeys[0] === realkey) {
-                        p.append(
-                            ' which confirms our guess and we can use it to decode the remainder of the letters.'
-                        );
-                    }
-                    result.append(p);
-                } else {
-                    result.append(
-                        $('<p/>').text(
-                            'Since we have several possible choices, we have to try them out on ' +
-                            todecode
-                        )
-                    );
-                    for (const key of goodkeys) {
-                        p = $('<p/>').text('Using the ' + key + ' row to decode ' + todecode);
-                        p.append(", it comes out as '" + this.decodeCaesar(longword, key) + "'");
-                        result.append(p);
-                    }
-                    if (goodkeys.indexOf(realkey) !== -1) {
-                        result.append(
-                            $('<p/>').text(
-                                'Based on this, we believe that the key row is ' +
-                                realkey +
-                                ' which we can use to decode the remaining letters'
-                            )
-                        );
-                    } else {
-                        needsbrute = true;
-                    }
-                }
+        const strings = this.makeReplacement(
+            this.state.cipherString,
+            this.state.cipherString.length
+        );
+        const words = this.findWords(strings[0][0]);
+        const realkey = this.ciphermap.decodeKey(
+            strings[0][0][0],
+            strings[0][1][0]
+        );
+        let longword = words[2][0];
+        let todecode = ` the first long word ${this.fixedCt(longword)}`;
+        if (longword === '') {
+            longword = strings[0][0].slice(0, 10);
+            todecode = ` the first few characters ${this.fixedCt(longword)}`;
+        }
+        if (words[0].length) {
+            foundAnswer = this.genCaesarSolution1C(words[0][0], result, isDivisionA, charset, realkey, todecode, longword);
+        } else if (words[1].length && !isDivisionA) {
+            foundAnswer = this.genCaesarSolution2CDivB(words[1], result, todecode, longword, realkey, foundAnswer);
+        }
+        if (!foundAnswer) {
+            if (isDivisionA) {
+                foundAnswer = this.genCaesarSolution2CDivA(words[1], result, todecode, longword, charset, realkey);
             } else {
-                needsbrute = true;
-            }
-            if (needsbrute) {
                 result.append(
                     $('<p/>').text(
                         'At this point, we have to try a brute force method just going down the alphabet'
@@ -762,6 +628,329 @@ export class CipherTableEncoder extends CipherEncoder {
                 }
             }
         }
+        return result;
+    }
+    /**
+     * Generates the solution for a Division A Caesar cipher with a two letter word
+     * @param words Array of two letter words found in the cipher
+     * @param result The jQuery element to append the solution to
+     * @param todecode The string to decode
+     * @param longword The long word found in the cipher
+     * @param charset The character set to use
+     * @param realkey The real key for decoding
+     */
+    genCaesarSolution2CDivA(words: string[], result: JQuery<HTMLElement>, todecode: string, longword: string, charset: string, realkey: string): boolean {
+        result.append($('<p/>').html(`Since we know that the amount of shift is no more than 3, we can simply write down the letters we want to decode and the letters that are 3 before and 3 after them. 
+                 This gives us a total of 6 choices to look at to determine how we need to decode it.`));
+        let totest = todecode
+        let testword = longword
+        if (words.length > 0) {
+            totest = ` one of our two letter words ${this.fixedCt(words[0])}`;
+            testword = words[0]
+        }
+        result.append($('<p/>').html(`for this we will use ${totest}`));
+        const table = new JTTable({ class: 'ansblock caesar shrink cell unstriped' });
+        const rowset = [
+            table.addBodyRow(),
+            table.addBodyRow(),
+            table.addBodyRow(),
+            table.addBodyRow(),
+            table.addBodyRow(),
+            table.addBodyRow(),
+            table.addBodyRow(),]
+        for (const c of testword) {
+            const idx = this.getCharset().indexOf(c);
+            rowset[0].add(this.getCharset()[(idx + 23) % 26]);
+            rowset[1].add(this.getCharset()[(idx + 24) % 26]);
+            rowset[2].add(this.getCharset()[(idx + 25) % 26]);
+            rowset[3].add({ celltype: 'th', settings: { class: 'TOSOLVEC' }, content: c });
+            rowset[4].add(this.getCharset()[(idx + 1) % 26]);
+            rowset[5].add(this.getCharset()[(idx + 2) % 26]);
+            rowset[6].add(this.getCharset()[(idx + 3) % 26]);
+        }
+        for (let i = 0; i < 7; i++) {
+            let thisoffset = (i + 3 + 26) % 26;
+            if (thisoffset === this.state.offset) {
+                rowset[i].add($('<span/>').html(`&nbsp;&nbsp&lArr; This appears to be right`));
+            }
+            else {
+                rowset[i].add(' ');
+            }
+        }
+        result.append(table.generate());
+        const ct = testword[0]
+        const pt = this.decodeCaesar(testword[0], realkey)
+        result.append($('<p/>').html(`Now we can see that ${this.fixedCt(ct)} decodes to be  ${this.fixedPt(pt)}. 
+        We can use this to build a quick reference table for decoding the rest of the letters.
+        Start by writing down all of the letters of the alphabet in a row and then place the letter ${this.fixedPt(pt)} under ${this.fixedCt(ct)}.`));
+        this.generateCaesarFillInTable(result, charset, ct, pt, realkey, false);
+        result.append($('<p/>').html(`Then following that letter, put the next letter of the alphabet in sequence, starting over at ${this.fixedPt('A')} when you hit ${this.fixedPt('Z')} and then wrapping
+            back to the start of the table until everything is filled in.`));
+        this.generateCaesarFillInTable(result, charset, ct, pt, realkey, true);
+        result.append($('<p/>').html(`Now we can use this table to decode the rest of the letters in the cipher.`));
+        return true;
+    }
+
+    public generateCaesarFillInTable(result: JQuery<HTMLElement>, charset: string, ct: string, pt: string, realkey: string, showfull: boolean): void {
+        const table2 = new JTTable({ class: 'ansblock caesar shrink cell unstriped' });
+        const ctrow = table2.addBodyRow();
+        const ptrow = table2.addBodyRow();
+        for (const c of charset) {
+            ctrow.add({ celltype: 'th', content: c });
+            if (c === ct) {
+                ptrow.add({ settings: { class: 'a' }, content: pt });
+            } else {
+                if (showfull) {
+                    ptrow.add({ settings: { class: 'a' }, content: this.decodeCaesar(c, realkey) });
+                } else {
+                    ptrow.add(' ');
+                }
+            }
+        }
+        result.append(table2.generate());
+    }
+
+    public genCaesarSolution2CDivB(words: string[], result: JQuery<HTMLElement>, todecode: string, longword: string, realkey: string, foundAnswer: boolean): boolean {
+        const let2list = [
+            'AS',
+            'AT',
+            'AN',
+            'AM',
+            'BE',
+            'BY',
+            'IN',
+            'IT',
+            'IS',
+            'IF',
+            'ME',
+            'MY',
+            'OF',
+            'OR',
+            'ON',
+            'UP',
+            'US',
+            'DO',
+            'GO',
+            'NO',
+            'SO',
+            'TO',
+            'HE',
+            'WE',
+            'AB',
+            'AD',
+            'AH',
+            'HI',
+            'HO',
+            'ID',
+            'MU',
+            'OH',
+            'OK',
+            'OX',
+            'UH',
+            'UM',
+        ];
+
+        let ptext = `Since there are no single letter words we look for the double letter words and find `
+        let extra = '';
+        const possible: BoolMap = {};
+        for (const word of words) {
+            ptext += extra + this.fixedCt(extra + word);
+            extra = ' and ';
+        }
+        ptext += '.';
+        result.append($('<p/>').html(ptext));
+        result.append($('<p/>').html(
+            `We can use a simple trick to test them quickly which only requires looking up 8 characters:
+             six letters mapping the beginning (A B I M O U) and two letters at the end (O E).`
+        ));
+
+        result.append($('<p/>').html(`The starting letters match against
+        ${this.fixedPt('As')}/${this.fixedPt('At')}/${this.fixedPt('An')}/${this.fixedPt('Am')},
+        ${this.fixedPt('Be')}/${this.fixedPt('By')},
+        ${this.fixedPt('In')}/${this.fixedPt('It')}/${this.fixedPt('Is')}/${this.fixedPt('If')},
+        ${this.fixedPt('Me')}/${this.fixedPt('My')},
+        ${this.fixedPt('Of')}/${this.fixedPt('Or')}/${this.fixedPt('On')},
+        and ${this.fixedPt('Up')}/${this.fixedPt('Us')}.
+        The ending letters match against 
+        ${this.fixedPt('dO')}/${this.fixedPt('gO')}/${this.fixedPt('nO')}/${this.fixedPt('sO')}/${this.fixedPt('tO')}
+        and ${this.fixedPt('hE')}/${this.fixedPt('wE')}.`));
+
+        const ul = $('<ul/>');
+        for (const c of ['A', 'B', 'I', 'M', 'O', 'U']) {
+            ptext = `Using the beginning letter ${this.fixedPt(c)} gives `;
+            extra = '';
+            for (const word of words) {
+                const key = this.ciphermap.decodeKey(word, c);
+                const decoded = this.decodeCaesar(word, key);
+                // See if it is one of the possible two letter words
+                if (let2list.indexOf(decoded) !== -1) {
+                    ptext += ' a common word ';
+                    if (possible[key] !== false) {
+                        possible[key] = true;
+                    }
+                } else {
+                    possible[key] = false;
+                }
+                ptext += `${extra}${this.fixedPt(decoded)} with a key of ${this.fixedCt(key)}`;
+                extra = ' and ';
+            }
+            ul.append($('<li/>').html(ptext));
+        }
+        for (const c of ['O', 'E']) {
+            ptext = `Using the ending letter ${this.fixedPt(c)} gives `;
+            extra = '';
+            for (const word of words) {
+                const key = this.ciphermap.decodeKey(word[1], c);
+                const decoded = this.decodeCaesar(word, key);
+                // See if it is one of the possible two letter words
+                if (let2list.indexOf(decoded) !== -1) {
+                    ptext += ' a common word ';
+                    if (possible[key] !== false) {
+                        possible[key] = true;
+                    }
+                } else {
+                    possible[key] = false;
+                }
+                ptext += `${extra}'${this.fixedPt(decoded)}' with a key of ${this.fixedCt(key)}`;
+                extra = ' and ';
+            }
+            ul.append($('<li/>').html(ptext));
+        }
+        result.append(ul);
+        // Now find out what common words produced testable keys
+        const goodkeys = [];
+        for (const c in possible) {
+            if (possible[c] === true) {
+                goodkeys.push(c);
+            }
+        }
+        //
+        if (goodkeys.length === 0) {
+            result.append($('<p/>').text("We didn't find any matches"));
+        } else if (goodkeys.length === 1) {
+            result.append(
+                $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedCt(goodkeys[0])} which we can use to decode the remaining letters`)
+            );
+            ptext = `We can confirm it by using the ${this.fixedCt(goodkeys[0])} row to decode ${todecode},
+             we see it comes out as ${this.fixedPt(this.decodeCaesar(longword, goodkeys[0]))}`
+            if (goodkeys[0] === realkey) {
+                ptext += ` which confirms our guess and we can use it to decode the remainder of the letters.`
+            }
+            result.append($('<p/>').html(ptext));
+        } else {
+            result.append(
+                $('<p/>').html(`Since we have several possible choices, we have to try them out on ${todecode}.`)
+            );
+            const ul = $('<ul/>');
+            for (const key of goodkeys) {
+                ul.append($('<li/>').html(`Using the ${this.fixedCt(key)} row to decode ${todecode} it comes out as '${this.decodeCaesar(longword, key)}'`));
+            }
+            result.append(ul);
+            if (goodkeys.indexOf(realkey) !== -1) {
+                result.append(
+                    $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedCt(realkey)} which we can use to decode the remaining letters`
+                    )
+                );
+                foundAnswer = true;
+            }
+        }
+        return foundAnswer;
+    }
+
+    public genCaesarSolution1C(let1word: string, result: JQuery<HTMLElement>, isDivisionA: boolean, charset: string, realkey: string, todecode: string, longword: string): boolean {
+        let foundAnswer = false;
+        const akey = this.ciphermap.decodeKey(let1word, 'A');
+        const ikey = this.ciphermap.decodeKey(let1word, 'I');
+        const let1CT = this.fixedCt(let1word);
+        result.append($('<p/>').html(
+            `We start out by looking for short words to decode and then see if that encoding makes sense.
+                 We find a single letter word ${let1CT} which is likely to be either ${this.fixedPt('A')} or ${this.fixedPt('I')}.`));
+        let skipA = false;
+        if (let1word === 'A') {
+            result.append($('<p/>').html(`Since the cipher text is ${let1CT} and we know that there must be a shift, it can't just be ${this.fixedPt('A')} so we can eliminate that possibility.`));
+            skipA = true;
+        }
+        if (isDivisionA) {
+            let note = `For Division A, we know that the key is no more than 3 letters away from the original letter.`;
+            if (!skipA) {
+                const delta = Math.abs((charset.indexOf(let1word) - charset.indexOf('A')) % 26);
+                if (delta > 3) {
+                    note += ` Since ${let1CT} is more than 3 letters away from ${this.fixedPt('A')}, we can eliminate that possibility.
+                        (For a shift of 3, ${this.fixedPt('A')} could only be ${this.fixedCt('X')}, ${this.fixedCt('Y')}, ${this.fixedCt('Z')}, ${this.fixedCt('B')}, ${this.fixedCt('C')}, or ${this.fixedCt('D')})`;
+                    skipA = true;
+                }
+            }
+            result.append($('<p/>').html(note));
+        }
+        if (!skipA) {
+            result.append($('<p/>').html(`With ${let1CT}=${this.fixedPt('A')} we look in the decoding table for a ${let1CT} in the ${this.fixedPt('A')} column
+             and see that it is the ${this.fixedPt(akey)} row`));
+            if (akey === realkey) {
+                foundAnswer = true;
+            }
+            const notgood = foundAnswer ? '' : ` which doesn't seem reasonable`;
+            result.append($('<p/>').html(`Using this row to decode ${todecode} we get ${this.fixedPt(this.decodeCaesar(longword, akey))}${notgood}`));
+        }
+        if (!foundAnswer) {
+            let skipI = false;
+            if (isDivisionA) {
+                let note = ``;
+                const delta = Math.abs((charset.indexOf(let1word) - charset.indexOf('I')) % 26);
+                if (delta > 3) {
+                    note += ` Since ${let1CT} is more than 3 letters away from ${this.fixedPt('I')}, we can eliminate that possibility.
+                        (For a shift of 3, ${this.fixedPt('I')} could only be ${this.fixedCt('F')}, ${this.fixedCt('G')}, ${this.fixedCt('H')}, ${this.fixedCt('J')}, ${this.fixedCt('K')}, or ${this.fixedCt('L')})`;
+                    skipI = true;
+                }
+                result.append($('<p/>').html(note));
+            }
+            if (!skipI) {
+
+                result.append($('<p/>').html(
+                    `With ${let1CT}=${this.fixedPt('I')} we look in the decoding table for a ${let1CT} in the ${this.fixedCt('I')} column
+                and see that it is the ${this.fixedCt(ikey)} row`));
+                if (ikey === realkey) {
+                    foundAnswer = true;
+                }
+                const notgood = foundAnswer ? '' : ` which doesn't seem reasonable`;
+                result.append($('<p/>').html(`Using the ${this.fixedCt(ikey)} row to decode ${todecode} we get ${this.fixedPt(this.decodeCaesar(longword, ikey))}${notgood}`));
+            }
+        }
+        if (foundAnswer) {
+            result.append(
+                $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedCt(realkey)} which we can use to decode the remaining letters`)
+            );
+        } else {
+            result.append($('<p/>').html(`Since the single letter word doesn't map to ${this.fixedPt('A')} or ${this.fixedPt('I')}, we have to decode another way.`));
+        }
+        return foundAnswer;
+    }
+
+    /**
+     * Generates the solution for an Atbash cipher
+     * @param testType The type of test
+     * @returns The HTML for the solution
+     */
+    public genAtbashSolution(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to solve'));
+        result.append($('<p/>').text('Look for the AtBash table on the resource sheet which looks like this:'));
+        const table = new JTTable({ class: 'shrink cell unstriped instlook' });
+        const headerRow = table.addHeaderRow();
+        const bodyRow = table.addBodyRow();
+        const charset = this.getSourceCharset();
+        let charcount = charset.length;
+        for (let i = 0; i < charcount; i++) {
+            const c = charset[i];
+            headerRow.add(c);
+            bodyRow.add(charset[charcount - 1 - i]);
+        }
+        result.append($('<div/>', { class: "grid-x" }).append(table.generate()));
+        result.append($('<p/>').text(`For each letter in the cipher, find it in the top row and then write down the corresponding letter from the bottom row.
+           Note that the AtBash cipher is its own inverse, so you can look at the bottom row and write down the corresponding letter from the top row and get the same result.
+           It can also be faster to fill in all the letters that match what you look up.  Also paying attention to the fact that the alphabet is simply reversed, you can 
+           also fill in the opposite letter for each letter you look up.  For example, if you look up the letter 'A' and find that it corresponds to 'Z', 
+           then you can also fill in 'Z' with 'A'.`));
+
         return result;
     }
 }

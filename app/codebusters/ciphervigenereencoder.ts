@@ -807,14 +807,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
-     * @param val Character to annotate
-     * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
-     */
-    public fixedC(val: string): string {
-        return `<span class="hl">${val}</span>`;
-    }
-    /**
      * Map the found key characters to the correct positions in the keyword based on the crib placement and return a properly oriented keyword for display in the solution.  This is used in the solution to show how to orient the found key characters based on the crib placement.
      * @param keys Key characters found based on the crib placement
      * @param keylen Length of the keyword based on the crib placement
@@ -943,9 +935,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
             solvingData.keyword[cribpos.position + pos] = keyChar;
             keywords.push(keyChar)
             if (cipherChar < plainChar) {
-                result.append($('<p/>').html(`Because the cipher character ${this.fixedC(cipherChar)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedC(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedC(keyChar)}.`));
+                result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(cipherChar)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedCt(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
             } else {
-                result.append($('<p/>').html(`Because the plaintext character ${this.fixedC(plainChar)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedC(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedC(keyChar)}.`));
+                result.append($('<p/>').html(`Because the plaintext character ${this.fixedCt(plainChar)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedCt(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
             }
         }
         result.append(this.showPortaDecodeStatus(solvingData));
@@ -961,7 +953,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 keylen = occursindex
                 if (keywords.slice(0, size).join('') === keywords.slice(occursindex, occursindex + size).join('')) {
                     if (size === 1) {
-                        result.append($('<p/>').html(`We can see that the keyword letter ${this.fixedC(first)} repeats at the end, which is a good possibility that we have a ${keylen} letter keyword.`));
+                        result.append($('<p/>').html(`We can see that the keyword letter ${this.fixedCt(first)} repeats at the end, which is a good possibility that we have a ${keylen} letter keyword.`));
                     } else {
                         result.append($('<p/>').html(`We can see that the first ${size} keyword letters repeat at the end, which is a strong indication that we have a ${keylen} letter keyword.`));
                     }

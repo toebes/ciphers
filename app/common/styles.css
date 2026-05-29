@@ -499,8 +499,11 @@ input.cb {
     width: 200px;
 }
 
+.ansclean {
+    font-size: 16px;
+}
+
 .ans {
-    /* width: 600px; */
     font-size: 16px;
     font-family: 'Courier New', Courier, monospace;
     margin-bottom: 24px;
@@ -1133,10 +1136,15 @@ tr.highlighted-header {
     }
 }
 
-.hl {
+.fpt {
     font-family: 'Courier New', Courier, monospace;
     font-weight: 800;
     background-color: yellow !important;
+}
+
+.fct {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
 }
 
 td th .square {
@@ -1790,6 +1798,26 @@ div.tn {
 .BACON.combchar,
 .ansblock.combchar {
     font-family: juliamono, 'Consolas', 'Monaco', 'Courier New', Courier, monospace;
+}
+
+.ansblock.caesar,
+.ansblock.atbash { 
+    margin-left:auto;
+    margin-right:auto;
+    color: darkblue;
+}
+
+.ansblock.caesar td,
+.ansblock.atbash td,
+.ansblock.caesar th,
+.ansblock.atbash th {
+    padding: 1px;
+}
+
+.ansblock.caesar th,
+.ansblock.atbash th {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
 }
 
 div.vsolv {

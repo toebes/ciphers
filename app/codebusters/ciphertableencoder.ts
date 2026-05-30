@@ -680,6 +680,11 @@ export class CipherTableEncoder extends CipherEncoder {
         result.append(table.generate());
         const ct = testword[0]
         const pt = this.decodeCaesar(testword[0], realkey)
+        this.showCaesarMappingFillIn(result, ct, pt, charset, realkey);
+        return true;
+    }
+
+    private showCaesarMappingFillIn(result: JQuery<HTMLElement>, ct: string, pt: string, charset: string, realkey: string) {
         result.append($('<p/>').html(`Now we can see that ${this.fixedCt(ct)} decodes to be  ${this.fixedPt(pt)}. 
         We can use this to build a quick reference table for decoding the rest of the letters.
         Start by writing down all of the letters of the alphabet in a row and then place the letter ${this.fixedPt(pt)} under ${this.fixedCt(ct)}.`));
@@ -688,7 +693,6 @@ export class CipherTableEncoder extends CipherEncoder {
             back to the start of the table until everything is filled in.`));
         this.generateCaesarFillInTable(result, charset, ct, pt, realkey, true);
         result.append($('<p/>').html(`Now we can use this table to decode the rest of the letters in the cipher.`));
-        return true;
     }
 
     public generateCaesarFillInTable(result: JQuery<HTMLElement>, charset: string, ct: string, pt: string, realkey: string, showfull: boolean): void {
@@ -916,9 +920,9 @@ export class CipherTableEncoder extends CipherEncoder {
             }
         }
         if (foundAnswer) {
-            result.append(
-                $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedCt(realkey)} which we can use to decode the remaining letters`)
-            );
+            const ct = realkey;
+            const pt = this.decodeCaesar(let1word, realkey);
+            this.showCaesarMappingFillIn(result, ct, pt, charset, realkey);
         } else {
             result.append($('<p/>').html(`Since the single letter word doesn't map to ${this.fixedPt('A')} or ${this.fixedPt('I')}, we have to decode another way.`));
         }

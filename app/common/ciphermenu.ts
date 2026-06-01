@@ -103,6 +103,12 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menuc',
             },
             {
+                title: 'Homophonic',
+                href: 'HomophonicEncrypt.html',
+                cipherType: ICipherType.Homophonic,
+                classname: 'chkmod menub menuc',
+            },
+            {
                 title: 'Morbit',
                 href: 'MorbitEncrypt.html',
                 cipherType: ICipherType.Morbit,

@@ -23,6 +23,7 @@ import { CipherStandardGalacticAlphabetApp } from './cipherstandardgalacticalpha
 import { CipherTapCodeApp } from './ciphertapcodeapp'
 import { CipherVigenereApp } from './ciphervigenereapp'
 import { CipherXenocryptApp } from './cipherxenocryptapp'
+import { CipherHomophonicApp } from './cipherhomophonicapp'
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -88,6 +89,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillApp,
+        canPrint: false
+    },
+    Homophonic: {
+        cipherType: ICipherType.Homophonic,
+        cipherClass: CipherHomophonicApp,
         canPrint: false
     },
     KnightsTemplar: {

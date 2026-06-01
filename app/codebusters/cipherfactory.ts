@@ -34,6 +34,7 @@ import { CipherAristocratEncoder } from './cipheraristocratencoder';
 import { CipherKnightsTemplarEncoder } from './cipherknightstemplar';
 import { CipherTestSlicer } from './ciphertestslicer';
 import { CipherCheckerboardEncoder } from './ciphercheckerboardencoder';
+import { CipherHomophonicEncoder } from './cipherhomophonicencoder';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -105,6 +106,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
+        canPrint: true,
+    },
+    Homophonic: {
+        cipherType: ICipherType.Homophonic,
+        cipherClass: CipherHomophonicEncoder,
         canPrint: true,
     },
     KnightsTemplar: {

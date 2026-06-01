@@ -215,6 +215,7 @@ export class CipherTest extends CipherEncoder {
         'PigPen',
         'KnightsTemplar',
         'TapCode',
+        'Homophonic',
         'Other'
     ];
     public mapCipherSubType = new Map<ICipherType, string>([
@@ -237,6 +238,7 @@ export class CipherTest extends CipherEncoder {
         [ICipherType.StandardGalacticAlphabet, 'StandardGalacticAlphabet',],
         [ICipherType.Atbash, 'Table',],
         [ICipherType.Vigenere, 'Table',],
+        [ICipherType.Homophonic, 'Homophonic',],
         [ICipherType.RunningKey, 'Other',],
         [ICipherType.RSA, 'Other',],
         [ICipherType.PigPen, 'PigPen',],

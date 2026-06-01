@@ -342,6 +342,20 @@ export class CipherTestBuild extends CipherTest {
             operation: 'crypt'
         },
         {
+            title: "Homophonic Decode",
+            guidance: '[55-62 characters]',
+            len: [55, 62],
+            group: 3, weight: 0.5, cipherType: ICipherType.Homophonic,
+            operation: 'decode'
+        },
+        {
+            title: "Homophonic Cryptanalysis",
+            guidance: '[55-62 characters]',
+            len: [55, 62],
+            group: 3, weight: 0.5, cipherType: ICipherType.Homophonic,
+            operation: 'crypt'
+        },
+        {
             title: "Checkerboard Decode",
             guidance: '[55-75 characters]',
             len: [55, 75], chi2: [20, Infinity],

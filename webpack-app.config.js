@@ -398,6 +398,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Homophonic.html',
+            template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
+            cipher: 'Homophonic',
+            title: 'Solve an Homophonic Cipher',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TapCode.html',
             template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
             cipher: 'TapCode',

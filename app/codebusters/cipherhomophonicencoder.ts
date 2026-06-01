@@ -7,19 +7,17 @@ import {
     ITestQuestionFields,
     IScoreInformation,
 } from '../common/cipherhandler';
-import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
+import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { Mapper } from '../common/mapper';
-import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface ISolverData {
     /** The possible replacements for each letter based on the current crib and keyword */
-    replacements: Array<[string, string]>;
+    replacements: Array<[string[], string[]]>;
     /** The type of test we are trying to solve for */
     testType: ITestType;
     /** Extra class to add to any output tables */
@@ -34,7 +32,7 @@ interface ISolverData {
     valid: boolean;
 }
 
-interface IVigenereState extends IEncoderState {
+interface IHomophonicState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
@@ -48,43 +46,42 @@ interface ICribInfo {
     criblen: number;
     cipherlen: number;
 }
+
 /**
  *
- * Vigenere Encoder
+ * Homophonic Encoder
  *
  */
-export class CipherVigenereEncoder extends CipherEncoder {
+export class CipherHomophonicEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL = 'TestGuidance.html#Vigenere';
-    public usesPortaTable = false;
-    public usesVigenereTable = true;
-    public ciphermap: Mapper;
+    public guidanceURL = 'TestGuidance.html#Homophonic';
+    public usesHomophonicTable = false;
+    public cipherName = "Homophonic";
 
-    public validVigenereTests: ITestType[] = [
-        ITestType.None,
-        // Remove Vigenere from Division B/C for the 2022-2023 season
-        // ITestType.cregional,
-        // ITestType.cstate,
-        // ITestType.bregional,
-        // ITestType.bstate,
-        ITestType.aregional,
-    ];
-    public validPortaTests: ITestType[] = [
+    public homophonicTable: { [index: string]: string[] } = {};
+    public reverseHomophonicTable: { [index: string]: string } = {};
+
+    public validTests: ITestType[] = [
         ITestType.None,
         ITestType.bstate,
         ITestType.bregional,
         ITestType.cregional,
         ITestType.cstate,
     ];
-    // Default the valid tests to the Vigenere which is the default cipher
-    public validTests = this.validVigenereTests
 
     public maxencodeWidth = 40;
     public maxencodeWidthDivA = 30;
 
-    public defaultstate: IVigenereState = {
+    public randomizeButton: JTButtonItem = {
+        title: 'Randomize',
+        id: 'randomize',
+        color: 'primary',
+    };
+
+
+    public defaultstate: IHomophonicState = {
         /** The current cipher type we are working on */
-        cipherType: ICipherType.Vigenere,
+        cipherType: ICipherType.Homophonic,
         /** Currently selected keyword */
         keyword: '',
         /** The current cipher we are working on */
@@ -94,8 +91,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
         operation: 'decode',
         blocksize: 0,
     };
-    public state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState;
+    public state: IHomophonicState = cloneObject(this.defaultstate) as IHomophonicState;
     public cmdButtons: JTButtonItem[] = [
+        this.randomizeButton,
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
@@ -109,11 +107,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param data Saved state to restore
      */
     public restore(data: IState, suppressOutput = false): void {
-        this.state = cloneObject(this.defaultstate) as IVigenereState;
+        this.state = cloneObject(this.defaultstate) as IHomophonicState;
         this.copyState(this.state, data);
-        if (suppressOutput) {
-            this.setCipherType(this.state.cipherType);
-        } else {
+        this.setSourceCharset('ABCDEFGHIKLMNOPQRSTUVWXYZ');
+        if (!suppressOutput) {
             this.setUIDefaults();
             this.updateOutput();
         }
@@ -132,23 +129,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public init(lang: string): void {
         super.init(lang);
-        this.setCipherType(this.state.cipherType);
-    }
-    public setCipherType(cipherType: ICipherType): boolean {
-        const changed = super.setCipherType(cipherType);
-        this.ciphermap = mapperFactory(cipherType);
-        if (cipherType === ICipherType.Porta) {
-            this.cipherName = "Porta";
-            this.validTests = this.validPortaTests;
-            this.usesPortaTable = true;
-            this.usesVigenereTable = false;
-        } else {
-            this.cipherName = "Vigenere";
-            this.validTests = this.validVigenereTests;
-            this.usesPortaTable = false;
-            this.usesVigenereTable = true;
-        }
-        return changed;
     }
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
@@ -200,6 +180,75 @@ export class CipherVigenereEncoder extends CipherEncoder {
         super.setQuestionText(question);
         this.validateQuestion();
         this.attachHandlers();
+    }
+    public setKeyword(keyword: string): boolean {
+        let changed = super.setKeyword(keyword);
+        this.updateMapping();
+        if (changed) {
+            this.validateQuestion();
+            this.attachHandlers();
+        }
+        return changed;
+    }
+    /**
+     * This function updates the homophonic mapping based on the current keyword and crib settings.
+     * It generates the possible replacements for each letter based on the current keyword and crib settings.
+     */
+    public updateMapping(): void {
+        let keywordOffsets = [0, 0, 0, 0];
+        const charset = this.getSourceCharset();
+        let keyword = this.minimizeString(this.state.keyword)
+            .toUpperCase()
+            .padEnd(4, 'A')
+            .slice(0, 4);
+        for (let i = 0; i < 4; i++) {
+            let k = keyword[i];
+            if (k === 'J') {
+                k = 'I';
+            }
+            const offset = charset.indexOf(k);
+            keywordOffsets[i] = offset >= 0 ? offset : 0;
+        }
+        this.homophonicTable = {};
+        this.reverseHomophonicTable = {};
+        for (const c of charset) {
+
+            this.homophonicTable[c] = [];
+            for (let i = 0; i < 4; i++) {
+                const offset = keywordOffsets[i];
+                const encodedVal = (i * charset.length) + (offset + charset.indexOf(c)) % charset.length;
+                this.homophonicTable[c].push(String(encodedVal))
+                this.reverseHomophonicTable[String(encodedVal)] = c;
+            }
+        }
+    }
+    /**
+     * It encodes a character using the homophonic cipher.
+     * If forceKeyChar is provided, it forces the use of that particular homophone for the character.
+     * @param char 
+     * @param forceKeyChar 
+     * @returns 
+     */
+    public encodeHomophonic(char: string, forceKeyChar: number = -1): string {
+        // Implementation for encoding a character using the homophonic cipher
+        let c = (char || '').toUpperCase();
+        if (c === 'J') {
+            c = 'I';
+        }
+        const cmap = this.homophonicTable[c];
+        if (cmap === undefined) {
+            return char;
+        }
+        if (forceKeyChar >= 0 && forceKeyChar < cmap.length) {
+            return cmap[forceKeyChar];
+        }
+        const randIndex = Math.floor(Math.random() * cmap.length);
+        return cmap[randIndex];
+    }
+    public decodeHomophonic(ctval: string): string {
+        // Implementation for decoding a character using the homophonic cipher
+        const plaintext = this.reverseHomophonicTable[ctval];
+        return plaintext !== undefined ? plaintext : ctval;
     }
     /**
      * Determine if the question text references the right pieces of this cipher
@@ -254,24 +303,21 @@ export class CipherVigenereEncoder extends CipherEncoder {
     }
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
-        const strings = this.buildReplacementVigenere(
-            this.minimizeString(this.state.cipherString),
-            this.minimizeString(this.state.keyword),
-            9999
-        );
+        const strings = this.buildReplacementHomophonic(this.minimizeString(this.state.cipherString), 9999);
         if (strings.length !== 1) {
             return undefined;
         }
-        const cribpos = this.minimizeString(strings[0][1]).indexOf(crib);
+        const plaintext = this.minimizeString(strings[0][1].join(''));
+        const cribpos = plaintext.indexOf(crib);
         if (cribpos < 0) {
             return undefined;
         }
         return {
-            plaintext: this.minimizeString(strings[0][1]).substring(cribpos, cribpos + crib.length),
-            ciphertext: this.minimizeString(strings[0][0]).substring(cribpos, cribpos + crib.length),
+            plaintext: plaintext.substring(cribpos, cribpos + crib.length),
+            ciphertext: strings[0][0].slice(cribpos, cribpos + crib.length).join(' '),
             position: cribpos,
             criblen: crib.length,
-            cipherlen: this.minimizeString(strings[0][0]).length,
+            cipherlen: plaintext.length,
         };
     }
     /**
@@ -295,7 +341,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return String(val) + '<sup>' + suffix + '</sup>';
     }
     /**
-     * This handles the Vigenere/Porta Cipher specific question options.
+     * This handles the Homophonic Cipher specific question options.
      * @param qOptions the array of options
      * @param langtext the language string (blank for English)
      * @param hinttext any hint text provided
@@ -311,9 +357,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         } else {
             const cribpos = this.placeCrib();
             hinttext = ' ' + this.getCribPlacement(cribpos) + '.';
-        }
-        if (fixedName == 'Vigenere') {
-            fixedName = 'Vigenère';
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
     }
@@ -358,7 +401,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let suggested = 0
         let range = 5
         let scaleFactor = 1
-        if (this.state.cipherType === ICipherType.Porta) {
+        if (this.state.cipherType === ICipherType.Homophonic) {
             range = 10
             if (usedOnA) {
                 scaleFactor = 1.2
@@ -425,22 +468,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public updateOutput(): void {
         this.showLengthStatistics();
-        if (this.state.cipherType === ICipherType.Porta) {
-            if (this.state.operation !== 'crypt') {
-                this.guidanceURL = 'TestGuidance.html#Porta';
-                $('.crib').hide();
-            } else {
-                this.guidanceURL = 'TestGuidance.html#Porta_Decrypt';
-                $('.crib').show();
-            }
+        if (this.state.operation !== 'crypt') {
+            $('.crib').hide();
+            $('.hint').show();
         } else {
-            if (this.state.operation !== 'crypt') {
-                this.guidanceURL = 'TestGuidance.html#Vigenere';
-                $('.crib').hide();
-            } else {
-                this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
-                $('.crib').show();
-            }
+            $('.crib').show();
+            $('.hint').hide();
         }
         JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
@@ -459,13 +492,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.genTestUsage(result);
         result.append(this.createSuggestKeyDlg('Suggest Key'))
 
-        let radiobuttons = [
-            CipherTypeButtonItem(ICipherType.Vigenere),
-            CipherTypeButtonItem(ICipherType.Porta),
-        ];
-        result.append(JTRadioButton(8, 'ciphertype', radiobuttons, this.state.cipherType));
-
-        radiobuttons = [
+        const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
             { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
@@ -486,6 +513,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 suggestButton
             )
         );
+        const suggestCribButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestcrib" }).text("Suggest Crib")
 
         result.append(
             JTFLabeledInput(
@@ -493,7 +521,20 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 'text',
                 'crib',
                 this.state.crib,
-                'crib small-12 medium-12 large-12'
+                'crib small-12 medium-12 large-12',
+                suggestCribButton
+            )
+        );
+
+        const suggestHintButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggesthint" }).text("Suggest Hint")
+        result.append(
+            JTFLabeledInput(
+                'Hint Text',
+                'text',
+                'hint',
+                this.state.hint,
+                'hint small-12 medium-12 large-12',
+                suggestHintButton
             )
         );
 
@@ -511,63 +552,44 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         return changed;
     }
-    public buildReplacementVigenere(
+    public buildReplacementHomophonic(
         msg: string,
-        keystring: string,
         maxEncodeWidth: number
-    ): Array<[string, string]> {
-        let key = keystring;
-        if (key === '') {
-            key = 'A';
-        }
+    ): Array<[string[], string[]]> {
         const encoded = this.chunk(msg, this.state.blocksize);
-        const result: Array<[string, string]> = [];
-        const charset = this.getCharset();
-        let message = '';
-        let keyIndex = 0;
-        let keyString = '';
-        let cipher = '';
+        const result: Array<[string[], string[]]> = [];
+        const charset = this.getSourceCharset();
+        let message: string[] = [];
+        let cipher: string[] = [];
         const msgLength = encoded.length;
-        const keyLength = key.length;
         let lastSplit = -1;
 
-        const factor = msgLength / keyLength;
-        keyString = this.repeatStr(key.toUpperCase(), factor + 1);
         for (let i = 0; i < msgLength; i++) {
-            const messageChar = encoded.substring(i, i + 1).toUpperCase();
+            const messageChar = encoded[i].toUpperCase();
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
-                let keyChar = keyString.substr(keyIndex, 1).toUpperCase();
-                let k = charset.indexOf(keyChar);
-                while (k < 0) {
-                    keyIndex++;
-                    keyChar = keyString.substr(keyIndex, 1).toUpperCase();
-                    k = charset.indexOf(keyChar);
-                }
-
-                message += messageChar;
-                const c = (m + k) % 26;
-                // The substr() basically does modulus with the negative offset
-                // in the decode case.  Thanks JavaScript!
-                cipher += this.ciphermap.encode(messageChar, keyChar);
-                keyIndex++;
+                message.push(messageChar);
+                const ct = this.encodeHomophonic(messageChar);
+                cipher.push(ct);
             } else {
-                message += messageChar;
-                cipher += messageChar;
+                message.push(messageChar);
+                cipher.push(messageChar);
                 lastSplit = cipher.length;
                 continue;
             }
             if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
                     result.push([cipher, message]);
-                    message = '';
-                    cipher = '';
+                    message = [];
+                    cipher = [];
                     lastSplit = -1;
                 } else {
-                    const messagePart = message.substr(0, lastSplit);
-                    const cipherPart = cipher.substr(0, lastSplit);
-                    message = message.substr(lastSplit);
-                    cipher = cipher.substr(lastSplit);
+                    const messagePart = message.slice(0, lastSplit);
+                    const cipherPart = cipher.slice(0, lastSplit);
+
+                    message = message.slice(lastSplit);
+                    cipher = cipher.slice(lastSplit);
+
                     result.push([cipherPart, messagePart]);
                 }
             }
@@ -578,9 +600,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result;
     }
 
-    public buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
+    public buildHomophonic(msg: string, key: string): JQuery<HTMLElement> {
         const result = $('<div/>');
         const { width, extraclass } = this.getEncodeWidth(ITestType.None);
+        this.updateMapping();
         let source = 1;
         let dest = 0;
         let emsg = '';
@@ -607,15 +630,29 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         this.setErrorMsg(emsg, 'vcrib');
 
-        const strings = this.buildReplacementVigenere(msg, key, width);
+        const strings = this.buildReplacementHomophonic(msg, width);
+        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         for (const stringset of strings) {
-            result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
-            result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
+            const rowct = table.addBodyRow();
+            const rowpt = table.addBodyRow();
+            const rowblank = table.addBodyRow();
+            for (let i = 0; i < stringset[0].length; i++) {
+                const ct = stringset[dest][i];
+                const pt = stringset[source][i];
+                rowct.add(ct);
+
+                rowpt.add({
+                    settings: { class: 'o v' },
+                    content: pt,
+                });
+                rowblank.add(' ');
+            }
         }
+        result.append(table.generate());
         return result;
     }
     /**
-     * Loads up the values for vigenere
+     * Loads up the values for the current cipher and generates the output for the user to see
      */
     public async load(): Promise<void> {
         /* If they want different sizes, rebuild the string in the chunk size */
@@ -624,7 +661,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const key = this.minimizeString(this.state.keyword);
         this.clearErrors();
         this.validateQuestion();
-        let res = this.buildVigenere(encoded, key);
+        let res = this.buildHomophonic(encoded, key);
         $('#answer')
             .empty()
             .append(res);
@@ -636,34 +673,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         this.attachHandlers();
     }
-    /**
-     * Set up all the HTML DOM elements so that they invoke the right functions
-     */
-    public attachHandlers(): void {
-        super.attachHandlers();
-        $('#blocksize')
-            .off('input')
-            .on('input', (e) => {
-                const blocksize = Number($(e.target).val());
-                if (blocksize !== this.state.blocksize) {
-                    this.markUndo(null);
-                    if (this.setBlocksize(blocksize)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $('#keyword')
-            .off('input')
-            .on('input', (e) => {
-                const newkeyword = $(e.target).val() as string;
-                if (newkeyword !== this.state.keyword) {
-                    this.markUndo('keyword');
-                    if (this.setKeyword(newkeyword)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-    }
 
     /**
      * Generate the score of an answered cipher
@@ -671,11 +680,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genScore(answer: string[]): IScoreInformation {
         const { width, extraclass } = this.getEncodeWidth(ITestType.None);
-        const strings = this.buildReplacementVigenere(
-            this.state.cipherString,
-            this.state.keyword,
-            width
-        );
+        const strings = this.buildReplacementHomophonic(this.state.cipherString, width);
         let dest = 1;
         if (this.state.operation === 'encode') {
             dest = 0;
@@ -686,7 +691,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (solution === undefined) {
                 solution = []
             }
-            solution.push(...strset[dest].split(''));
+            //   solution.push(...strset[dest].split(''));
         }
         return this.calculateScore(solution, answer, this.state.points);
     }
@@ -711,11 +716,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const { width, extraclass } = this.getEncodeWidth(testType);
         let keypos = 0;
 
-        const strings = this.buildReplacementVigenere(
-            this.state.cipherString,
-            this.state.keyword,
-            width
-        );
+        const strings = this.buildReplacementHomophonic(this.state.cipherString, width);
         let keyword = '';
         for (const c of this.state.keyword.toUpperCase()) {
             if (this.isValidChar(c)) {
@@ -728,7 +729,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             let keystring = '';
             for (const c of strset[0]) {
                 if (this.isValidChar(c)) {
-                    keystring += keyword.substr(keypos, 1);
+                    keystring += keyword[keypos];
                     keypos = (keypos + 1) % keyword.length;
                 } else {
                     keystring += c;
@@ -740,18 +741,32 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 source = 1;
                 dest = 0;
             }
-            this.addCipherTableRows(table, keystring, strset[source], strset[dest], true);
+            const rowct = table.addBodyRow();
+            const rowpt = table.addBodyRow();
+            const rowblank = table.addBodyRow();
+            for (let i = 0; i < strset[0].length; i++) {
+                const ct = strset[dest][i];
+                const pt = strset[source][i];
+                rowct.add(ct);
+
+                rowpt.add({
+                    settings: { class: 'o v' },
+                    content: pt,
+                });
+                rowblank.add(' ');
+            }
         }
         result.append(table.generate());
+
         return result;
     }
     /**
-     * Map a character to the row lookup.  For Porta this is a pair of characters, for Vigenere it's just the character itself.
+     * Map a character to the row lookup.  For Homophonic this is a pair of characters
      * @param keychar Keyword character
      * @returns Printable row title
      */
     public getRowKey(keychar: string): string {
-        if (this.state.cipherType === ICipherType.Porta) {
+        if (this.state.cipherType === ICipherType.Homophonic) {
             const charset = this.getCharset();
             const keyindex = charset.indexOf(keychar.toUpperCase());
             let keyset = Math.floor(keyindex / 2) * 2;
@@ -760,7 +775,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return keychar
     }
     /**
-     * Show a single row of the Vigenere or Porta table for a given keyword character.  This is used in the solution to show how to look up the cipher character based on the key and message character.
+     * Show a single row of the Homophonic table for a given keyword character.  This is used in the solution to show how to look up the cipher character based on the key and message character.
      * @param keychar 
      * @returns HTML rendered table
      */
@@ -784,7 +799,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             });
         }
         let lookupRow = table.addBodyRow()
-        let colcount = (this.state.cipherType === ICipherType.Porta) ? charset.length / 2 : charset.length
+        let colcount = (this.state.cipherType === ICipherType.Homophonic) ? charset.length / 2 : charset.length
         let lookupKey = this.getRowKey(keychar.toUpperCase());
 
         lookupRow.add({
@@ -794,7 +809,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         for (let i = 0; i < colcount; i++) {
             const messageChar = charset.substring(i, i + 1);
-            const cipherChar = this.ciphermap.encode(messageChar, keychar.toUpperCase());
+            const cipherChar = this.encodeHomophonic(messageChar);
             headRow.add(messageChar);
             if (splitRow !== undefined) {
                 splitRow.add('⋮');
@@ -820,7 +835,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             : slice.slice(off).concat(slice.slice(0, off));
     }
     public mapPattern(word: string): string {
-        if (this.state.cipherType !== ICipherType.Porta) {
+        if (this.state.cipherType !== ICipherType.Homophonic) {
             return word
         }
         let result = '';
@@ -833,9 +848,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result;
     }
     public allEquivalent(words: string[]): boolean {
-        if (this.state.cipherType === ICipherType.Vigenere) {
-            return words.length > 1
-        }
         if (words.length < 2) {
             return true;
         }
@@ -899,7 +911,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     }
     /**
-     * Generate HTML content showing the step by step solution based on the crib placement and key deduction steps, including the important characters in the crib placement and key deduction steps and how to orient the found key characters based on the crib placement.
+     * Generate HTML content showing the step by step solution based on the crib placement and key deduction steps, including the imHomophonicnt characters in the crib placement and key deduction steps and how to orient the found key characters based on the crib placement.
      * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
      * @returns HTML content
      */
@@ -921,24 +933,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.showStep(result, "Step 1: Place the crib and determine the known letters of the key");
 
         result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.`));
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showHomophonicDecodeStatus(solvingData));
 
-        result.append($('<p/>').text(`Since we know the mapping of these letters, we can look at the corresponding letters in the Porta table to determine the corresponding letters in the key:`));
+        result.append($('<p/>').text(`Since we know the mapping of these letters, we can look at the corresponding letters in the Homophonic table to determine the corresponding letters in the key:`));
 
         let keywords = []
         for (let pos = 0; pos < cribpos.criblen; pos++) {
             const cipherChar = cribpos.ciphertext[pos]
             const plainChar = cribpos.plaintext[pos]
-            const keyChar = this.getRowKey(this.ciphermap.decodeKey(cipherChar, plainChar));
+            const keyChar = this.getRowKey(this.decodeHomophonic(cipherChar));
             solvingData.keyword[cribpos.position + pos] = keyChar;
             keywords.push(keyChar)
             if (cipherChar < plainChar) {
-                result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(cipherChar)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedCt(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
+                result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(cipherChar)} is between A and M, we look for that column in the Homophonic table and search down for the plaintext character ${this.fixedCt(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
             } else {
-                result.append($('<p/>').html(`Because the plaintext character ${this.fixedCt(plainChar)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedCt(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
+                result.append($('<p/>').html(`Because the plaintext character ${this.fixedCt(plainChar)} is between A and M, we look for that column in the Homophonic table and search down for the cipher character ${this.fixedCt(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
             }
         }
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showHomophonicDecodeStatus(solvingData));
         let keylen = 2;
         // Let's see if we think that we have the full keyword figured out.
         if (keywords.length > 0) {
@@ -972,7 +984,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             solvingData.keyword[i] = keychar;
             solvingData.known[i] = true;
         }
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showHomophonicDecodeStatus(solvingData));
         if (solvingData.valid) {
             result.append($('<p/>').html(`This looks like a valid solution.`));
         } else {
@@ -988,7 +1000,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     solvingData.keyword[i] = keychar;
                     solvingData.known[i] = true;
                 }
-                result.append(this.showPortaDecodeStatus(solvingData));
+                result.append(this.showHomophonicDecodeStatus(solvingData));
                 if (solvingData.valid) {
                     result.append($('<p/>').html(`This looks like a valid solution, so we have likely found the correct keyword length of ${extrakeylen}.`));
                     keylen = extrakeylen;
@@ -1014,7 +1026,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             solvingData.keyword[i] = keyChar
             solvingData.known[i] = true;
         }
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showHomophonicDecodeStatus(solvingData));
         return result;
     }
     /**
@@ -1028,7 +1040,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public addAnnotatedCipherTableRows(
         table: JTTable,
         overline: string[],
-        cipherline: string,
+        cipherline: string[],
         answerline: string,
     ): void {
         let rowover;
@@ -1041,11 +1053,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const rowblank = table.addBodyRow({ class: "notiny" });
 
         for (let i = 0; i < cipherline.length; i++) {
-            const c = cipherline.substring(i, i + 1);
+            const c = cipherline[i];
             let aclass = 'e v';
             let a = ' ';
             if (answerline !== undefined) {
-                a = answerline.substring(i, i + 1);
+                a = answerline[i];
                 aclass = 'a v';
             }
             if (overline !== undefined) {
@@ -1085,7 +1097,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
      */
-    public showPortaDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
+    public showHomophonicDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
         solvingdata.valid = true;
         const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
         const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
@@ -1094,8 +1106,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let keywordpos = 0;
         // Make sure we have something in the keyword to avoid errors, we'll just show blanks in the table if we don't have a key
         for (const strset of solvingdata.replacements) {
-            const src = strset[source] ?? '';
-            const dst = strset[dest] ?? '';
+            const src = strset[source] ?? [];
+            const dst = strset[dest] ?? [];
             const n = src.length;
 
             let repeatedKey = []
@@ -1110,7 +1122,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     repeatedKey.push(keyc);
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
-                        let sol = this.ciphermap.decode(c, keyc[0]);
+                        let sol = this.decodeHomophonic(c);
                         if (keyc[0] === ' ') {
                             sol = dst[cpos]
                         }
@@ -1161,12 +1173,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
             result.append($('<h3/>').text('You must select a keyword.'));
             return result;
         }
-        result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
-        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
+        result.append($('<p/>').text(`The Homophonic cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
+        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Homophonic cipher table to decode each letter based on the corresponding letter in the key.`));
 
         this.setMappedKeyword(solvingData, this.state.keyword, this.state.keyword)
 
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showHomophonicDecodeStatus(solvingData));
         let remaining = this.undupeString(this.state.keyword).split('')
         let firstletter = remaining.shift()
         let discovered = firstletter
@@ -1175,24 +1187,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(this.showShortTable(firstletter))
 
         result.append($('<p/>').text(`We can use this table to decode all the letters in the cipher text that have ${firstletter} as the corresponding letter in the key. This gives us a partial solution:`));
-        if (this.state.cipherType === ICipherType.Porta) {
-            result.append($('<p/>').text(`Remember for the Porta cipher, if the letter you are looking up is between A and M, you look at the top of the table and pick the letter from the corresponding column.  
+        if (this.state.cipherType === ICipherType.Homophonic) {
+            result.append($('<p/>').text(`Remember for the Homophonic cipher, if the letter you are looking up is between A and M, you look at the top of the table and pick the letter from the corresponding column.  
                 if the letter you are looking up is between N and Z, you look for it in the row of the table and pick the letter from the top of the column.`))
         }
         this.setMappedKeyword(solvingData, this.state.keyword, discovered)
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showHomophonicDecodeStatus(solvingData));
 
         result.append($('<p/>').text(`You can repeat this process for each letter in the keyword until you have the full solution.`));
 
         while (remaining.length > 0) {
             const letter = remaining.shift()
             const prefix = remaining.length > 0 ? "Next, " : "Finally, "
-            result.append($('<h4/>').text(`${prefix}we take the letter ${letter} from the keyword and look at the corresponding row in the Porta table:`))
+            result.append($('<h4/>').text(`${prefix}we take the letter ${letter} from the keyword and look at the corresponding row in the Homophonic table:`))
             discovered += letter
             result.append(this.showShortTable(letter))
             result.append($('<p/>').text(`This allows us to decode all the letters in the cipher text that have ${letter} as the corresponding letter in the key, giving us a more complete solution:`));
             this.setMappedKeyword(solvingData, this.state.keyword, discovered)
-            result.append(this.showPortaDecodeStatus(solvingData));
+            result.append(this.showHomophonicDecodeStatus(solvingData));
         }
         result.append($('<p/>').text(`After repeating this process for each letter in the keyword, we will have the full decoded solution.`));
         return result
@@ -1217,11 +1229,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             valid: false
         }
 
-        solvingData.replacements = this.buildReplacementVigenere(
-            this.state.cipherString,
-            this.state.keyword,
-            width
-        );
+        solvingData.replacements = this.buildReplacementHomophonic(this.state.cipherString, width);
 
         this.stopGenerating = false;
         this.isLoading = true
@@ -1242,18 +1250,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         const { width, extraclass } = this.getEncodeWidth(testType);
-        const strings = this.buildReplacementVigenere(
-            this.state.cipherString,
-            this.state.keyword,
-            width
-        );
+        const strings = this.buildReplacementHomophonic(this.state.cipherString, width);
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;
         }
         for (const strset of strings) {
-            this.addCipherTableRows(table, '', strset[source], undefined, true);
+            let row = table.addBodyRow();
+            for (let ent of strset[source]) {
+                row.add(ent);
+            }
         }
         result.append(table.generate());
         return result;
@@ -1267,18 +1274,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const qnumdisp = String(qnum + 1);
         const result = $('<div/>', { id: 'Q' + qnumdisp });
         const { width, extraclass } = this.getEncodeWidth(testType);
-        const strings = this.buildReplacementVigenere(
-            this.state.cipherString,
-            this.state.keyword,
-            width
-        );
+        const strings = this.buildReplacementHomophonic(this.state.cipherString, width);
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;
         }
-        result.append(
-            this.genInteractiveCipherTable(strings, source, qnum, 'cipherint' + extraclass, true)
-        );
+        // result.append(
+        //     this.genInteractiveCipherTable(strings, source, qnum, 'cipherint' + extraclass, true)
+        // );
 
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
@@ -1293,7 +1296,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Populate the dialog with a set of keyword suggestions. 
      */
     public populateKeySuggestions(): void {
-        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 3, 7)
+        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 4, 4)
     }
     /**
      * Set the keyword from the suggested text
@@ -1307,4 +1310,33 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.setKeyword(key)
         this.updateOutput()
     }
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    public attachHandlers(): void {
+        super.attachHandlers();
+        $('#blocksize')
+            .off('input')
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo(null);
+                    if (this.setBlocksize(blocksize)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#keyword')
+            .off('input')
+            .on('input', (e) => {
+                const newkeyword = $(e.target).val() as string;
+                if (newkeyword !== this.state.keyword) {
+                    this.markUndo('keyword');
+                    if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+    }
+
 }

@@ -12,23 +12,30 @@ const Aval = 'A'.charCodeAt(0);
 // ACEGIKMOQSUWY
 // BDFHJLNPRTVXZ
 export class mapPortax extends Mapper {
-    private row1 = 'ABCDEFGHIJKLM';
-    private row2 = 'NOPQRSTUVWXYZNOPQRSTUVWXYZ';
-    private row3 = 'ACEGIKMOQSUWYACEGIKMOQSUWY';
-    private row4 = 'BDFHJLNPRTVXZBDFHJLNPRTVXZ';
+    private readonly row1 = 'ABCDEFGHIJKLM';
+    private readonly row2 = 'NOPQRSTUVWXYZNOPQRSTUVWXYZ';
+    private readonly row3 = 'ACEGIKMOQSUWYACEGIKMOQSUWY';
+    private readonly row4 = 'BDFHJLNPRTVXZBDFHJLNPRTVXZ';
 
-    private getRowStrings(ckey: string): string[] {
-        const result: string[] = [];
+    private getRowStrings(ckey: string): [string, string, string, string] {
+        const result: [string, string, string, string] = [
+            this.row1,
+            '',
+            '',
+            ''
+        ];
+
         let keyval = Math.floor((ckey.charCodeAt(0) - Aval) / 2);
+
         if (ckey === '?') {
             keyval = 0;
-            result.push('?????????????');
-        } else {
-            result.push(this.row1);
+            result[0] = '?????????????';
         }
-        result.push(this.row2.substr(keyval, 13));
-        result.push(this.row3.substr(keyval, 13));
-        result.push(this.row4.substr(keyval, 13));
+
+        result[1] = this.row2.slice(keyval, keyval + 13);
+        result[2] = this.row3.slice(keyval, keyval + 13);
+        result[3] = this.row4.slice(keyval, keyval + 13);
+
         return result;
     }
 
@@ -53,30 +60,43 @@ export class mapPortax extends Mapper {
             return result;
         }
 
+        const cpt1 = cpt[0];
+        const cpt2 = cpt[1];
+
         let row1 = 0;
-        let idx1 = rowstrings[row1].indexOf(cpt.substr(0, 1));
+        let idx1 = rowstrings[row1].indexOf(cpt1);
+
         if (idx1 === -1) {
             row1 = 1;
-            idx1 = rowstrings[row1].indexOf(cpt.substr(0, 1));
+            idx1 = rowstrings[row1].indexOf(cpt1);
         }
+
         let row2 = 2;
-        let idx2 = rowstrings[row2].indexOf(cpt.substr(1, 1));
+        let idx2 = rowstrings[row2].indexOf(cpt2);
+
         if (idx2 === -1) {
             row2 = 3;
-            idx2 = rowstrings[row2].indexOf(cpt.substr(1, 1));
+            idx2 = rowstrings[row2].indexOf(cpt2);
         }
+
         if (idx1 === -1 || idx2 === -1) {
             return result;
         }
 
         if (idx1 === idx2) {
+            const oppositeTopRow = 1 - row1;
+            const oppositeBottomRow = row2 === 2 ? 3 : 2;
+
             result =
-                rowstrings[1 - row1].substr(idx1, 1) + rowstrings[3 - row2 + 2].substr(idx2, 1);
+                rowstrings[oppositeTopRow][idx1] +
+                rowstrings[oppositeBottomRow][idx2];
         } else {
-            result = rowstrings[row1].substr(idx2, 1) + rowstrings[row2].substr(idx1, 1);
+            result = rowstrings[row1][idx2] + rowstrings[row2][idx1];
         }
+
         return result;
     }
+
     /**
      * Recover the plain text character using the encode text and a key character
      * using the Porta mapping table.  Note that for Porta, the table is
@@ -106,10 +126,12 @@ export class mapPortax extends Mapper {
         ) {
             return '?';
         }
-        const ct1 = ct.substr(0, 1);
-        const ct2 = ct.substr(1, 1);
-        const cpt1 = cpt.substr(0, 1);
-        const cpt2 = cpt.substr(1, 1);
+
+        const ct1 = ct[0];
+        const ct2 = ct[1];
+        const cpt1 = cpt[0];
+        const cpt2 = cpt[1];
+
         let ct2row = 3;
         let cpt2row = 3;
         // The starting or the ending characters can't be the same.
@@ -119,10 +141,12 @@ export class mapPortax extends Mapper {
         // Figure out what row and column the ending characters are on
         let idxct2 = this.row3.indexOf(ct2);
         let idxcpt2 = this.row3.indexOf(cpt2);
+
         if (idxct2 === -1) {
             ct2row = 4;
             idxct2 = this.row4.indexOf(ct2);
         }
+
         if (idxcpt2 === -1) {
             cpt2row = 4;
             idxcpt2 = this.row4.indexOf(cpt2);
@@ -135,6 +159,7 @@ export class mapPortax extends Mapper {
         if (ct2row !== cpt2row && idxcpt2 !== idxct2) {
             return '!';
         }
+
         let idxct1 = this.row2.indexOf(ct1);
         let idxcpt1 = this.row2.indexOf(cpt1);
         let idx1 = -1;
@@ -146,17 +171,21 @@ export class mapPortax extends Mapper {
                 if (idxct1 !== idxct2 || idxcpt1 !== -1) {
                     return '!';
                 }
+
                 idx1 = this.row1.indexOf(cpt1);
             } else {
                 if (idxcpt1 !== idxct2) {
                     return '!';
                 }
+
                 idx1 = this.row1.indexOf(ct1);
             }
+
             if (idx1 === -1) {
                 return '!';
             }
-            return this.row3.substr(idxct2 - idx1, 1);
+
+            return this.row3[idxct2 - idx1];
         }
         // The second characters are on the same row but different columns, so both of the first characters
         // must be on the same row.
@@ -175,8 +204,10 @@ export class mapPortax extends Mapper {
             // we don't touch the top row.
             return '?';
         }
+
         idxct1 = this.row1.indexOf(ct1);
         idxcpt1 = this.row1.indexOf(cpt1);
+
         if (idxct1 === -1 || idxcpt1 === -1) {
             return '!';
         }
@@ -201,10 +232,14 @@ export class mapPortax extends Mapper {
             // In the second case, the distances are off (12-0 != 4-3)
             // However:  (13+0)-12 = 4-3 so we have to adjust the lower number by 13
             idx2 = Math.max(idxct2, idxcpt2);
-            if (Math.abs(idxct2 - idxcpt2) !== Math.abs(idx1 + 13 - Math.max(idxct1, idxcpt1))) {
+
+            if (Math.abs(idxct2 - idxcpt2) !==
+                Math.abs(idx1 + 13 - Math.max(idxct1, idxcpt1))
+            ) {
                 return '!';
             }
         }
-        return this.row3.substr(idx2 - idx1, 1);
+
+        return this.row3[idx2 - idx1];
     }
 }

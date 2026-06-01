@@ -662,6 +662,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'HomophonicEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'Homophonic',
+            title: 'Homophonic Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'NihilistSubstitutionEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'NihilistSubstitution',

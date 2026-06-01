@@ -1,5 +1,4 @@
-import { r } from 'tar';
-import { BoolMap, cloneObject } from '../common/ciphercommon';
+import { cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,

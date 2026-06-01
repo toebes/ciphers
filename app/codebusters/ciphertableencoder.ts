@@ -559,13 +559,15 @@ export class CipherTableEncoder extends CipherEncoder {
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
         $('#answer').removeClass('ans').addClass('ansclean');
-        this.genAlphabet();
-        this.ciphermap = mapperFactory(ICipherType.Vigenere);
-        if (this.state.operation === 'decode' && this.state.cipherType === ICipherType.Caesar) {
-            return this.genCaesarSolution(testType);
-        }
-        if (this.state.operation === 'decode' && this.state.cipherType === ICipherType.Atbash) {
-            return this.genAtbashSolution(testType);
+        if (this.state.cipherString.length > 0) {
+            this.genAlphabet();
+            this.ciphermap = mapperFactory(ICipherType.Vigenere);
+            if (this.state.operation === 'decode' && this.state.cipherType === ICipherType.Caesar) {
+                return this.genCaesarSolution(testType);
+            }
+            if (this.state.operation === 'decode' && this.state.cipherType === ICipherType.Atbash) {
+                return this.genAtbashSolution(testType);
+            }
         }
         return $('<div/>');
     }

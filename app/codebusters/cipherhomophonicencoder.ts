@@ -735,11 +735,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     keystring += c;
                 }
             }
-            let source = 0;
-            let dest = 1;
+            let source = 1;
+            let dest = 0;
             if (this.state.operation === 'encode') {
-                source = 1;
-                dest = 0;
+                source = 0;
+                dest = 1;
             }
             const rowct = table.addBodyRow();
             const rowpt = table.addBodyRow();
@@ -747,12 +747,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             for (let i = 0; i < strset[0].length; i++) {
                 const ct = strset[dest][i];
                 const pt = strset[source][i];
-                rowct.add(ct);
-
-                rowpt.add({
-                    settings: { class: 'o v' },
-                    content: pt,
+                rowct.add({
+                    settings: { class: 'q v' },
+                    content: ct,
                 });
+
+
+                if (this.isValidChar(pt)) {
+                    rowpt.add({
+                        settings: { class: 'a v' },
+                        content: pt,
+                    });
+                } else {
+                    rowpt.add(' ');
+                }
                 rowblank.add(' ');
             }
         }
@@ -1258,8 +1266,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         }
         for (const strset of strings) {
             let row = table.addBodyRow();
+            let blankrow = table.addBodyRow();
             for (let ent of strset[source]) {
                 row.add(ent);
+                blankrow.add("\u00A0");
             }
         }
         result.append(table.generate());

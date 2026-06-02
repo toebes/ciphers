@@ -71,8 +71,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         ITestType.cstate,
     ];
 
-    public maxencodeWidth = 40;
-    public maxencodeWidthDivA = 30;
+    public maxencodeWidth = 25;
+    public maxencodeWidthDivA = 15;
 
     public randomizeButton: JTButtonItem = {
         title: 'Randomize',
@@ -193,6 +193,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         }
         return changed;
     }
+    /**
+     * This function updates the random slot assignments for each character in the cipher string.
+     * It preserves the existing random slot assignments for any characters that are still in the cipher string after the update,
+     * but assigns new random slots for any new characters that have been added to the cipher string.
+     */
     public updateRandom(): void {
         const cipherstring = this.cleanString(this.state.cipherString)
         for (let i = this.state.randomSlot.length; i < cipherstring.length; i++) {
@@ -218,10 +223,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             const offset = charset.indexOf(k);
             keywordOffsets[i] = offset >= 0 ? offset : 0;
         }
+        // Now build the homophonic table based on the keyword offsets
         this.homophonicTable = {};
         this.reverseHomophonicTable = {};
         for (const c of charset) {
-
+            // For each character, we have 4 possible homophones based on the keyword offsets
             this.homophonicTable[c] = [];
             for (let i = 0; i < 4; i++) {
                 const offset = keywordOffsets[i];
@@ -254,6 +260,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const randIndex = Math.floor(Math.random() * cmap.length);
         return cmap[randIndex];
     }
+    /**
+     * It decodes a character using the homophonic cipher.
+     * @param ctval The ciphertext value to decode
+     * @returns The decoded plaintext character, or the original value if it is not a valid homophonic ciphertext value
+     */
     public decodeHomophonic(ctval: string): string {
         // Implementation for decoding a character using the homophonic cipher
         const plaintext = this.reverseHomophonicTable[ctval];
@@ -268,42 +279,37 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         const questionText = this.state.question.toUpperCase();
         if (this.state.operation === 'crypt') {
+            const cribpos = this.placeCrib();
             if (!this.isDecodeOperation(questionText)) {
-                msg +=
-                    "The Question Text doesn't appear to mention that " +
-                    'the cipher needs to be decrypted.';
+                msg += `The Question Text doesn't appear to mention that the cipher needs to be decrypted.`;
             }
-            // Look to see if the crib appears in the question text
-            const crib = this.minimizeString(this.state.crib);
-            if (crib !== '' && this.minimizeString(questionText).indexOf(crib) < 0) {
-                msg +=
-                    "The Crib Text '" +
-                    this.state.crib +
-                    "' doesn't appear to be mentioned in the Question Text.";
+            if (cribpos !== undefined) {
+                // Look to see if the crib appears in the question text
+
+                if (cribpos.plaintext !== '' && this.minimizeString(questionText).indexOf(cribpos.plaintext) < 0) {
+                    msg += ` The Crib Text '${this.state.crib}' doesn't appear to be mentioned in the Question Text.`;
+                }
             }
         } else {
+            let keyword = this.minimizeString(this.state.keyword);
+            let hint = this.minimizeString(this.state.hint);
+            // All of the letters in the hint must be in the keyword
+            if (hint.length > keyword.length || hint.split('').some((c) => keyword.indexOf(c) < 0)) {
+                msg += ` The Hint Text '${this.state.hint}' doesn't appear to be a subset of the Key '${this.state.keyword}'.`;
+            }
             // For an encode or decode, they need to mention the key
             const key = this.minimizeString(this.state.keyword);
             if (key !== '' && questionText.indexOf(key) < 0) {
-                msg +=
-                    "The Key '" +
-                    this.state.keyword +
-                    "' doesn't appear to be mentioned in the Question Text.";
+                msg += `The Key '${this.state.keyword}' doesn't appear to be mentioned in the Question Text.`;
             }
             if (this.state.operation === 'encode') {
                 if (questionText.indexOf('ENCOD') < 0 && questionText.indexOf('ENCRY') < 0) {
-                    msg +=
-                        "The Question Text doesn't appear to mention that " +
-                        'the cipher needs to be encoded.';
+                    msg += `The Question Text doesn't appear to mention that the cipher needs to be encoded.`;
                 } else if (this.isDecodeOperation(questionText)) {
-                    msg +=
-                        'The Question Text appears to mention that the ' +
-                        'cipher needs to be decoded, but this is an encode problem';
+                    msg += `The Question Text appears to mention that the cipher needs to be decoded, but this is an encode problem`;
                 }
             } else if (!this.isDecodeOperation(questionText)) {
-                msg +=
-                    "The Question Text doesn't appear to mention that " +
-                    'the cipher needs to be decrypted.';
+                msg += `The Question Text doesn't appear to mention that the cipher needs to be decrypted.`;
             }
         }
         const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
@@ -350,10 +356,31 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
 
         if (this.state.operation != 'crypt') {
-            operationtext2 = ` using a keyword of ${this.genMonoText(this.minimizeString(this.state.keyword))}`
+            let keyword = this.minimizeString(this.state.keyword);
+            if (keyword !== '') {
+                let hint = this.minimizeString(this.state.hint);
+                if (hint === keyword || hint == '') {
+                    operationtext2 = ` using a keyword of ${this.genMonoText(keyword)}`
+                } else {
+                    let hinttext = ''
+                    if (hint.length === 1) {
+                        hinttext = ` the letter ${this.genMonoText(hint)}`
+                    } else if (hint.length == 2) {
+                        hinttext = ` the letters ${this.genMonoText(hint[0])} and ${this.genMonoText(hint[1])}`
+                    } else {
+                        hinttext = ` the letters `
+                        for (let i = 0; i < hint.length - 1; i++) {
+                            hinttext += `${this.genMonoText(hint[i])}, `
+                        }
+                        hinttext += `and ${this.genMonoText(hint[hint.length - 1])}`
+                    }
+                    operationtext2 = ` using a keyword that has ${hinttext} in it`;
+                }
+            }
+
         } else {
             const cribpos = this.placeCrib();
-            hinttext = ' ' + this.getCribPlacement(cribpos) + '.';
+            hinttext = ` ${this.getCribPlacement(cribpos)}`;
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
     }
@@ -458,6 +485,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
+        this.setKeyword(this.state.keyword);
+        this.setHint(this.state.hint);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -476,6 +505,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         JTRadioButtonSet('operation', this.state.operation);
         $('#blocksize').val(this.state.blocksize);
         $('#crib').val(this.state.crib);
+        $('#hint').val(this.state.hint);
         super.updateOutput();
         this.checkDuplicateKeys();
         this.attachHandlers();
@@ -1406,6 +1436,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 if (newkeyword !== this.state.keyword) {
                     this.markUndo('keyword');
                     if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#hint')
+            .off('input')
+            .on('input', (e) => {
+                const hint = $(e.target).val() as string;
+                if (hint !== this.state.hint) {
+                    this.markUndo('hint');
+                    if (this.setHint(hint)) {
                         this.updateOutput();
                     }
                 }

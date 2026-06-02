@@ -1584,11 +1584,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
                         this.updateOutput();
                     }
                 }
-            }); $('#misspell')
-                .off('click')
-                .on('click', (e) => {
-                    this.genMisspell()
-                })
+            });
+        $('#misspell')
+            .off('click')
+            .on('click', (e) => {
+                this.genMisspell()
+            })
         $('#wordrepl_base,#typos_base')
             .off('changed.zf.slider moved.zf.slider')
             .on('changed.zf.slider moved.zf.slider', (e) => {

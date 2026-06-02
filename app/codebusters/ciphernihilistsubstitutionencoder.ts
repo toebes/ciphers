@@ -621,26 +621,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         };
     }
     /**
-     * Converts a number to corresponding to the positional text version of
-     *  the number like 2nd, 55th, etc.
-     * @param val Number to generate string for
-     * @returns Positional text version of string
-     */
-    public getPositionText(val: number): string {
-        let suffix = 'th';
-        if (val < 4 || val > 20) {
-            const ones = val % 10;
-            if (ones === 1) {
-                suffix = 'st';
-            } else if (ones === 2) {
-                suffix = 'nd';
-            } else if (ones === 3) {
-                suffix = 'rd';
-            }
-        }
-        return String(val) + '<sup>' + suffix + '</sup>';
-    }
-    /**
      * Generate UI components for display on "Answers and Solutions"
      * @param testType the type of test being edited
      * @returns JQuery html element detailing the solving steps

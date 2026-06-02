@@ -37,6 +37,8 @@ interface IHomophonicState extends IEncoderState {
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
     blocksize: number;
+    /** The choice of which random slot to use for each letter */
+    randomSlot: number[];
 }
 
 interface ICribInfo {
@@ -90,6 +92,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         findString: '',
         operation: 'decode',
         blocksize: 0,
+        randomSlot: [],
     };
     public state: IHomophonicState = cloneObject(this.defaultstate) as IHomophonicState;
     public cmdButtons: JTButtonItem[] = [
@@ -189,6 +192,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             this.attachHandlers();
         }
         return changed;
+    }
+    public updateRandom(): void {
+        const cipherstring = this.cleanString(this.state.cipherString)
+        for (let i = this.state.randomSlot.length; i < cipherstring.length; i++) {
+            this.state.randomSlot.push(Math.floor(Math.random() * 4));
+        }
     }
     /**
      * This function updates the homophonic mapping based on the current keyword and crib settings.
@@ -301,7 +310,15 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
+    /**
+     * This function attempts to place the crib in the plaintext and returns information about the placement.
+     * It returns undefined if the crib can't be placed.
+     * @returns Information about the crib placement, including the plaintext, ciphertext, position, and lengths of the crib and cipher.
+     */
     public placeCrib(): ICribInfo {
+        if (this.state.operation != 'crypt') {
+            return undefined;
+        }
         const crib = this.minimizeString(this.state.crib);
         const strings = this.buildReplacementHomophonic(this.minimizeString(this.state.cipherString), 9999);
         if (strings.length !== 1) {
@@ -319,26 +336,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             criblen: crib.length,
             cipherlen: plaintext.length,
         };
-    }
-    /**
-     * Converts a number to corresponding to the positional text version of
-     *  the number like 2nd, 55th, etc.
-     * @param val Number to generate string for
-     * @returns Positional text version of string
-     */
-    public getPositionText(val: number): string {
-        let suffix = 'th';
-        if (val < 4 || val > 20) {
-            const ones = val % 10;
-            if (ones === 1) {
-                suffix = 'st';
-            } else if (ones === 2) {
-                suffix = 'nd';
-            } else if (ones === 3) {
-                suffix = 'rd';
-            }
-        }
-        return String(val) + '<sup>' + suffix + '</sup>';
     }
     /**
      * This handles the Homophonic Cipher specific question options.
@@ -544,6 +541,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         return result;
     }
+    /** 
+     * Set the block size for the homophonic encoding.  This controls how many characters are in each chunk for encoding.
+     * A block size of 0 means that the encoding will respect the spaces in the original message and not split them up.
+     * @param blocksize The block size to use for encoding
+     * @return boolean indicating whether the block size was changed from the previous value
+     */
     public setBlocksize(blocksize: number): boolean {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
@@ -552,10 +555,45 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         }
         return changed;
     }
-    public buildReplacementHomophonic(
-        msg: string,
-        maxEncodeWidth: number
-    ): Array<[string[], string[]]> {
+    /**
+     * Updates the stored state cipher string
+     * This will change the random slot assigned to many characters, but we want to preserve the random slot
+     * assignments for the crib, but everything else can change.  Note that it is possible that they may change
+     * the crib (by deleting a character that was in the crib or putting the crib text earlier in the message),
+     * in which case we will lose the random slot assignment for those characters.
+     * 
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = false;
+        if (this.state.cipherString !== cipherString) {
+            changed = true;
+            let cribpos = this.placeCrib();
+            let saveSlots: number[] = []
+            // Save the current random slot choices for the crib (if any) so that we can keep them the same after resetting the alphabet
+            if (cribpos !== undefined) {
+                saveSlots = this.state.randomSlot.slice(cribpos.position, cribpos.position + cribpos.criblen);
+            }
+            super.setCipherString(cipherString);
+            this.updateRandom();
+            // Restore saved crib random-slot assignments
+            if (cribpos !== undefined) {
+                cribpos = this.placeCrib();
+                if (cribpos !== undefined) {
+                    this.state.randomSlot.splice(cribpos.position, cribpos.criblen, ...saveSlots);
+                }
+            }
+        }
+        return changed;
+    }
+    /**
+     * This function builds the homophonic replacements for a given message based on the current settings.
+     * Passing in a value of 9999 for the max encode width will ensure that it doesn't split the message into multiple lines for encoding.
+     * @param msg The message to encode
+     * @param maxEncodeWidth The maximum width of each chunk for encoding
+     * @return An array of pairs of arrays, where each pair corresponds to a chunk of the message. The first element of the pair is the array of ciphertext characters, and the second element is the array of plaintext characters.
+     */
+    public buildReplacementHomophonic(msg: string, maxEncodeWidth: number): Array<[string[], string[]]> {
         const encoded = this.chunk(msg, this.state.blocksize);
         const result: Array<[string[], string[]]> = [];
         const charset = this.getSourceCharset();
@@ -563,14 +601,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         let cipher: string[] = [];
         const msgLength = encoded.length;
         let lastSplit = -1;
+        let ptindex = 0;
 
         for (let i = 0; i < msgLength; i++) {
             const messageChar = encoded[i].toUpperCase();
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 message.push(messageChar);
-                const ct = this.encodeHomophonic(messageChar);
+                let randomSlot = this.state.randomSlot[ptindex]
+                if (randomSlot === undefined) {
+                    randomSlot = Math.floor(Math.random() * 4);
+                }
+                const ct = this.encodeHomophonic(messageChar, randomSlot);
                 cipher.push(ct);
+                ptindex++;
             } else {
                 message.push(messageChar);
                 cipher.push(messageChar);
@@ -1319,6 +1363,25 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.markUndo('')
         this.setKeyword(key)
         this.updateOutput()
+    }
+    /**
+     * Reset the alphabet mapping so that we generate a new one
+     */
+    public resetAlphabet(): void {
+        this.markUndo('alphabet')
+        const cribpos = this.placeCrib();
+        let saveSlots: number[] = []
+        // Save the current random slot choices for the crib (if any) so that we can keep them the same after resetting the alphabet
+        if (cribpos !== undefined) {
+            saveSlots = this.state.randomSlot.slice(cribpos.position, cribpos.position + cribpos.criblen);
+        }
+        this.state.randomSlot = [];
+        this.updateRandom();
+        // Restore saved crib random-slot assignments
+        if (cribpos !== undefined) {
+            this.state.randomSlot.splice(cribpos.position, cribpos.criblen, ...saveSlots);
+        }
+        this.updateOutput();
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

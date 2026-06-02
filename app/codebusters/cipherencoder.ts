@@ -425,11 +425,30 @@ export class CipherEncoder extends CipherHandler {
      */
     public getRepl(): string {
         const sel = Math.floor(Math.random() * this.unassigned.length);
-        const res = this.unassigned.substr(sel, 1);
-        this.unassigned = this.unassigned.substr(0, sel) + this.unassigned.substr(sel + 1);
+        const res = this.unassigned[sel];
+        this.unassigned = this.unassigned.slice(0, sel) + this.unassigned.slice(sel + 1);
         return res;
     }
-
+    /**
+     * Converts a number to corresponding to the positional text version of
+     *  the number like 2nd, 55th, etc.
+     * @param val Number to generate string for
+     * @returns Positional text version of string
+     */
+    public getPositionText(val: number): string {
+        let suffix = 'th';
+        if (val < 4 || val > 20) {
+            const ones = val % 10;
+            if (ones === 1) {
+                suffix = 'st';
+            } else if (ones === 2) {
+                suffix = 'nd';
+            } else if (ones === 3) {
+                suffix = 'rd';
+            }
+        }
+        return String(val) + '<sup>' + suffix + '</sup>';
+    }
     /**
      * Determines if this generator is appropriate for a given test
      * type.  This default implementation just checks against the

@@ -1,16 +1,10 @@
-import {getConfigParseResult} from "ts-loader/dist/config";
 
-export interface StringMap {
-    [index: string]: string;
-}
+export type StringKeyMap<T> = Record<string, T>;
 
-export interface BoolMap {
-    [index: string]: boolean;
-}
-
-export interface NumberMap {
-    [index: string]: number;
-}
+export type StringMap = StringKeyMap<string>;
+export type BoolMap = StringKeyMap<boolean>;
+export type NumberMap = StringKeyMap<number>;
+export type StringArrayMap = StringKeyMap<string[]>;
 
 /**
  * Makes a deep copy of any object
@@ -438,7 +432,7 @@ export function isAllDigits(sequence: string, naturalNumbers: boolean = false) {
     if (naturalNumbers) {
         const sequenceLength = sequence.length;
         for (let i = 0; i < sequenceLength; i++) {
-            if (sequence.indexOf(''+(i+1)) === -1) {
+            if (sequence.indexOf('' + (i + 1)) === -1) {
                 result = false;
                 break;
             }

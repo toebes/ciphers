@@ -1,4 +1,4 @@
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, StringArrayMap, StringMap } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -15,6 +15,16 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
+interface ISolverWord {
+    pt: string[];
+    ct: string[];
+    position: number;
+    length: number;
+    missing: number;
+    unique: number;
+    keywordCount: number[]
+}
+
 interface ISolverData {
     /** The possible replacements for each letter based on the current crib and keyword */
     replacements: Array<[string[], string[]]>;
@@ -22,14 +32,18 @@ interface ISolverData {
     testType: ITestType;
     /** Extra class to add to any output tables */
     extraclass: string;
-    /** The known Row keyword */
-    keyword: string[];
     /** Indicates where we already have warned them about this being too hard to solve */
     warned: boolean;
     /** Array indicating which letters in the key are already solved */
     known: boolean[];
     /** Last key check was valid */
     valid: boolean;
+    /** Known keyword letters */
+    keyword: string[];
+    /** Reverse homophonic table */
+    reverseHomophonicTable: StringMap;
+    /** Character set */
+    charset: string;
 }
 
 interface IHomophonicState extends IEncoderState {
@@ -37,6 +51,8 @@ interface IHomophonicState extends IEncoderState {
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
     blocksize: number;
+    /** The choice of which random slot to use for each letter */
+    randomSlot: number[];
 }
 
 interface ICribInfo {
@@ -58,8 +74,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     public usesHomophonicTable = false;
     public cipherName = "Homophonic";
 
-    public homophonicTable: { [index: string]: string[] } = {};
-    public reverseHomophonicTable: { [index: string]: string } = {};
+    public homophonicTable: StringArrayMap = {};
+    public reverseHomophonicTable: StringMap = {};
+    public ctIndex = 0;
+    public ptIndex = 1;
 
     public validTests: ITestType[] = [
         ITestType.None,
@@ -69,8 +87,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         ITestType.cstate,
     ];
 
-    public maxencodeWidth = 40;
-    public maxencodeWidthDivA = 30;
+    public maxencodeWidth = 25;
+    public maxencodeWidthDivA = 15;
 
     public randomizeButton: JTButtonItem = {
         title: 'Randomize',
@@ -90,6 +108,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         findString: '',
         operation: 'decode',
         blocksize: 0,
+        randomSlot: [],
     };
     public state: IHomophonicState = cloneObject(this.defaultstate) as IHomophonicState;
     public cmdButtons: JTButtonItem[] = [
@@ -191,6 +210,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         return changed;
     }
     /**
+     * This function updates the random slot assignments for each character in the cipher string.
+     * It preserves the existing random slot assignments for any characters that are still in the cipher string after the update,
+     * but assigns new random slots for any new characters that have been added to the cipher string.
+     */
+    public updateRandom(): void {
+        const cipherstring = this.cleanString(this.state.cipherString)
+        for (let i = this.state.randomSlot.length; i < cipherstring.length; i++) {
+            this.state.randomSlot.push(Math.floor(Math.random() * 4));
+        }
+    }
+    /**
      * This function updates the homophonic mapping based on the current keyword and crib settings.
      * It generates the possible replacements for each letter based on the current keyword and crib settings.
      */
@@ -206,17 +236,18 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             if (k === 'J') {
                 k = 'I';
             }
-            const offset = charset.indexOf(k);
+            const offset = (charset.length - charset.indexOf(k)) % charset.length;
             keywordOffsets[i] = offset >= 0 ? offset : 0;
         }
+        // Now build the homophonic table based on the keyword offsets
         this.homophonicTable = {};
         this.reverseHomophonicTable = {};
         for (const c of charset) {
-
+            // For each character, we have 4 possible homophones based on the keyword offsets
             this.homophonicTable[c] = [];
             for (let i = 0; i < 4; i++) {
                 const offset = keywordOffsets[i];
-                const encodedVal = (i * charset.length) + (offset + charset.indexOf(c)) % charset.length;
+                const encodedVal = 1 + ((i * charset.length) + (offset + charset.indexOf(c)) % charset.length);
                 this.homophonicTable[c].push(String(encodedVal))
                 this.reverseHomophonicTable[String(encodedVal)] = c;
             }
@@ -245,6 +276,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const randIndex = Math.floor(Math.random() * cmap.length);
         return cmap[randIndex];
     }
+    /**
+     * It decodes a character using the homophonic cipher.
+     * @param ctval The ciphertext value to decode
+     * @returns The decoded plaintext character, or the original value if it is not a valid homophonic ciphertext value
+     */
     public decodeHomophonic(ctval: string): string {
         // Implementation for decoding a character using the homophonic cipher
         const plaintext = this.reverseHomophonicTable[ctval];
@@ -259,86 +295,110 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         const questionText = this.state.question.toUpperCase();
         if (this.state.operation === 'crypt') {
+            const cribpos = this.placeCrib();
             if (!this.isDecodeOperation(questionText)) {
-                msg +=
-                    "The Question Text doesn't appear to mention that " +
-                    'the cipher needs to be decrypted.';
+                msg += `The Question Text doesn't appear to mention that the cipher needs to be decrypted.`;
             }
-            // Look to see if the crib appears in the question text
-            const crib = this.minimizeString(this.state.crib);
-            if (crib !== '' && this.minimizeString(questionText).indexOf(crib) < 0) {
-                msg +=
-                    "The Crib Text '" +
-                    this.state.crib +
-                    "' doesn't appear to be mentioned in the Question Text.";
+            if (cribpos !== undefined) {
+                // Look to see if the crib appears in the question text
+
+                if (cribpos.plaintext !== '' && this.minimizeString(questionText).indexOf(cribpos.plaintext) < 0) {
+                    msg += ` The Crib Text '${this.state.crib}' doesn't appear to be mentioned in the Question Text.`;
+                }
             }
         } else {
+            let keyword = this.minimizeString(this.state.keyword);
+            let hint = this.minimizeString(this.state.hint);
+            // All of the letters in the hint must be in the keyword
+            if (hint.length > keyword.length || hint.split('').some((c) => keyword.indexOf(c) < 0)) {
+                msg += ` The Hint Text '${this.state.hint}' doesn't appear to be a subset of the Key '${this.state.keyword}'.`;
+            }
             // For an encode or decode, they need to mention the key
             const key = this.minimizeString(this.state.keyword);
             if (key !== '' && questionText.indexOf(key) < 0) {
-                msg +=
-                    "The Key '" +
-                    this.state.keyword +
-                    "' doesn't appear to be mentioned in the Question Text.";
+                msg += `The Key '${this.state.keyword}' doesn't appear to be mentioned in the Question Text.`;
             }
             if (this.state.operation === 'encode') {
                 if (questionText.indexOf('ENCOD') < 0 && questionText.indexOf('ENCRY') < 0) {
-                    msg +=
-                        "The Question Text doesn't appear to mention that " +
-                        'the cipher needs to be encoded.';
+                    msg += `The Question Text doesn't appear to mention that the cipher needs to be encoded.`;
                 } else if (this.isDecodeOperation(questionText)) {
-                    msg +=
-                        'The Question Text appears to mention that the ' +
-                        'cipher needs to be decoded, but this is an encode problem';
+                    msg += `The Question Text appears to mention that the cipher needs to be decoded, but this is an encode problem`;
                 }
             } else if (!this.isDecodeOperation(questionText)) {
-                msg +=
-                    "The Question Text doesn't appear to mention that " +
-                    'the cipher needs to be decrypted.';
+                msg += `The Question Text doesn't appear to mention that the cipher needs to be decrypted.`;
             }
         }
         const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
+    /**
+     * This function attempts to place the crib in the plaintext and returns information about the placement.
+     * It returns undefined if the crib can't be placed.
+     * @returns Information about the crib placement, including the plaintext, ciphertext, position, and lengths of the crib and cipher.
+     */
     public placeCrib(): ICribInfo {
+        if (this.state.operation !== 'crypt') {
+            return undefined;
+        }
         const crib = this.minimizeString(this.state.crib);
         const strings = this.buildReplacementHomophonic(this.minimizeString(this.state.cipherString), 9999);
         if (strings.length !== 1) {
             return undefined;
         }
-        const plaintext = this.minimizeString(strings[0][1].join(''));
+        if (crib.length < 1) {
+            return undefined;
+        }
+        const pta = strings[0][this.ptIndex]
+        const cta = strings[0][this.ctIndex]
+
+        const plaintext = this.minimizeString(pta.join(''));
         const cribpos = plaintext.indexOf(crib);
-        if (cribpos < 0) {
+
+        let backuppos = -1;
+        let backuppti = -1;
+        let cribi = 0;
+        let cribstart = -1;
+        let cribend = -1;
+        let pti = 0;
+        for (let i = 0; i <= pta.length - crib.length; i++) {
+            if (pta[i] !== cta[i]) {
+
+                if (pta[i] === crib[cribi]) {
+                    if (cribi === 0) {
+                        cribstart = i;
+                    } else if (pta[i] === crib[0] && backuppos === -1) {
+                        backuppos = i;
+                        backuppti = pti;
+                    }
+                    cribi++;
+                    if (cribi >= crib.length) {
+                        cribend = i + 1;
+                        break;
+                    }
+                } else {
+                    // We didn't match, so we have to backup to the last character which matched the first character if any
+                    cribi = 0;
+                    cribstart = -1;
+                    if (backuppos !== -1) {
+                        i = backuppos - 1;
+                        pti = backuppti;
+                    }
+                }
+                pti++;
+            }
+        }
+
+        if (cribstart < 0) {
             return undefined;
         }
         return {
-            plaintext: plaintext.substring(cribpos, cribpos + crib.length),
-            ciphertext: strings[0][0].slice(cribpos, cribpos + crib.length).join(' '),
+            plaintext: pta.slice(cribstart, cribend).join(''), //plaintext.substring(cribpos, cribpos + crib.length),
+            ciphertext: cta.slice(cribstart, cribend).join(' '), // strings[0][this.ctIndex].slice(cribpos, cribpos + crib.length).join(' '),
             position: cribpos,
             criblen: crib.length,
             cipherlen: plaintext.length,
         };
-    }
-    /**
-     * Converts a number to corresponding to the positional text version of
-     *  the number like 2nd, 55th, etc.
-     * @param val Number to generate string for
-     * @returns Positional text version of string
-     */
-    public getPositionText(val: number): string {
-        let suffix = 'th';
-        if (val < 4 || val > 20) {
-            const ones = val % 10;
-            if (ones === 1) {
-                suffix = 'st';
-            } else if (ones === 2) {
-                suffix = 'nd';
-            } else if (ones === 3) {
-                suffix = 'rd';
-            }
-        }
-        return String(val) + '<sup>' + suffix + '</sup>';
     }
     /**
      * This handles the Homophonic Cipher specific question options.
@@ -353,10 +413,31 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
 
         if (this.state.operation != 'crypt') {
-            operationtext2 = ` using a keyword of ${this.genMonoText(this.minimizeString(this.state.keyword))}`
+            let keyword = this.minimizeString(this.state.keyword);
+            if (keyword !== '') {
+                let hint = this.minimizeString(this.state.hint);
+                if (hint === keyword || hint == '') {
+                    operationtext2 = ` using a keyword of ${this.genMonoText(keyword)}`
+                } else {
+                    let hinttext = ''
+                    if (hint.length === 1) {
+                        hinttext = ` the letter ${this.genMonoText(hint)}`
+                    } else if (hint.length == 2) {
+                        hinttext = ` the letters ${this.genMonoText(hint[0])} and ${this.genMonoText(hint[1])}`
+                    } else {
+                        hinttext = ` the letters `
+                        for (let i = 0; i < hint.length - 1; i++) {
+                            hinttext += `${this.genMonoText(hint[i])}, `
+                        }
+                        hinttext += `and ${this.genMonoText(hint[hint.length - 1])}`
+                    }
+                    operationtext2 = ` using a keyword that has ${hinttext} in it`;
+                }
+            }
+
         } else {
             const cribpos = this.placeCrib();
-            hinttext = ' ' + this.getCribPlacement(cribpos) + '.';
+            hinttext = ` ${this.getCribPlacement(cribpos)}`;
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
     }
@@ -461,6 +542,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
+        this.setKeyword(this.state.keyword);
+        this.setHint(this.state.hint);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -479,6 +562,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         JTRadioButtonSet('operation', this.state.operation);
         $('#blocksize').val(this.state.blocksize);
         $('#crib').val(this.state.crib);
+        $('#hint').val(this.state.hint);
         super.updateOutput();
         this.checkDuplicateKeys();
         this.attachHandlers();
@@ -544,6 +628,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         return result;
     }
+    /** 
+     * Set the block size for the homophonic encoding.  This controls how many characters are in each chunk for encoding.
+     * A block size of 0 means that the encoding will respect the spaces in the original message and not split them up.
+     * @param blocksize The block size to use for encoding
+     * @return boolean indicating whether the block size was changed from the previous value
+     */
     public setBlocksize(blocksize: number): boolean {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
@@ -552,10 +642,45 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         }
         return changed;
     }
-    public buildReplacementHomophonic(
-        msg: string,
-        maxEncodeWidth: number
-    ): Array<[string[], string[]]> {
+    /**
+     * Updates the stored state cipher string
+     * This will change the random slot assigned to many characters, but we want to preserve the random slot
+     * assignments for the crib, but everything else can change.  Note that it is possible that they may change
+     * the crib (by deleting a character that was in the crib or putting the crib text earlier in the message),
+     * in which case we will lose the random slot assignment for those characters.
+     * 
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = false;
+        if (this.state.cipherString !== cipherString) {
+            changed = true;
+            let cribpos = this.placeCrib();
+            let saveSlots: number[] = []
+            // Save the current random slot choices for the crib (if any) so that we can keep them the same after resetting the alphabet
+            if (cribpos !== undefined) {
+                saveSlots = this.state.randomSlot.slice(cribpos.position, cribpos.position + cribpos.criblen);
+            }
+            super.setCipherString(cipherString);
+            this.updateRandom();
+            // Restore saved crib random-slot assignments
+            if (cribpos !== undefined) {
+                cribpos = this.placeCrib();
+                if (cribpos !== undefined) {
+                    this.state.randomSlot.splice(cribpos.position, cribpos.criblen, ...saveSlots);
+                }
+            }
+        }
+        return changed;
+    }
+    /**
+     * This function builds the homophonic replacements for a given message based on the current settings.
+     * Passing in a value of 9999 for the max encode width will ensure that it doesn't split the message into multiple lines for encoding.
+     * @param msg The message to encode
+     * @param maxEncodeWidth The maximum width of each chunk for encoding
+     * @return An array of pairs of arrays, where each pair corresponds to a chunk of the message. The first element of the pair is the array of ciphertext characters, and the second element is the array of plaintext characters.
+     */
+    public buildReplacementHomophonic(msg: string, maxEncodeWidth: number): Array<[string[], string[]]> {
         const encoded = this.chunk(msg, this.state.blocksize);
         const result: Array<[string[], string[]]> = [];
         const charset = this.getSourceCharset();
@@ -563,14 +688,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         let cipher: string[] = [];
         const msgLength = encoded.length;
         let lastSplit = -1;
+        let ptindex = 0;
 
         for (let i = 0; i < msgLength; i++) {
             const messageChar = encoded[i].toUpperCase();
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 message.push(messageChar);
-                const ct = this.encodeHomophonic(messageChar);
+                let randomSlot = this.state.randomSlot[ptindex]
+                if (randomSlot === undefined) {
+                    randomSlot = Math.floor(Math.random() * 4);
+                }
+                const ct = this.encodeHomophonic(messageChar, randomSlot);
                 cipher.push(ct);
+                ptindex++;
             } else {
                 message.push(messageChar);
                 cipher.push(messageChar);
@@ -584,13 +715,13 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     cipher = [];
                     lastSplit = -1;
                 } else {
-                    const messagePart = message.slice(0, lastSplit);
+                    const plainPart = message.slice(0, lastSplit);
                     const cipherPart = cipher.slice(0, lastSplit);
 
                     message = message.slice(lastSplit);
                     cipher = cipher.slice(lastSplit);
 
-                    result.push([cipherPart, messagePart]);
+                    result.push([cipherPart, plainPart]);
                 }
             }
         }
@@ -727,7 +858,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         for (const strset of strings) {
             let keystring = '';
-            for (const c of strset[0]) {
+            for (const c of strset[this.ctIndex]) {
                 if (this.isValidChar(c)) {
                     keystring += keyword[keypos];
                     keypos = (keypos + 1) % keyword.length;
@@ -744,7 +875,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             const rowct = table.addBodyRow();
             const rowpt = table.addBodyRow();
             const rowblank = table.addBodyRow();
-            for (let i = 0; i < strset[0].length; i++) {
+            for (let i = 0; i < strset[dest].length; i++) {
                 const ct = strset[dest][i];
                 const pt = strset[source][i];
                 rowct.add({
@@ -919,123 +1050,277 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
     }
     /**
+     * Find the most likely unfinished words to check.
+     *
+     * An unfinished word is a cipher word that contains at least one unresolved
+     * keyword letter. The result is sorted so the easiest/most useful words are
+     * checked first.
+     *
+     * @param solvingdata Current solving state
+     * @returns Array of unfinished words ordered by likelihood of helping solve the cipher
+     */
+    public findUnfinishedWords(solvingdata: ISolverData): ISolverWord[] {
+        const result: ISolverWord[] = [];
+        const wordlengths: number[] = []
+
+        // Build the list of cipher word lengths from the original cipher text.
+        // This lets us recover word boundaries even though the replacement arrays
+        // only contain cipher/plaintext symbols.
+        let wordlen = 0
+        for (let c of this.state.cipherString.toUpperCase()) {
+            if (this.isValidChar(c)) {
+                wordlen++
+            } else {
+                if (wordlen) {
+                    wordlengths.push(wordlen)
+                    wordlen = 0;
+                }
+            }
+        }
+
+        let wordIndex = 0;
+        wordlengths.push(wordlen)
+
+
+        let curWord: ISolverWord | undefined = undefined;
+        let cipherpos = 0;
+
+        // Finish the current word. Only keep useful unfinished words:
+        // - at least one missing keyword letter
+        // - longer than 3 letters
+        const finishWord = (): void => {
+            if (curWord !== undefined && curWord.missing > 0 && curWord.length > 3) {
+                result.push(curWord);
+            }
+            curWord = undefined;
+        };
+
+        for (const sets of solvingdata.replacements) {
+            const ctData = sets[this.ctIndex];
+            const ptData = sets[this.ptIndex];
+
+            // Walk through the replacement data and group consecutive cipher letters into words.
+            for (let i = 0; i < ctData.length; i++) {
+                const ct = ctData[i];
+                const pt = ptData[i];
+
+                // Matching ct/pt means this entry is punctuation, spacing, or another non-cipher symbol.
+                if (ct === pt) {
+                    continue;
+                }
+
+                cipherpos++;
+
+                // Start a new word when we encounter the first cipher letter after a word boundary
+                if (curWord === undefined) {
+                    curWord = {
+                        pt: [],
+                        ct: [],
+                        position: cipherpos, // 1-based cipher-letter position
+                        length: 0,
+                        missing: 0,
+                        unique: 0,
+                        keywordCount: [0, 0, 0, 0]
+                    };
+                }
+
+                const keywordPos = this.getKeywordPos(ct);
+
+                curWord.pt.push(pt);
+                curWord.ct.push(ct);
+                curWord.length++;
+
+                // Count letters whose keyword slot has not been solved yet.
+                if (keywordPos >= 0 && keywordPos < curWord.keywordCount.length) {
+                    if (solvingdata.keyword[keywordPos] === ' ') {
+                        curWord.missing++;
+                        curWord.keywordCount[keywordPos]++;
+                        if (curWord.keywordCount[keywordPos] === 1) {
+                            curWord.unique++;
+                        }
+                    }
+                }
+                // End the word once we have consumed its known cipher-text length.
+                if (wordIndex < wordlengths.length && curWord.length === wordlengths[wordIndex]) {
+                    wordIndex++;
+                    finishWord();
+                }
+            }
+        }
+        // Flush the final word if the data ended in the middle of one.
+        finishWord();
+
+        // Prefer:
+        // 1. fewer missing letters
+        // 2. longer words
+        // 3. fewer unique missing keyword slots
+        result.sort((a, b) => {
+            if (a.missing !== b.missing) {
+                return a.missing - b.missing;
+            }
+
+            if (a.length !== b.length) {
+                return b.length - a.length;
+            }
+
+            return a.unique - b.unique;
+        });
+
+        return result;
+    }
+
+    public findPossibleKeywords(result: JQuery<HTMLElement>, solvingData: ISolverData) {
+        // We need to build a regex from the keyword that we have found
+        let pattern = '^'
+        let tomatch = ''
+        for (const c of solvingData.keyword) {
+            if (c === ' ') {
+                pattern += '.'
+                tomatch += '?'
+            } else if (c === 'I') {
+                pattern += '[IJ]'
+                tomatch += c
+            } else {
+                pattern += c
+                tomatch += c
+            }
+        }
+        const found = []
+        pattern += '$'
+        const re = new RegExp(pattern.toUpperCase());
+
+        let pat = this.makeUniquePattern("ABCD", 1);
+        if (typeof this.Frequent[this.state.curlang][pat] !== "undefined") {
+            let matches = this.Frequent[this.state.curlang][pat];
+            for (const entry of matches) {
+                if (re.test(entry[0])) {
+                    found.push(entry[0])
+                    if (found.length >= 10) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (found.length >= 10) {
+            result.append($('<p/>').html(`Since there are so many common words which match ${tomatch} we can't make any reasonable
+                guesses at this time for the keyword, so we will have to use other strategies `))
+            found.length = 0
+        } else if (found.length === 1) {
+            result.append($("<p/>").html(`There is exactly one word "${found[0]}" which matches the keyword letters "${tomatch}" we found so far, so we will run with it.`))
+        } else if (found.length === 0) {
+            result.append($("<p/>").html(`We were unable to find any words which match the keyword letters "${tomatch}" we found so far,
+                 so either we have made a mistake or the keyword is not a common English word.`))
+        } else if (found.length <= 3) {
+            result.append($("<p/>").html(`There are ${found.length} words (${found.join(', ')}) which match the keyword letters "${tomatch}" so we can quickly try them to see if it gives us the answer.`))
+        } else {
+            result.append($('<p/>').html(`Since there a${found.length} words which match ${tomatch} we can't make any reasonable
+                guesses at this time for the keyword, so we will have to use other strategies `))
+            found.length = 0
+        }
+        return found;
+    }
+    /**
      * Generate HTML content showing the step by step solution based on the crib placement and key deduction steps, including the imHomophonicnt characters in the crib placement and key deduction steps and how to orient the found key characters based on the crib placement.
      * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
      * @returns HTML content
      */
     public async genCryptanalysisSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
         const cribpos = this.placeCrib();
+
         if (cribpos === undefined) {
             result.append($('<h3/>').text('Unable to place the crib'));
             return result;
         }
         solvingData.known = new Array<boolean>(cribpos.cipherlen);
         solvingData.known.fill(false);
-        solvingData.keyword = new Array<string>(cribpos.cipherlen);
-        solvingData.keyword.fill(' ');
+        solvingData.keyword = [' ', ' ', ' ', ' ']
 
         for (let pos = cribpos.position; pos < cribpos.position + cribpos.criblen; pos++) {
             solvingData.known[pos] = true;
         }
 
+        if (await this.restartCheck()) { return }
+
         this.showStep(result, "Step 1: Place the crib and determine the known letters of the key");
 
-        result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.`));
+        result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.
+            At the same time, we also can note which letter in the keyword corresponds to each ciphertext value (1-25 is the first letter, 26-50 is the second, etc.). 
+            As we determine a plaintext letter, we can also determine the corresponding key letter and fill in all the matching entries.`));
         result.append(this.showHomophonicDecodeStatus(solvingData));
 
-        result.append($('<p/>').text(`Since we know the mapping of these letters, we can look at the corresponding letters in the Homophonic table to determine the corresponding letters in the key:`));
+        // Figure out how many letters we know from the crib and fill in the corresponding key letters based on the homophonic table.
+        if (this.analyzeCribChars(result, cribpos, solvingData)) {
+            result.append($('<p/>').text(`With that new information, we can fill in all the corresponding entries for those keyword positions giving us:`));
+            result.append(this.showHomophonicDecodeStatus(solvingData));
+        }
 
-        let keywords = []
-        for (let pos = 0; pos < cribpos.criblen; pos++) {
-            const cipherChar = cribpos.ciphertext[pos]
-            const plainChar = cribpos.plaintext[pos]
-            const keyChar = this.getRowKey(this.decodeHomophonic(cipherChar));
-            solvingData.keyword[cribpos.position + pos] = keyChar;
-            keywords.push(keyChar)
-            if (cipherChar < plainChar) {
-                result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(cipherChar)} is between A and M, we look for that column in the Homophonic table and search down for the plaintext character ${this.fixedCt(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
-            } else {
-                result.append($('<p/>').html(`Because the plaintext character ${this.fixedCt(plainChar)} is between A and M, we look for that column in the Homophonic table and search down for the cipher character ${this.fixedCt(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
-            }
-        }
-        result.append(this.showHomophonicDecodeStatus(solvingData));
-        let keylen = 2;
-        // Let's see if we think that we have the full keyword figured out.
-        if (keywords.length > 0) {
-            keylen = keywords.length
-            const first = keywords[0];
-            const occursindex = keywords.indexOf(first, 1)
-            if (occursindex >= 0) {
-                // We have a repeat, let's see if anything after the repeat is the same.
-                let size = keywords.length - occursindex
-                keylen = occursindex
-                if (keywords.slice(0, size).join('') === keywords.slice(occursindex, occursindex + size).join('')) {
-                    if (size === 1) {
-                        result.append($('<p/>').html(`We can see that the keyword letter ${this.fixedCt(first)} repeats at the end, which is a good possibility that we have a ${keylen} letter keyword.`));
-                    } else {
-                        result.append($('<p/>').html(`We can see that the first ${size} keyword letters repeat at the end, which is a strong indication that we have a ${keylen} letter keyword.`));
-                    }
-                }
-            }
-        }
-        this.showStep(result, "Step 2: Figure out the length of the keyword");
-        result.append($('<p/>').text(`Based on the letters revealed by the crib, we know that the keyword must be at least ${keylen} letters long.`));
-        let keyoff = keylen - (cribpos.position % keylen);
-        result.append($('<p/>').text(`With the crib starting at position ${cribpos.position + 1}, we divide the position by the keyword length to determine that the keyword would start at ${cribpos.position + keyoff} and repeat every ${keylen} letters.
-            We can test this out by filling the first 10 letters of the cipher with the corresponding key letters and decoding them to see what we get.
-            Note that we don't have to actually figure out the keyword, just copy the letters we know down.`));
-        // Make it easier by building a properly oriented keyword. 
-        let keycheck = this.rotatedKey(keywords.slice(0, keylen), keylen, keyoff)
+        if (await this.restartCheck()) { return }
 
-        for (let i = 0; i < 10; i++) {
-            const keychar = keycheck[i % keylen]
-            solvingData.keyword[i] = keychar;
-            solvingData.known[i] = true;
+        // Now we loop our strategy until we have it solved.  There are multiple prongs of attack here
+        // 1) See if we can figure out the keyword since we know the positions of the letters in the keyword.
+        // 2) If we don't know the keyword, look for the longest word that we are only missing one or two characters and see if we can guess it. 
+        // 3) If that doesn't produce a result and there are only a couple of possible keywords, just try them!
+        const found = this.findPossibleKeywords(result, solvingData)
+        if (found.length === 1) {
+            // We have the keyword, so fill it in and 
         }
-        result.append(this.showHomophonicDecodeStatus(solvingData));
-        if (solvingData.valid) {
-            result.append($('<p/>').html(`This looks like a valid solution.`));
-        } else {
-            result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
-            let keyoptions = keywords.slice(0, keylen).concat(Array(10).fill('?'));
-            for (let extrakeylen = keylen + 1; extrakeylen < 10; extrakeylen++) {
-                // Let's try adding an extra unknown letter to the key and see if it looks better
-                keyoff = extrakeylen - (cribpos.position % extrakeylen);
-                keycheck = this.rotatedKey(keyoptions.slice(0, extrakeylen), extrakeylen, keyoff)
-                const minextra = Math.min(Math.ceil(10 / keylen) * extrakeylen, cribpos.cipherlen)
-                for (let i = 0; i < minextra; i++) {
-                    const keychar = keycheck[i % extrakeylen]
-                    solvingData.keyword[i] = keychar;
-                    solvingData.known[i] = true;
-                }
-                result.append(this.showHomophonicDecodeStatus(solvingData));
-                if (solvingData.valid) {
-                    result.append($('<p/>').html(`This looks like a valid solution, so we have likely found the correct keyword length of ${extrakeylen}.`));
-                    keylen = extrakeylen;
-                    break;
-                } else {
-                    result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
-                }
-            }
-            this.showStep(result, "Step 2A: See if we can fill in the missing letters of the key.");
-            if (this.state.blocksize === 0) {
-                result.append($('<p/>').html(`Since we have the original spacing, we can find words that have only one missing letter to see if we recognize them.
-                    Taking the longest word will give us the most likely chance of figuring out the key.`));
-            } else {
-                result.append($('<p/>').html(`Since we don't have the original spacing, we can look at the start or the end to see if we recongize any words.`));
-            }
-        }
-        this.showStep(result, "Step 3: (Optional) Find possible keywords which match the key characters we looked up");
-        keycheck = this.findWords(solvingData, result, keycheck);
 
-        this.showStep(result, "Step 4: Fill out the remainder of the keywords and decode");
-        for (let i = 0; i < cribpos.cipherlen; i++) {
-            const keyChar = keycheck[i % keylen];
-            solvingData.keyword[i] = keyChar
-            solvingData.known[i] = true;
+        if (await this.restartCheck()) { return }
+
+        const unfinishedCandidates = this.findUnfinishedWords(solvingData);
+
+        if (await this.restartCheck()) { return }
+
+        for (const entry of unfinishedCandidates) {
+            result.append($('<p/>').html(`Unfinished word: ${entry.pt} against ${entry.ct} at ${entry.position} Missing: ${entry.missing} with [${entry.keywordCount.join(',')}]`))
         }
+
+
         result.append(this.showHomophonicDecodeStatus(solvingData));
         return result;
+    }
+    public analyzeCribChars(result: JQuery<HTMLElement>, cribpos: ICribInfo, solvingData: ISolverData): boolean {
+        let changed = false
+        const ctvals = cribpos.ciphertext.split(' ');
+        for (let pos = 0; pos < cribpos.criblen; pos++) {
+            const ct = ctvals[pos];
+            const pt = cribpos.plaintext[pos];
+            // Figure out which spot this one is.
+            const slot = this.getKeywordPos(ct);
+            if (solvingData.keyword[slot] === ' ') {
+                changed = true
+                // We have a letter in a slot we haven't filled in yet, let's fill it in based on what we were told
+                const kwIndex = this.getKeywordIndex(ct, pt);
+                result.append($('<p/>').html(`Based on the crib character ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
+                Taking the offset from the start of the range we get ${parseInt(ct) % 25}.
+                Counting backward in the alphabet from ${this.fixedCt(ct)} we find that the keyword letter is ${this.fixedCt(solvingData.charset[kwIndex])}
+                This gives us a mapping for that letter as:`));
+
+
+                this.updateSolvingMap(solvingData, slot, kwIndex);
+                const table = new JTTable({ class: `ansblock shrink cell unstriped` });
+                const ctRow = table.addHeaderRow()
+                const ptRow = table.addBodyRow()
+                for (let i = slot * solvingData.charset.length; i < (slot + 1) * solvingData.charset.length; i++) {
+                    const ct = String(i + 1)
+                    ctRow.add(ct)
+                    ptRow.add(solvingData.reverseHomophonicTable[ct])
+                }
+                result.append(table.generate())
+
+            }
+        }
+        return changed
+    }
+
+    public updateSolvingMap(solvingData: ISolverData, slot: number, kwIndex: number) {
+        let charcount = solvingData.charset.length
+        solvingData.keyword[slot] = solvingData.charset[kwIndex];
+        for (let i = slot * charcount; i < (slot + 1) * charcount; i++) {
+            solvingData.reverseHomophonicTable[String(i + 1)] = solvingData.charset[(kwIndex + i) % charcount]
+        }
+
     }
     /**
      * Adds a set of answer rows to a table.
@@ -1049,7 +1334,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         table: JTTable,
         overline: string[],
         cipherline: string[],
-        answerline: string,
+        answerline: string[],
     ): void {
         let rowover;
         if (overline !== undefined) {
@@ -1109,46 +1394,59 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         solvingdata.valid = true;
         const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
         const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
-        const [source, dest] = this.state.operation === 'encode' ? [1, 0] : [0, 1];
+        const [source, dest] = this.state.operation === 'encode' ? [this.ptIndex, this.ctIndex] : [this.ctIndex, this.ptIndex];
 
-        let keywordpos = 0;
+        let cipherpos = 0;
         // Make sure we have something in the keyword to avoid errors, we'll just show blanks in the table if we don't have a key
         for (const strset of solvingdata.replacements) {
             const src = strset[source] ?? [];
             const dst = strset[dest] ?? [];
             const n = src.length;
 
-            let repeatedKey = []
-            let solution = '';
+            let keyline = []
+            let solution = [];
             for (let cpos = 0; cpos < n; cpos++) {
                 const c = src[cpos];
+                const pt = strset[this.ptIndex][cpos] ?? '';
+                const ct = strset[this.ctIndex][cpos] ?? '';
 
-                if (this.isValidChar(c)) {
-                    const keyc = solvingdata.keyword[keywordpos] ?? '?';
-                    const isKnown = solvingdata.known[keywordpos] ?? false;
-                    keywordpos++
-                    repeatedKey.push(keyc);
+                if (this.isValidChar(pt)) {
+                    const keyc = this.getKeywordPos(ct);
+                    const isKnown = (solvingdata.known[cipherpos] || (solvingdata.reverseHomophonicTable[ct] !== undefined)) ?? false;
+
+                    cipherpos++
+                    keyline.push(keyc + 1);
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
                         let sol = this.decodeHomophonic(c);
-                        if (keyc[0] === ' ') {
-                            sol = dst[cpos]
-                        }
-                        if (sol !== undefined && keyc[0] != '?' && sol.toUpperCase() !== dst[cpos].toUpperCase()) {
-                            solvingdata.valid = false;
-                        }
-                        solution += sol ?? ' ';
+                        solution.push(sol ?? ' ');
                     } else {
-                        solution += ' ';
+                        solution.push(' ');
                     }
                 } else {
-                    repeatedKey.push(' ');
-                    solution += ' ';
+                    keyline.push(' ');
+                    solution.push(' ');
                 }
             }
-            this.addAnnotatedCipherTableRows(table, repeatedKey, src, solution);
+            this.addAnnotatedCipherTableRows(table, keyline, src, solution);
         }
         return table.generate();
+    }
+    /**
+     * For the homophonic cipher, the keyword position is determined by the ciphertext character.
+     * Each letter in the ciphertext corresponds to a letter in the key based on its position in the alphabet (1-25 for the first letter, 26-50 for the second, etc.).
+     * This function maps a ciphertext character to the corresponding letter(s) in the key based on this mapping.
+     */
+    public getKeywordPos(ct: string) {
+        return Math.floor((parseInt(ct) - 1) / 25);
+    }
+
+    public getKeywordIndex(ct: string, pt: string): number {
+        const keypos = parseInt(ct) % 25;
+        const charset = this.getSourceCharset();
+        const ptindex = charset.indexOf(pt.toUpperCase());
+        const keyindex = (charset.length + 1 + ptindex - keypos) % charset.length;
+        return keyindex;
     }
     /**
      * Generate a keyword for mapping the solved letters to show the current decode status of the cipher with the solved letters filled in and the unsolved letters replaced with a question mark.
@@ -1222,6 +1520,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        // If we are already in the process of loading then we need to request that
+        // the loading process stop instead of starting it again.
+        // Note that when the stop is processed it will trigger starting the load
+        // once again to update the UI
+        if (this.isLoading) {
+            this.stopGenerating = true;
+            return;
+        }
+        this.stopGenerating = false;
+        this.isLoading = true
+
         const result = $('<div/>');
         const { width, extraclass } = this.getEncodeWidth(testType);
 
@@ -1231,16 +1540,16 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             replacements: [],
             testType: testType,
             extraclass: '',
-            keyword: [],
             warned: false,
             known: [],
-            valid: false
+            valid: false,
+            keyword: [],
+            reverseHomophonicTable: {},
+            charset: this.getSourceCharset(),
         }
 
         solvingData.replacements = this.buildReplacementHomophonic(this.state.cipherString, width);
 
-        this.stopGenerating = false;
-        this.isLoading = true
         this.loadLanguageDictionary(this.state.curlang).then(() => {
             if (this.state.operation === 'crypt') {
                 this.genCryptanalysisSolution(solvingData, result);
@@ -1248,6 +1557,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 this.genDecodeSolution(solvingData, result);
             }
         })
+        this.isLoading = false;
 
         return result;
     }
@@ -1321,6 +1631,25 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.updateOutput()
     }
     /**
+     * Reset the alphabet mapping so that we generate a new one
+     */
+    public resetAlphabet(): void {
+        this.markUndo('alphabet')
+        const cribpos = this.placeCrib();
+        let saveSlots: number[] = []
+        // Save the current random slot choices for the crib (if any) so that we can keep them the same after resetting the alphabet
+        if (cribpos !== undefined) {
+            saveSlots = this.state.randomSlot.slice(cribpos.position, cribpos.position + cribpos.criblen);
+        }
+        this.state.randomSlot = [];
+        this.updateRandom();
+        // Restore saved crib random-slot assignments
+        if (cribpos !== undefined) {
+            this.state.randomSlot.splice(cribpos.position, cribpos.criblen, ...saveSlots);
+        }
+        this.updateOutput();
+    }
+    /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
@@ -1343,6 +1672,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 if (newkeyword !== this.state.keyword) {
                     this.markUndo('keyword');
                     if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#hint')
+            .off('input')
+            .on('input', (e) => {
+                const hint = $(e.target).val() as string;
+                if (hint !== this.state.hint) {
+                    this.markUndo('hint');
+                    if (this.setHint(hint)) {
                         this.updateOutput();
                     }
                 }

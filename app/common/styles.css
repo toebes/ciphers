@@ -308,7 +308,8 @@ body.txt {
 .quseb,
 .qusebs,
 .qusec,
-.qusecs {
+.qusecs,
+.qusen {
     float: right;
     display: block;
     margin-left: 10px;
@@ -320,7 +321,8 @@ body.txt {
 .quseb::after,
 .qusebs::after,
 .qusec::after,
-.qusecs::after {
+.qusecs::after,
+.qusen::after {
     border-radius: 0 0 10px 10px;
     padding: 2px;
 }
@@ -360,6 +362,11 @@ body.txt {
     border: 2px solid #064f80;
 }
 
+.qusen::after {
+    background-color: #808080;
+    border: 2px solid #606060;
+}
+
 .quseall::after {
     content: 'All events';
 }
@@ -377,6 +384,9 @@ body.txt {
 }
 .qusecs::after {
     content: 'Div C State/National Only';
+}
+.qusen::after {
+    content: 'Not in Use';
 }
 
 .usedon {

@@ -453,14 +453,14 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         if (cribpos === undefined) {
             msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
         } else if (cribpos.position === 0) {
-            msg += `The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}`;
+            msg += `The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}.`;
         } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
-            msg += `The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}`;
+            msg += `The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}.`;
         } else {
             const startpos = this.getPositionText(cribpos.position + 1);
             const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
             msg += `The ${startpos} through ${endpos} cipher characters (${this.genMonoText(cribpos.ciphertext)}) decode
-                to be ${this.genMonoText(cribpos.plaintext)}`;
+                to be ${this.genMonoText(cribpos.plaintext)}.`;
         }
         return msg;
     }

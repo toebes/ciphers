@@ -322,6 +322,7 @@ export class CipherTest extends CipherEncoder {
         { cipherType: ICipherType.Patristocrat },
         { cipherType: ICipherType.Hill },
         { cipherType: ICipherType.Porta },
+        { cipherType: ICipherType.Homophonic },
         { cipherType: ICipherType.NihilistSubstitution },
         { cipherType: ICipherType.Vigenere },
         { cipherType: ICipherType.RunningKey },

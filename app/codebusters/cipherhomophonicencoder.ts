@@ -111,7 +111,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: '',
         operation: 'crypt',
-        blocksize: 0,
+        blocksize: 5,
         randomSlot: [],
     };
     public state: IHomophonicState = cloneObject(this.defaultstate) as IHomophonicState;
@@ -191,10 +191,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 testType !== ITestType.bstate &&
                 testType !== ITestType.cstate &&
                 testType !== ITestType.None &&
-                this.state.operation === 'crypt'
+                this.state.operation === 'decode'
             ) {
                 result =
-                    'Cryptanalysis problems are not allowed on ' + this.getTestTypeName(testType);
+                    'Decode problems are not allowed on ' + this.getTestTypeName(testType);
             }
         }
         return result;
@@ -859,7 +859,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         const { width, extraclass } = this.getEncodeWidth(testType);
-        let keypos = 0;
 
         const strings = this.buildReplacementHomophonic(this.state.cipherString, width);
         let keyword = '';
@@ -871,15 +870,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         for (const strset of strings) {
-            let keystring = '';
-            for (const c of strset[this.ctIndex]) {
-                if (this.isValidChar(c)) {
-                    keystring += keyword[keypos];
-                    keypos = (keypos + 1) % keyword.length;
-                } else {
-                    keystring += c;
-                }
-            }
             let source = 1;
             let dest = 0;
             if (this.state.operation === 'encode') {
@@ -972,21 +962,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
-    /**
-     * Map the found key characters to the correct positions in the keyword based on the crib placement and return a properly oriented keyword for display in the solution.  This is used in the solution to show how to orient the found key characters based on the crib placement.
-     * @param keys Key characters found based on the crib placement
-     * @param keylen Length of the keyword based on the crib placement
-     * @param keyoff Offset to apply to the key characters based on the crib placement
-     * @returns Rotated key characters for display in the solution
-     */
-    public rotatedKey(keys: string[], keylen: number, keyoff: number): string[] {
-        const slice = keys.slice(0, keylen);
-        const off = keyoff % slice.length;
-
-        return off === 0
-            ? slice
-            : slice.slice(off).concat(slice.slice(0, off));
-    }
     public mapPattern(word: string): string {
         if (this.state.cipherType !== ICipherType.Homophonic) {
             return word
@@ -1012,67 +987,16 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         }
         return true;
     }
-    public findWords(solvingData: ISolverData, result: JQuery<HTMLElement>, keycheck: string[]): string[] {
-        const keylen = keycheck.length
-        const found = []
-        let patterns = Object.keys(this.Frequent['en'])
-            .filter(key => key.length === keylen && !key.includes("'"));
-        let pattern = '^'
-        for (let keyc of keycheck) {
-            if (keyc === ' ' || keyc === undefined || keyc === '?') {
-                pattern += '.'
-            } else if (keyc.length === 1) {
-                pattern += keyc;
-            } else {
-                pattern += '[' + keyc.split(',').join('') + ']';
-            }
-        }
-        pattern += '$'
-
-        const re = new RegExp(pattern.toUpperCase());
-        for (const pat of patterns) {
-            for (const entry of this.Frequent['en'][pat]) {
-                if (re.test(entry[0])) {
-                    found.push(entry[0]);
-                    if (found.length >= 10) {
-                        break;
-                    }
-                }
-            }
-        }
-        if (found.length >= 10) {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find at least ${found.length} possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
-            Since there are so many possibilities, we cannot determine the correct keyword yet.`));
-            return keycheck
-        } else if (found.length == 1) {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find one matching possibility: <strong>${found[0]}</strong> so we will use it.`));
-            return found[0].split('')
-        } else if (found.length > 0) {
-            if (this.allEquivalent(found)) {
-                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
-            Since they all share the same pattern letters, we will just pick the first one.`));
-                return found[0].split('')
-            } else {
-                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
-            However, since they don't all share the same pattern letters, we can't pick one.`));
-                return keycheck
-            }
-        } else {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we don't find any possibilities for the keyword based on the letters we found.`));
-            return keycheck
-        }
-
-    }
     /**
-     * Find the most likely unfinished words to check.
-     *
-     * An unfinished word is a cipher word that contains at least one unresolved
-     * keyword letter. The result is sorted so the easiest/most useful words are
-     * checked first.
-     *
-     * @param solvingdata Current solving state
-     * @returns Array of unfinished words ordered by likelihood of helping solve the cipher
-     */
+    * Find the most likely unfinished words to check.
+    *
+    * An unfinished word is a cipher word that contains at least one unresolved
+    * keyword letter. The result is sorted so the easiest/most useful words are
+    * checked first.
+    *
+    * @param solvingdata Current solving state
+    * @returns Array of unfinished words ordered by likelihood of helping solve the cipher
+    */
     public findUnfinishedWords(solvingdata: ISolverData): ISolverWord[] {
         const unfinishedWords: ISolverWord[] = [];
         const wordlengths: number[] = []
@@ -1306,12 +1230,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 const kwIndex = this.getKeywordIndex(ct, pt)
                 const kwslotchar = localData.charset[kwIndex]
                 localData.keyword[slot] = kwslotchar
-
-                result.append($('<p/>').html(`Using the word ${word} to fill in the slot has ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                if (parseInt(ct) === (slot * 25) + 1) {
+                    result.append($('<p/>').html(`Using the word ${word} to fill in the slot has ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
                 we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
-                Taking the offset from the start of the range we get ${parseInt(ct) % 25}.
-                Counting backward in the alphabet from ${this.fixedCt(ct)} we find that the keyword letter is ${this.fixedCt(kwslotchar)}
+                Since it is the the start of the range ${slot * 25 + 1} we know that it is the keyword letter ${this.fixedCt(kwslotchar)}.
                 This gives us a mapping for that letter as:`));
+                } else {
+                    result.append($('<p/>').html(`Using the word ${word} to fill in the slot has ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
+                Counting backward in the alphabet from ${this.fixedCt(ct)} to the start of the range ${slot * 25 + 1} we find that the keyword letter is ${this.fixedCt(kwslotchar)}.
+                This gives us a mapping for that letter as:`));
+                }
                 this.updateSolvingMap(localData, slot, kwIndex);
                 this.showSlotMapping(result, localData, slot);
             }
@@ -1441,12 +1370,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 changed = true
                 // We have a letter in a slot we haven't filled in yet, let's fill it in based on what we were told
                 const kwIndex = this.getKeywordIndex(ct, pt);
-                result.append($('<p/>').html(`Based on the crib character ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                if (parseInt(ct) === (slot * 25) + 1) {
+                    result.append($('<p/>').html(`Based on the crib character ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
                 we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
-                Taking the offset from the start of the range we get ${parseInt(ct) % 25}.
-                Counting backward in the alphabet from ${this.fixedCt(ct)} we find that the keyword letter is ${this.fixedCt(solvingData.charset[kwIndex])}
+                Since ${this.fixedCt(ct)} is the start of the range ${slot * 25 + 1} it is the keyword letter ${this.fixedCt(solvingData.charset[kwIndex])}
                 This gives us a mapping for that letter as:`));
-
+                } else {
+                    result.append($('<p/>').html(`Based on the crib character ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
+                Counting backward in the alphabet from ${this.fixedCt(ct)} to the start of the range ${slot * 25 + 1} we find that the keyword letter is ${this.fixedCt(solvingData.charset[kwIndex])}
+                This gives us a mapping for that letter as:`));
+                }
 
                 this.updateSolvingMap(solvingData, slot, kwIndex);
                 this.showSlotMapping(result, solvingData, slot);
@@ -1547,7 +1481,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         solvingdata.valid = true;
         const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
         const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
-        const [source, dest] = this.state.operation === 'encode' ? [this.ptIndex, this.ctIndex] : [this.ctIndex, this.ptIndex];
+        const source = this.state.operation === 'encode' ? this.ptIndex : this.ctIndex;
 
         let cipherpos = 0;
         let sufficient = false

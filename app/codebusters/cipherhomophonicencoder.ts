@@ -60,10 +60,15 @@ interface IHomophonicState extends IEncoderState {
 }
 
 interface ICribInfo {
+    /** The printable plaintext string formatted like the problem */
     plaintext: string;
+    /** The printable ciphertext string formatted like the problem */
     ciphertext: string;
+    /** The offset in ciphertext characters from the start of the ciphertext */
     position: number;
+    /** The length of the crib */
     criblen: number;
+    /** The overall length of the cipher */
     cipherlen: number;
 }
 
@@ -1209,8 +1214,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
     /**
      * 
-     * @param result 
-     * @param solvingData 
+     * @param result Location to put any output
+     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @param bestCandidate 
      * @param word 
      * @returns Successful match
@@ -1289,6 +1294,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         }
         let maxMatches = 1
         let tryFindKeywords = true
+        let tryUnfinishedWords = true
+        let tried: number[] = []
         for (let loop = 0; loop < 4; loop++) {
             if (await this.restartCheck()) { return }
 
@@ -1305,6 +1312,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     break;
                 }
                 tryFindKeywords = false
+                tryUnfinishedWords = true
             }
 
             if (await this.restartCheck()) { return }
@@ -1317,6 +1325,9 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             for (const entry of unfinishedCandidates) {
                 // The first time we are here, we only go for those that have a single missing letter
                 if (loop === 0 && entry.missing > 1) {
+                    continue;
+                }
+                if (tried.indexOf(entry.position) !== -1) {
                     continue;
                 }
                 let choice = this.matchWords(result, entry)
@@ -1332,17 +1343,27 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 this.showStep(result, "Step 2b: See if we see any obvious missing letters we can fill in the plaintext");
                 result.append($('<p/>').html(`We see a potential word with ${bestCandidate.pattern.replaceAll('.', '?')} which matches ${bestCandidate.candidates.length} words: [${bestCandidate.candidates.join(", ")}].
                  We will try them one at a time to see which works out the best`))
+                let successful = false
+                tried.push(bestCandidate.position)
                 for (const word of bestCandidate.candidates) {
                     const newData = this.tryCandidateWord(result, solvingData, bestCandidate, word)
                     if (newData !== undefined) {
                         solvingData = newData
                         tryFindKeywords = true;
-                        result.append($('<p/>').html(`That looks promising, so we will continue with it.}`))
+                        result.append($('<p/>').html(`That looks promising, so we will continue with it.`))
+                        successful = true
                         break;
                     }
                 }
-            }
+                if (!successful) {
+                    result.append($('<p/>').html(`Unfortunately we couldn't find a match so we will have to look for something else.`))
+                }
+            } else if (tryUnfinishedWords) {
+                this.showStep(result, "Step 2b: See if we see any obvious missing letters we can fill in the plaintext");
+                result.append($('<p/>').html(`Unfortunately we don't see anything obvious right now so we will look a bit harder.`))
 
+            }
+            tryUnfinishedWords = false
             maxMatches += 2;
         }
         const inComplete = solvingData.keyword.some(s => s === ' ');
@@ -1570,6 +1591,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             }
         }
     }
+    /**
+     * 
+     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @param result Location to put any output
+     * @returns 
+     */
     public async genDecodeSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
 
         if (this.state.keyword === '') {

@@ -271,11 +271,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      */
     public validateQuestion(): void {
         super.validateQuestion();
-        let msg = '';
         if (this.state.operation === 'crypt') {
-            msg = this.validateCribLetterMappings();
+            this.setErrorMsg(this.validateCribLetterMappings(), 'cribmap');
+            this.setErrorMsg(this.validateCribStartEndHints(), 'cribpos');
+        } else {
+            this.setErrorMsg('', 'cribmap');
+            this.setErrorMsg('', 'cribpos');
         }
-        this.setErrorMsg(msg, 'cribmap');
     }
 
     /**
@@ -379,6 +381,41 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             return 'The question text has an incorrect crib mapping: ' + errors[0] + '.';
         }
         return 'The question text has incorrect crib mappings: ' + errors.join('; ') + '.';
+    }
+
+    /**
+     * Validate that start/end crib hints in the question text match the plain text.
+     * @returns Error message or blank string if hints are correct or absent
+     */
+    private validateCribStartEndHints(): string {
+        const crib = this.minimizeString(this.state.crib);
+        if (crib === '') {
+            return '';
+        }
+        const plaintext = this.minimizeString(this.state.cipherString);
+        const qtext = this.minimizeString(
+            this.removeHtml(this.getQuestionTextForValidation()).toUpperCase()
+        );
+        const errors: string[] = [];
+        if (qtext.indexOf('STARTSWITH') >= 0 && plaintext.slice(0, crib.length) !== crib) {
+            errors.push(
+                `The question says the quote starts with ${this.state.crib} but the plaintext starts with ` +
+                `${plaintext.slice(0, crib.length) || '(nothing)'}`
+            );
+        }
+        if (qtext.indexOf('ENDSWITH') >= 0 && plaintext.slice(plaintext.length - crib.length) !== crib) {
+            errors.push(
+                `The question says the quote ends with ${this.state.crib} but the plaintext ends with ` +
+                `${plaintext.slice(plaintext.length - crib.length) || '(nothing)'}`
+            );
+        }
+        if (errors.length === 0) {
+            return '';
+        }
+        if (errors.length === 1) {
+            return errors[0] + '.';
+        }
+        return errors.join('; ') + '.';
     }
 
     public randomize(): void {
@@ -595,6 +632,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         if (this.state.operation === 'crypt') {
             this.setErrorMsg(this.validateCribLetterMappings(), 'cribmap');
+            this.setErrorMsg(this.validateCribStartEndHints(), 'cribpos');
         }
 
         for (const strset of strings) {

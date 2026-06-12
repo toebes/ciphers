@@ -266,6 +266,121 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return hint;
     }
 
+    /**
+     * Check for any errors we can find in the question
+     */
+    public validateQuestion(): void {
+        super.validateQuestion();
+        let msg = '';
+        if (this.state.operation === 'crypt') {
+            msg = this.validateCribLetterMappings();
+        }
+        this.setErrorMsg(msg, 'cribmap');
+    }
+
+    /**
+     * Read the current question text from the editor when available.
+     */
+    private getQuestionTextForValidation(): string {
+        const id = 'qtext';
+        if (id in this.editor && this.editor[id] !== null) {
+            return this.editor[id].getData();
+        }
+        const val = $('#' + id).val() as string;
+        if (val !== undefined && val !== null && val !== '') {
+            return val;
+        }
+        return this.state.question || '';
+    }
+
+    /**
+     * Convert internal O/-X morse encoding to display characters for error messages.
+     */
+    private formatMorseForDisplay(str: string): string {
+        return str
+            .replace(/O/g, '●')
+            .replace(/-/g, '–')
+            .replace(/X/g, '×');
+    }
+
+    /**
+     * Convert displayed morse symbols in question text back to O/-X encoding.
+     */
+    private denormalizeMorseText(str: string): string {
+        return str
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&#9679;/gi, 'O')
+            .replace(/&bull;/gi, 'O')
+            .replace(/●/g, 'O')
+            .replace(/&ndash;/gi, '-')
+            .replace(/&mdash;/gi, '-')
+            .replace(/[–—−]/g, '-')
+            .replace(/&times;/gi, 'X')
+            .replace(/×/g, 'X');
+    }
+
+    /**
+     * Extract cipher-letter to morse-fraction mappings from question text.
+     * Looks for patterns like "A = OOO" or "A=OO-".
+     */
+    private extractCribMappingsFromQuestion(): StringMap {
+        const mappings: StringMap = {};
+        const text = this.denormalizeMorseText(this.removeHtml(this.getQuestionTextForValidation()));
+        const re = /([A-Z0-9])\s*=\s*((?:[OX\-]\s*){3})/gi;
+        let match: RegExpExecArray;
+        while ((match = re.exec(text)) !== null) {
+            mappings[match[1].toUpperCase()] = match[2].toUpperCase().replace(/\s/g, '');
+        }
+        return mappings;
+    }
+
+    /**
+     * Build the expected cipher-letter to morse-fraction mapping from the keyword.
+     */
+    private getExpectedCribMappings(): StringMap {
+        const mappings: StringMap = {};
+        if (!this.state.keyword) {
+            return mappings;
+        }
+        const keywordMap = this.genKstring(this.state.keyword, 0, this.langcharset['en']).split('');
+        for (let i = 0; i < keywordMap.length && i < this.morseReplaces.length; i++) {
+            mappings[keywordMap[i]] = this.morseReplaces[i];
+        }
+        return mappings;
+    }
+
+    /**
+     * Validate crib letter mappings mentioned in the question text.
+     * @returns Error message or blank string if mappings are correct or absent
+     */
+    private validateCribLetterMappings(): string {
+        const stated = this.extractCribMappingsFromQuestion();
+        const letters = Object.keys(stated);
+        if (letters.length === 0 || !this.state.keyword) {
+            return '';
+        }
+        const expected = this.getExpectedCribMappings();
+        const errors: string[] = [];
+        for (const letter of letters) {
+            const actual = stated[letter];
+            const correct = expected[letter];
+            if (correct === undefined) {
+                errors.push(`${letter} is not a valid ciphertext letter for this keyword`);
+            } else if (actual !== correct) {
+                errors.push(
+                    `${letter} should map to ${this.formatMorseForDisplay(correct)} but the question says ${this.formatMorseForDisplay(actual)}`
+                );
+            }
+        }
+        if (errors.length === 0) {
+            return '';
+        }
+        if (errors.length === 1) {
+            return 'The question text has an incorrect crib mapping: ' + errors[0] + '.';
+        }
+        return 'The question text has incorrect crib mappings: ' + errors.join('; ') + '.';
+    }
+
     public randomize(): void {
         this.state.encoded = '';
     }
@@ -478,7 +593,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         } else {
             this.setErrorMsg('', 'cribmiss', null);
         }
-
+        if (this.state.operation === 'crypt') {
+            this.setErrorMsg(this.validateCribLetterMappings(), 'cribmap');
+        }
 
         for (const strset of strings) {
             result.append(

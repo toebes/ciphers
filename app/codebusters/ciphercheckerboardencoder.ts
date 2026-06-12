@@ -328,6 +328,162 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
 
+        if (this.state.operation === 'crypt') {
+            this.setErrorMsg(this.validateCribHintInQuestion(), 'cribpos');
+        } else {
+            this.setErrorMsg('', 'cribpos');
+        }
+    }
+
+    /**
+     * Read the current question text from the editor when available.
+     */
+    private getQuestionTextForValidation(): string {
+        const id = 'qtext';
+        if (id in this.editor && this.editor[id] !== null) {
+            return this.editor[id].getData();
+        }
+        const val = $('#' + id).val() as string;
+        if (val !== undefined && val !== null && val !== '') {
+            return val;
+        }
+        return this.state.question || '';
+    }
+
+    /**
+     * Parse space-separated cipher units from a middle crib hint.
+     */
+    private parseCipherUnitsFromHint(cipherText: string): string[] {
+        return cipherText
+            .trim()
+            .split(/\s+/)
+            .map((u) => this.minimizeString(u).toUpperCase())
+            .filter((u) => u.length > 0);
+    }
+
+    /**
+     * Check whether a cipher unit decodes to the given plain letter.
+     */
+    private cipherUnitDecodesTo(revMap: StringMap, cipherUnit: string, plainChar: string): boolean {
+        const decoded = revMap[cipherUnit.toUpperCase()];
+        if (decoded === undefined) {
+            return false;
+        }
+        const ch = plainChar.toUpperCase().replace('J', 'I');
+        return decoded
+            .split('/')
+            .some((d) => d.toUpperCase().replace('J', 'I') === ch);
+    }
+
+    /**
+     * Validate start/end and middle crib hints in the question text.
+     */
+    private validateCribHintInQuestion(): string {
+        if (this.state.operation !== 'crypt') {
+            return '';
+        }
+        const raw = this.removeHtml(this.getQuestionTextForValidation());
+        const plaintext = this.minimizeString(this.state.cipherString);
+        const errors: string[] = [];
+
+        const startMatch = raw.match(/deciphered\s+text\s+starts\s+with\s+(.+?)(?:\.|<\/|$)/i);
+        if (startMatch) {
+            const stated = this.minimizeString(startMatch[1]);
+            if (stated !== '' && plaintext.substr(0, stated.length) !== stated) {
+                errors.push(
+                    `The question says the deciphered text starts with ${this.minimizeString(startMatch[1])} but the plain text starts with ${plaintext.substr(0, stated.length) || '(nothing)'}`
+                );
+            }
+        }
+
+        const endMatch = raw.match(/deciphered\s+text\s+ends\s+with\s+(.+?)(?:\.|<\/|$)/i);
+        if (endMatch) {
+            const stated = this.minimizeString(endMatch[1]);
+            if (stated !== '' && plaintext.substr(plaintext.length - stated.length) !== stated) {
+                errors.push(
+                    `The question says the deciphered text ends with ${this.minimizeString(endMatch[1])} but the plain text ends with ${plaintext.substr(plaintext.length - stated.length) || '(nothing)'}`
+                );
+            }
+        }
+
+        const middleRe =
+            /the\s+(\d+)(?:st|nd|rd|th)\s+through\s+(\d+)(?:st|nd|rd|th)\s+cipher\s+units\s*\(([^)]+)\)\s*decode\s+to\s+be\s+(.+?)(?:\.|<\/|$)/gi;
+        let middleMatch: RegExpExecArray;
+        while ((middleMatch = middleRe.exec(raw)) !== null) {
+            if (
+                this.cleanRowKeyword.length !== 5 ||
+                this.cleanColKeyword.length !== 5 ||
+                this.cleanPolyKey.length < 2
+            ) {
+                continue;
+            }
+            const startPos = parseInt(middleMatch[1], 10);
+            const endPos = parseInt(middleMatch[2], 10);
+            const statedCipher = this.parseCipherUnitsFromHint(middleMatch[3]);
+            const statedPlain = this.minimizeString(middleMatch[4]);
+
+            const savedMap = this.polybiusMap;
+            this.polybiusMap = this.buildPolybiusMap();
+            const revMap = this.buildReversePolybiusMap();
+            const strings = this.buildCheckerboardSequenceSets(
+                this.minimizeString(this.state.cipherString),
+                9999,
+                0,
+                undefined,
+                true
+            );
+            this.polybiusMap = savedMap;
+
+            if (strings.length !== 1) {
+                errors.push(
+                    'The question describes cipher unit positions but the cipher text spans multiple lines'
+                );
+                continue;
+            }
+            const allCipher = strings[0][0].map((c) => this.minimizeString(c).toUpperCase());
+            const allPlain = strings[0][1];
+            if (endPos < startPos || endPos > allCipher.length) {
+                errors.push(
+                    `The question refers to cipher units ${startPos} through ${endPos} but the cipher text only has ${allCipher.length} units`
+                );
+                continue;
+            }
+            const unitsAtPosition = allCipher.slice(startPos - 1, endPos);
+            const plainAtPosition = this.minimizeString(
+                allPlain.slice(startPos - 1, endPos).join('')
+            );
+
+            if (unitsAtPosition.length !== statedCipher.length) {
+                errors.push(
+                    `The question lists ${statedCipher.length} cipher units but positions ${startPos} through ${endPos} span ${unitsAtPosition.length} units`
+                );
+            } else if (statedCipher.some((u, i) => u !== unitsAtPosition[i])) {
+                errors.push(
+                    `The question lists cipher units (${middleMatch[3].trim()}) but units ${startPos} through ${endPos} are ${unitsAtPosition.join(' ')}`
+                );
+            }
+
+            if (statedPlain !== plainAtPosition) {
+                errors.push(
+                    `The question says cipher units ${startPos} through ${endPos} decode to be ${this.minimizeString(middleMatch[4])} but they decode to ${plainAtPosition || '(nothing)'}`
+                );
+            }
+
+            for (let i = 0; i < statedCipher.length; i++) {
+                const ch = statedPlain.charAt(i);
+                if (ch !== '' && !this.cipherUnitDecodesTo(revMap, statedCipher[i], ch)) {
+                    errors.push(`Cipher unit ${statedCipher[i]} does not decode to ${ch}`);
+                }
+            }
+        }
+
+        if (errors.length === 0) {
+            return '';
+        }
+        if (errors.length === 1) {
+            return errors[0] + '.';
+        }
+        return errors.join('; ') + '.';
     }
 
     /***

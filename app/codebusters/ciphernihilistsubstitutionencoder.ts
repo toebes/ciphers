@@ -354,7 +354,151 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
 
+        if (this.state.operation === 'crypt') {
+            this.setErrorMsg(this.validateCribHintInQuestion(), 'cribpos');
+        } else {
+            this.setErrorMsg('', 'cribpos');
+        }
     }
+
+    /**
+     * Read the current question text from the editor when available.
+     */
+    private getQuestionTextForValidation(): string {
+        const id = 'qtext';
+        if (id in this.editor && this.editor[id] !== null) {
+            return this.editor[id].getData();
+        }
+        const val = $('#' + id).val() as string;
+        if (val !== undefined && val !== null && val !== '') {
+            return val;
+        }
+        return this.state.question || '';
+    }
+
+    /**
+     * Normalize a nihilist cipher unit for comparison.
+     */
+    private normalizeCipherUnit(unit: string): string {
+        const trimmed = unit.trim();
+        if (/^\d+$/.test(trimmed)) {
+            return String(parseInt(trimmed, 10));
+        }
+        return trimmed;
+    }
+
+    /**
+     * Parse space-separated numeric cipher units from a middle crib hint.
+     */
+    private parseCipherUnitsFromHint(cipherText: string): string[] {
+        return cipherText
+            .trim()
+            .split(/\s+/)
+            .map((u) => this.normalizeCipherUnit(u.replace(/[^\d]/g, '')))
+            .filter((u) => u.length > 0);
+    }
+
+    /**
+     * Validate start/end and middle crib hints in the question text.
+     */
+    private validateCribHintInQuestion(): string {
+        if (this.state.operation !== 'crypt') {
+            return '';
+        }
+        const raw = this.removeHtml(this.getQuestionTextForValidation());
+        const plaintext = this.minimizeString(this.state.cipherString);
+        const errors: string[] = [];
+
+        const startMatch = raw.match(/deciphered\s+text\s+starts\s+with\s+(.+?)(?:\.|<\/|$)/i);
+        if (startMatch) {
+            const stated = this.minimizeString(startMatch[1]);
+            if (stated !== '' && plaintext.slice(0, stated.length) !== stated) {
+                errors.push(
+                    `The question says the deciphered text starts with ${this.minimizeString(startMatch[1])} but the plain text starts with ${plaintext.slice(0, stated.length) || '(nothing)'}`
+                );
+            }
+        }
+
+        const endMatch = raw.match(/deciphered\s+text\s+ends\s+with\s+(.+?)(?:\.|<\/|$)/i);
+        if (endMatch) {
+            const stated = this.minimizeString(endMatch[1]);
+            if (stated !== '' && plaintext.slice(plaintext.length - stated.length) !== stated) {
+                errors.push(
+                    `The question says the deciphered text ends with ${this.minimizeString(endMatch[1])} but the plain text ends with ${plaintext.slice(plaintext.length - stated.length) || '(nothing)'}`
+                );
+            }
+        }
+
+        const middleRe =
+            /the\s+(\d+)(?:st|nd|rd|th)\s+through\s+(\d+)(?:st|nd|rd|th)\s+cipher\s+units\s*\(([^)]+)\)\s*decode\s+to\s+be\s+(.+?)(?:\.|<\/|$)/gi;
+        let middleMatch: RegExpExecArray;
+        while ((middleMatch = middleRe.exec(raw)) !== null) {
+            if (this.cleanKeyword.length === 0 || this.cleanPolyKey.length < 2) {
+                continue;
+            }
+            const startPos = parseInt(middleMatch[1], 10);
+            const endPos = parseInt(middleMatch[2], 10);
+            const statedCipher = this.parseCipherUnitsFromHint(middleMatch[3]);
+            const statedPlain = this.minimizeString(middleMatch[4]);
+
+            const savedMap = this.polybiusMap;
+            this.polybiusMap = this.buildPolybiusMap();
+            const strings = this.buildNihilistSequenceSets(
+                this.minimizeString(this.state.cipherString),
+                9999,
+                0,
+                true
+            );
+
+            if (strings.length !== 1) {
+                this.polybiusMap = savedMap;
+                errors.push(
+                    'The question describes cipher unit positions but the cipher text spans multiple lines'
+                );
+                continue;
+            }
+            const allCipher = strings[0][0].map((c) => this.normalizeCipherUnit(c));
+            const allPlain = strings[0][1];
+            if (endPos < startPos || endPos > allCipher.length) {
+                this.polybiusMap = savedMap;
+                errors.push(
+                    `The question refers to cipher units ${startPos} through ${endPos} but the cipher text only has ${allCipher.length} units`
+                );
+                continue;
+            }
+            const unitsAtPosition = allCipher.slice(startPos - 1, endPos);
+            const plainAtPosition = this.minimizeString(
+                allPlain.slice(startPos - 1, endPos).join('')
+            );
+
+            if (unitsAtPosition.length !== statedCipher.length) {
+                errors.push(
+                    `The question lists ${statedCipher.length} cipher units but positions ${startPos} through ${endPos} span ${unitsAtPosition.length} units`
+                );
+            } else if (statedCipher.some((u, i) => u !== unitsAtPosition[i])) {
+                errors.push(
+                    `The question lists cipher units (${middleMatch[3].trim()}) but units ${startPos} through ${endPos} are ${unitsAtPosition.join(' ')}`
+                );
+            }
+
+            if (statedPlain !== plainAtPosition) {
+                errors.push(
+                    `The question says cipher units ${startPos} through ${endPos} decode to be ${this.minimizeString(middleMatch[4])} but they decode to ${plainAtPosition || '(nothing)'}`
+                );
+            }
+
+            this.polybiusMap = savedMap;
+        }
+
+        if (errors.length === 0) {
+            return '';
+        }
+        if (errors.length === 1) {
+            return errors[0] + '.';
+        }
+        return errors.join('; ') + '.';
+    }
+
     // Algorithm from https://github.com/WilliamMason/rec-crypt/blob/main/min_crib/nihilist_sub_min_crib.html
     // However this version has been heavily modified for TypeScript and to fit into our codebase
     // Also note that J is treated as I throughout

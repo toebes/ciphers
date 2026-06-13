@@ -338,7 +338,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     /**
      * Read the current question text from the editor when available.
      */
-    private getQuestionTextForValidation(): string {
+    public getQuestionTextForValidation(): string {
         const id = 'qtext';
         if (id in this.editor && this.editor[id] !== null) {
             return this.editor[id].getData();
@@ -353,7 +353,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     /**
      * Parse space-separated cipher units from a middle crib hint.
      */
-    private parseCipherUnitsFromHint(cipherText: string): string[] {
+    public parseCipherUnitsFromHint(cipherText: string): string[] {
         return cipherText
             .trim()
             .split(/\s+/)
@@ -364,7 +364,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     /**
      * Check whether a cipher unit decodes to the given plain letter.
      */
-    private cipherUnitDecodesTo(revMap: StringMap, cipherUnit: string, plainChar: string): boolean {
+    public cipherUnitDecodesTo(revMap: StringMap, cipherUnit: string, plainChar: string): boolean {
         const decoded = revMap[cipherUnit.toUpperCase()];
         if (decoded === undefined) {
             return false;
@@ -378,7 +378,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     /**
      * Validate start/end and middle crib hints in the question text.
      */
-    private validateCribHintInQuestion(): string {
+    public validateCribHintInQuestion(): string {
         if (this.state.operation !== 'crypt') {
             return '';
         }
@@ -2996,7 +2996,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     * @param cipherUnitLookup Lookup table of cipher units
     * @param cipherUnitSequence Array of cipher units
     */
-    private cribGenerator(startPos: number, len: number, cipherUnitSequence: string[], plainTextCharacterSequence: string[]): { crib: string; directCount: number; indirectCount: number } {
+    public cribGenerator(startPos: number, len: number, cipherUnitSequence: string[], plainTextCharacterSequence: string[]): { crib: string; directCount: number; indirectCount: number } {
         let res = {
             crib: "",
             directCount: 0,

@@ -283,7 +283,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     /**
      * Read the current question text from the editor when available.
      */
-    private getQuestionTextForValidation(): string {
+    public getQuestionTextForValidation(): string {
         const id = 'qtext';
         if (id in this.editor && this.editor[id] !== null) {
             return this.editor[id].getData();
@@ -298,7 +298,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     /**
      * Convert internal O/-X morse encoding to display characters for error messages.
      */
-    private formatMorseForDisplay(str: string): string {
+    public formatMorseForDisplay(str: string): string {
         return str
             .replace(/O/g, '●')
             .replace(/-/g, '–')
@@ -308,7 +308,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     /**
      * Convert displayed morse symbols in question text back to O/-X encoding.
      */
-    private denormalizeMorseText(str: string): string {
+    public denormalizeMorseText(str: string): string {
         return str
             .replace(/&nbsp;/gi, ' ')
             .replace(/&#9679;/gi, 'O')
@@ -325,7 +325,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * Extract cipher-letter to morse-fraction mappings from question text.
      * Looks for patterns like "A = OOO" or "A=OO-".
      */
-    private extractCribMappingsFromQuestion(): StringMap {
+    public extractCribMappingsFromQuestion(): StringMap {
         const mappings: StringMap = {};
         const text = this.denormalizeMorseText(this.removeHtml(this.getQuestionTextForValidation()));
         const re = /([A-Z0-9])\s*=\s*((?:[OX\-]\s*){3})/gi;
@@ -339,7 +339,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     /**
      * Build the expected cipher-letter to morse-fraction mapping from the keyword.
      */
-    private getExpectedCribMappings(): StringMap {
+    public getExpectedCribMappings(): StringMap {
         const mappings: StringMap = {};
         if (!this.state.keyword) {
             return mappings;
@@ -355,7 +355,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * Validate crib letter mappings mentioned in the question text.
      * @returns Error message or blank string if mappings are correct or absent
      */
-    private validateCribLetterMappings(): string {
+    public validateCribLetterMappings(): string {
         const stated = this.extractCribMappingsFromQuestion();
         const letters = Object.keys(stated);
         if (letters.length === 0 || !this.state.keyword) {
@@ -387,7 +387,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * Validate that start/end crib hints in the question text match the plain text.
      * @returns Error message or blank string if hints are correct or absent
      */
-    private validateCribStartEndHints(): string {
+    public validateCribStartEndHints(): string {
         const crib = this.minimizeString(this.state.crib);
         if (crib === '') {
             return '';

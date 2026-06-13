@@ -364,7 +364,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     /**
      * Read the current question text from the editor when available.
      */
-    private getQuestionTextForValidation(): string {
+    public getQuestionTextForValidation(): string {
         const id = 'qtext';
         if (id in this.editor && this.editor[id] !== null) {
             return this.editor[id].getData();
@@ -379,7 +379,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     /**
      * Normalize a nihilist cipher unit for comparison.
      */
-    private normalizeCipherUnit(unit: string): string {
+    public normalizeCipherUnit(unit: string): string {
         const trimmed = unit.trim();
         if (/^\d+$/.test(trimmed)) {
             return String(parseInt(trimmed, 10));
@@ -390,7 +390,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     /**
      * Parse space-separated numeric cipher units from a middle crib hint.
      */
-    private parseCipherUnitsFromHint(cipherText: string): string[] {
+    public parseCipherUnitsFromHint(cipherText: string): string[] {
         return cipherText
             .trim()
             .split(/\s+/)
@@ -401,7 +401,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     /**
      * Validate start/end and middle crib hints in the question text.
      */
-    private validateCribHintInQuestion(): string {
+    public validateCribHintInQuestion(): string {
         if (this.state.operation !== 'crypt') {
             return '';
         }

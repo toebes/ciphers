@@ -2687,9 +2687,9 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         for (const sequenceset of strings) {
             const rowcipher = table.addBodyRow();
             const blankrow1 = table.addBodyRow();
-            const blankrow2 = table.addBodyRow();
+            //const blankrow2 = table.addBodyRow();
             blankrow1.add("\u00A0");
-            blankrow2.add("\u00A0");
+            //blankrow2.add("\u00A0");
             for (const token of sequenceset[source]) {
                 rowcipher.add(token);
             }

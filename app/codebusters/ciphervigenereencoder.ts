@@ -17,6 +17,18 @@ import { Mapper } from '../common/mapper';
 import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
+interface ISolverWord {
+    pt: string[];
+    ct: string[];
+    position: number;
+    length: number;
+    missing: number;
+    unique: number;
+    keywordCount: number[];
+    pattern: string;
+    candidates: string[];
+}
+
 interface ISolverData {
     /** The possible replacements for each letter based on the current crib and keyword */
     replacements: Array<[string, string]>;
@@ -28,10 +40,12 @@ interface ISolverData {
     keyword: string[];
     /** Indicates where we already have warned them about this being too hard to solve */
     warned: boolean;
-    /** Array indicating which letters in the key are already solved */
+    /** Array indicating which letters in the keyword are already solved */
     known: boolean[];
     /** Last key check was valid */
     valid: boolean;
+    /** Limit how many entries we output for a slot */
+    limitUpdates: number[]
 }
 
 interface IVigenereState extends IEncoderState {
@@ -59,6 +73,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public usesPortaTable = false;
     public usesVigenereTable = true;
     public ciphermap: Mapper;
+    public ctIndex = 0;
+    public ptIndex = 1;
 
     public validVigenereTests: ITestType[] = [
         ITestType.None,
@@ -262,13 +278,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (strings.length !== 1) {
             return undefined;
         }
-        const cribpos = this.minimizeString(strings[0][1]).indexOf(crib);
+        const cribpos = this.minimizeString(strings[0][this.ptIndex]).indexOf(crib);
         if (cribpos < 0) {
             return undefined;
         }
         return {
-            plaintext: this.minimizeString(strings[0][1]).substring(cribpos, cribpos + crib.length),
-            ciphertext: this.minimizeString(strings[0][0]).substring(cribpos, cribpos + crib.length),
+            plaintext: this.minimizeString(strings[0][this.ptIndex]).substring(cribpos, cribpos + crib.length),
+            ciphertext: this.minimizeString(strings[0][this.ctIndex]).substring(cribpos, cribpos + crib.length),
             position: cribpos,
             criblen: crib.length,
             cipherlen: this.minimizeString(strings[0][0]).length,
@@ -302,9 +318,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param cribpos structure containing crib placement info from selected crib letters
      * @param ptstring the plain text string
      * @return string describing what the selected cipher characters map to in plain text.
-     * @private
      */
-    private getCribPlacement(cribpos: ICribInfo): string {
+    public getCribPlacement(cribpos: ICribInfo): string {
         let msg = '';
         if (cribpos === undefined) {
             msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
@@ -595,6 +610,217 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * Find the most likely unfinished words to check.
+     *
+     * An unfinished word is a cipher word that contains at least one unresolved
+     * keyword letter. The result is sorted so the easiest/most useful words are
+     * checked first.
+     *
+     * @param solvingdata Current solving state
+     * @returns Array of unfinished words ordered by likelihood of helping solve the cipher
+     */
+    public findUnfinishedWords(solvingdata: ISolverData): ISolverWord[] {
+        const unfinishedWords: ISolverWord[] = [];
+        const wordlengths: number[] = []
+
+        // Build the list of cipher word lengths from the original cipher text.
+        // This lets us recover word boundaries even though the replacement arrays
+        // only contain cipher/plaintext symbols.
+        let wordlen = 0
+        for (let c of this.state.cipherString.toUpperCase()) {
+            if (this.isValidChar(c)) {
+                wordlen++
+            } else {
+                if (wordlen) {
+                    wordlengths.push(wordlen)
+                    wordlen = 0;
+                }
+            }
+        }
+
+        let wordIndex = 0;
+        wordlengths.push(wordlen)
+
+        let curWord: ISolverWord | undefined = undefined;
+        let cipherpos = 0;
+        let keywordPos = 0;
+
+        // Finish the current word. Only keep useful unfinished words:
+        // - at least one missing keyword letter
+        // - longer than 3 letters
+        // - At least 3 visible letters
+        const finishWord = (): void => {
+            if (curWord !== undefined && curWord.missing > 0 && curWord.length > 3 && (curWord.length - curWord.missing) >= 3) {
+                unfinishedWords.push(curWord);
+            }
+            curWord = undefined;
+        };
+
+        for (const sets of solvingdata.replacements) {
+            const ctData = sets[this.ctIndex];
+            const ptData = sets[this.ptIndex];
+
+            // Walk through the replacement data and group consecutive cipher letters into words.
+            for (let i = 0; i < ctData.length; i++) {
+                const ct = ctData[i];
+                const pt = ptData[i];
+
+                // Matching ct/pt means this entry is punctuation, spacing, or another non-cipher symbol.
+                if (!this.isValidChar(pt)) {
+                    continue;
+                }
+
+                cipherpos++;
+
+                // Start a new word when we encounter the first cipher letter after a word boundary
+                if (curWord === undefined) {
+                    curWord = {
+                        pt: [],
+                        ct: [],
+                        position: cipherpos, // 1-based cipher-letter position
+                        length: 0,
+                        missing: 0,
+                        unique: 0,
+                        keywordCount: [0, 0, 0, 0],
+                        pattern: "",
+                        candidates: []
+                    };
+                }
+
+
+                curWord.pt.push(pt);
+                curWord.ct.push(ct);
+                curWord.length++;
+
+                // Count letters whose keyword slot has not been solved yet.
+                if (keywordPos >= 0 && keywordPos < curWord.keywordCount.length) {
+                    if (solvingdata.keyword[keywordPos] === '?') {
+                        curWord.missing++;
+                        curWord.keywordCount[keywordPos]++;
+                        if (curWord.keywordCount[keywordPos] === 1) {
+                            curWord.unique++;
+                        }
+                        curWord.pattern += '.'
+                    } else {
+                        curWord.pattern += pt
+                    }
+                }
+                keywordPos = (keywordPos + 1) % solvingdata.keyword.length
+                // End the word once we have consumed its known cipher-text length.
+                if (wordIndex < wordlengths.length && curWord.length === wordlengths[wordIndex]) {
+                    wordIndex++;
+                    finishWord();
+                }
+            }
+        }
+        // Flush the final word if the data ended in the middle of one.
+        finishWord();
+
+        // Prefer:
+        // 1. fewer missing letters
+        // 2. longer words
+        // 3. fewer unique missing keyword slots
+        unfinishedWords.sort((a, b) => {
+            if (a.missing !== b.missing) {
+                return a.missing - b.missing;
+            }
+
+            if (a.length !== b.length) {
+                return b.length - a.length;
+            }
+
+            return a.unique - b.unique;
+        });
+
+        return unfinishedWords;
+    }
+
+    public matchWords(entry: ISolverWord): string[] {
+        const matchedWords: string[] = []
+
+        let pat = ""
+        let patPos = entry.pattern.indexOf('.')
+        if (patPos < 0) {
+            pat = this.makeUniquePattern(entry.pattern, 1)
+        } else {
+            pat = this.makeUniquePattern(entry.pattern.slice(0, patPos), 1) + this.repeatStr(".", entry.pattern.length - patPos)
+        }
+        const re = new RegExp(`^${pat.toUpperCase()}$`);
+        const reWord = new RegExp(`^${entry.pattern.toUpperCase()}$`)
+
+
+        const freq = this.Frequent[this.state.curlang];
+
+        for (const [patKey, wordEntries] of Object.entries(freq)) {
+            // First filter which pattern buckets are worth checking.
+            if (!re.test(patKey.toUpperCase())) {
+                continue;
+            }
+
+            for (const wordEntry of wordEntries as string[][]) {
+                const word = wordEntry[0];
+
+                // Then filter actual words inside the matching bucket.
+                if (reWord.test(word.toUpperCase())) {
+                    matchedWords.push(wordEntry[0]);
+
+                    // Stop early if there are too many possible matches.
+                    if (matchedWords.length > 9) {
+                        break;
+                    }
+                }
+            }
+
+            if (matchedWords.length > 5) {
+                break;
+            }
+        }
+        return matchedWords
+    }
+    /**
+      * 
+      * @param result Location to put any output
+      * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+      * @param bestCandidate 
+      * @param word 
+      * @returns Successful match
+      */
+    public tryCandidateWord(result: JQuery<HTMLElement>, solvingData: ISolverData, candidate: ISolverWord, word: string): ISolverData | undefined {
+        const localData: ISolverData = cloneObject(solvingData) as ISolverData;
+        let found = true
+        for (let i = 0; i < candidate.ct.length; i++) {
+            const ct = candidate.ct[i]
+            const pt = word[i]
+            if (pt !== candidate.pt[i]) {
+                found = false;
+            }
+            const slot = (candidate.position - 1) + i % solvingData.keyword.length
+            if (localData.keyword[slot] === '?') {
+                localData.limitUpdates[slot] = 5;
+
+                const kwslotchar = this.getRowKey(this.ciphermap.decodeKey(ct, pt));
+                localData.keyword[slot] = kwslotchar
+                if (this.state.cipherType === ICipherType.Porta) {
+                    if (ct < pt) {
+                        result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(ct)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedCt(pt)}.  Looking at the start of the row we find a key of ${this.fixedCt(kwslotchar)}.`));
+                    } else {
+                        result.append($('<p/>').html(`Because the plaintext character ${this.fixedCt(ct)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedCt(pt)}. Looking at the start of the row we find a key of ${this.fixedCt(kwslotchar)}.`));
+                    }
+                } else {
+                    result.append($('<p/>').html(`Using the word ${this.fixedPt(word)} to fill in the slot gives us plain text ${this.fixedPt(pt)} mapping to the cipher text ${this.fixedCt(ct)}. 
+                       Using the plaintext character ${this.fixedCt(pt)} to pick the row, we locate the cipher character ${this.fixedCt(ct)} and look at the top of the column to find a key of ${this.fixedPt(this.fixedCt(kwslotchar))}.`));
+                }
+                result.append($('<p/>').html('Using that updated table, we try to fill in a few characters to see if it makes sense.'))
+                result.append(this.showDecodeStatus(localData));
+            }
+        }
+        if (found) {
+            return localData
+        }
+        return undefined;
+    }
+
+    /**
      * Loads up the values for vigenere
      */
     public async load(): Promise<void> {
@@ -615,34 +841,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
             .append(res);
 
         this.attachHandlers();
-    }
-    /**
-     * Set up all the HTML DOM elements so that they invoke the right functions
-     */
-    public attachHandlers(): void {
-        super.attachHandlers();
-        $('#blocksize')
-            .off('input')
-            .on('input', (e) => {
-                const blocksize = Number($(e.target).val());
-                if (blocksize !== this.state.blocksize) {
-                    this.markUndo(null);
-                    if (this.setBlocksize(blocksize)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $('#keyword')
-            .off('input')
-            .on('input', (e) => {
-                const newkeyword = $(e.target).val() as string;
-                if (newkeyword !== this.state.keyword) {
-                    this.markUndo('keyword');
-                    if (this.setKeyword(newkeyword)) {
-                        this.updateOutput();
-                    }
-                }
-            });
     }
 
     /**
@@ -814,7 +1012,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     }
     public allEquivalent(words: string[]): boolean {
         if (this.state.cipherType === ICipherType.Vigenere) {
-            return words.length > 1
+            return words.length === 1
         }
         if (words.length < 2) {
             return true;
@@ -827,19 +1025,55 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         return true;
     }
-    public findWords(solvingData: ISolverData, result: JQuery<HTMLElement>, keycheck: string[]): string[] {
+    /**
+     * 
+     * @param words List of words to format
+     * @returns HTML formatted list of words
+     */
+    public formatPTList(words: string[]): string {
+        if (words.length === 0) {
+            return ''
+        }
+        if (words.length === 1) {
+            return this.fixedPt(words[0])
+        }
+        let result = this.fixedPt(words[0])
+        for (let i = 1; i < words.length; i++) {
+            if (words.length > 2) {
+                result += ', '
+            }
+            if (i === words.length - 1) {
+                result += 'and '
+            }
+            result += this.fixedPt(words[i])
+        }
+        return result
+    }
+    /**
+     * Find all the words which can match the known keyword letters.
+     * @param result Place to output any notes
+     * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
+     * @param keycheck Array of keyword letters known for each person
+     * @returns Array of keywords which match the keycheck pattern
+     */
+    public findWords(result: JQuery<HTMLElement>, solvingData: ISolverData, keycheck: string[]): string[] {
+        solvingData.valid = false
         const keylen = keycheck.length
         const found = []
+        let keydisp = ''
         let patterns = Object.keys(this.Frequent['en'])
             .filter(key => key.length === keylen && !key.includes("'"));
         let pattern = '^'
         for (let keyc of keycheck) {
             if (keyc === ' ' || keyc === undefined || keyc === '?') {
                 pattern += '.'
+                keydisp += '?'
             } else if (keyc.length === 1) {
                 pattern += keyc;
+                keydisp += keyc
             } else {
                 pattern += '[' + keyc.split(',').join('') + ']';
+                keydisp += '[' + keyc.split(',').join('/') + ']';
             }
         }
         pattern += '$'
@@ -856,24 +1090,29 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
         }
         if (found.length >= 10) {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find at least ${found.length} possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find at least ${found.length} possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
             Since there are so many possibilities, we cannot determine the correct keyword yet.`));
             return keycheck
         } else if (found.length == 1) {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find one matching possibility: <strong>${found[0]}</strong> so we will use it.`));
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find one matching possibility: ${this.formatPTList(found)} so we will try it.`));
+            solvingData.valid = true
             return found[0].split('')
         } else if (found.length > 0) {
             if (this.allEquivalent(found)) {
-                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
+                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find the following ${found.length} possibilities: ${this.formatPTList(found)}.
             Since they all share the same pattern letters, we will just pick the first one.`));
+                solvingData.valid = true
                 return found[0].split('')
             } else {
-                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following possibilities for the keyword based on the letters we found: <strong>${found.join(', ')}</strong>.
-            However, since they don't all share the same pattern letters, we can't pick one.`));
+                let extra = ` However, since they don't all share the same pattern letters, we can't pick one.`
+                if (this.state.cipherType === ICipherType.Vigenere) {
+                    extra = ` Note that we could try them all to see if any of them provide a solution, but for now we will see if there is an easier approach.`
+                }
+                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following ${found.length} possibilities for ${this.fixedPt(keydisp)} we found: ${this.formatPTList(found)}. ${extra}`));
                 return keycheck
             }
         } else {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we don't find any possibilities for the keyword based on the letters we found.`));
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we don't find any possibilities which match ${this.fixedPt(keydisp)}.`));
             return keycheck
         }
 
@@ -889,47 +1128,46 @@ export class CipherVigenereEncoder extends CipherEncoder {
             result.append($('<h3/>').text('Unable to place the crib'));
             return result;
         }
-        solvingData.known = new Array<boolean>(cribpos.cipherlen);
-        solvingData.known.fill(false);
-        solvingData.keyword = new Array<string>(cribpos.cipherlen);
-        solvingData.keyword.fill(' ');
-
-        for (let pos = cribpos.position; pos < cribpos.position + cribpos.criblen; pos++) {
-            solvingData.known[pos] = true;
-        }
+        // solvingData.known = new Array<boolean>(cribpos.cipherlen);
+        // solvingData.known.fill(false);
+        solvingData.keyword = []
+        solvingData.known = []
 
         this.showStep(result, "Step 1: Place the crib and determine the known letters of the key");
 
         result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.`));
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showCribStatus(solvingData, cribpos, false));
 
-        result.append($('<p/>').text(`Since we know the mapping of these letters, we can look at the corresponding letters in the Porta table to determine the corresponding letters in the key:`));
+        result.append($('<p/>').text(`Since we know the mapping of these letters, we can look at the corresponding letters in the ${this.cipherName} table to determine the corresponding letters in the key:`));
 
-        let keywords = []
+        let keyword = []
         for (let pos = 0; pos < cribpos.criblen; pos++) {
             const cipherChar = cribpos.ciphertext[pos]
             const plainChar = cribpos.plaintext[pos]
             const keyChar = this.getRowKey(this.ciphermap.decodeKey(cipherChar, plainChar));
-            solvingData.keyword[cribpos.position + pos] = keyChar;
-            keywords.push(keyChar)
-            if (cipherChar < plainChar) {
-                result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(cipherChar)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedCt(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
+            keyword.push(keyChar)
+            if (this.state.cipherType === ICipherType.Porta) {
+                if (cipherChar < plainChar) {
+                    result.append($('<p/>').html(`Because the cipher character ${this.fixedCt(cipherChar)} is between A and M, we look for that column in the Porta table and search down for the plaintext character ${this.fixedPt(plainChar)}.  Looking at the start of the row we find a key of ${this.fixedPt(keyChar)}.`));
+                } else {
+                    result.append($('<p/>').html(`Because the plaintext character ${this.fixedPt(plainChar)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedCt(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedPt(keyChar)}.`));
+                }
             } else {
-                result.append($('<p/>').html(`Because the plaintext character ${this.fixedCt(plainChar)} is between A and M, we look for that column in the Porta table and search down for the cipher character ${this.fixedCt(cipherChar)}. Looking at the start of the row we find a key of ${this.fixedCt(keyChar)}.`));
+                result.append($('<p/>').html(`Using the plaintext character ${this.fixedPt(plainChar)} to pick the row, we locate the cipher character ${this.fixedCt(cipherChar)} and look at the top of the column to find a key of ${this.fixedPt(keyChar)}.`));
             }
         }
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showCribStatus(solvingData, cribpos, true));
         let keylen = 2;
         // Let's see if we think that we have the full keyword figured out.
-        if (keywords.length > 0) {
-            keylen = keywords.length
-            const first = keywords[0];
-            const occursindex = keywords.indexOf(first, 1)
+        if (keyword.length > 0) {
+            keylen = keyword.length
+            const first = keyword[0];
+            const occursindex = keyword.indexOf(first, 1)
             if (occursindex >= 0) {
                 // We have a repeat, let's see if anything after the repeat is the same.
-                let size = keywords.length - occursindex
+                let size = keyword.length - occursindex
                 keylen = occursindex
-                if (keywords.slice(0, size).join('') === keywords.slice(occursindex, occursindex + size).join('')) {
+                if (keyword.slice(0, size).join('') === keyword.slice(occursindex, occursindex + size).join('')) {
                     if (size === 1) {
                         result.append($('<p/>').html(`We can see that the keyword letter ${this.fixedCt(first)} repeats at the end, which is a good possibility that we have a ${keylen} letter keyword.`));
                     } else {
@@ -945,19 +1183,19 @@ export class CipherVigenereEncoder extends CipherEncoder {
             We can test this out by filling the first 10 letters of the cipher with the corresponding key letters and decoding them to see what we get.
             Note that we don't have to actually figure out the keyword, just copy the letters we know down.`));
         // Make it easier by building a properly oriented keyword. 
-        let keycheck = this.rotatedKey(keywords.slice(0, keylen), keylen, keyoff)
+        let keycheck = this.rotatedKey(keyword.slice(0, keylen), keylen, keyoff)
 
-        for (let i = 0; i < 10; i++) {
-            const keychar = keycheck[i % keylen]
-            solvingData.keyword[i] = keychar;
-            solvingData.known[i] = true;
+        solvingData.keyword = keycheck
+        solvingData.known = []
+        for (let c of keycheck) {
+            solvingData.known.push(c !== '?')
         }
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showDecodeStatus(solvingData));
         if (solvingData.valid) {
             result.append($('<p/>').html(`This looks like a valid solution.`));
         } else {
-            result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
-            let keyoptions = keywords.slice(0, keylen).concat(Array(10).fill('?'));
+            result.append($('<p/>').html(`This doesn't look quite right (note that you could have stopped at anytime, but we show the entire cipher here), so we have to try with a longer key.`));
+            let keyoptions = keyword.slice(0, keylen).concat(Array(10).fill('?'));
             for (let extrakeylen = keylen + 1; extrakeylen < 10; extrakeylen++) {
                 // Let's try adding an extra unknown letter to the key and see if it looks better
                 keyoff = extrakeylen - (cribpos.position % extrakeylen);
@@ -968,16 +1206,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     solvingData.keyword[i] = keychar;
                     solvingData.known[i] = true;
                 }
-                result.append(this.showPortaDecodeStatus(solvingData));
+                result.append(this.showDecodeStatus(solvingData));
                 if (solvingData.valid) {
-                    result.append($('<p/>').html(`This looks like a valid solution, so we have likely found the correct keyword length of ${extrakeylen}.`));
+                    result.append($('<p/>').html(`This looks promising, so we have likely found the correct keyword length of ${extrakeylen}.`));
                     keylen = extrakeylen;
                     break;
                 } else {
                     result.append($('<p/>').html(`This doesn't look quite right, so we have to try with a longer key.`));
                 }
             }
-            this.showStep(result, "Step 2A: See if we can fill in the missing letters of the key.");
+            solvingData.keyword = solvingData.keyword.slice(0, keylen)
+            solvingData.known = solvingData.known.slice(0, keylen);
             if (this.state.blocksize === 0) {
                 result.append($('<p/>').html(`Since we have the original spacing, we can find words that have only one missing letter to see if we recognize them.
                     Taking the longest word will give us the most likely chance of figuring out the key.`));
@@ -985,16 +1224,76 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 result.append($('<p/>').html(`Since we don't have the original spacing, we can look at the start or the end to see if we recongize any words.`));
             }
         }
-        this.showStep(result, "Step 3: (Optional) Find possible keywords which match the key characters we looked up");
-        keycheck = this.findWords(solvingData, result, keycheck);
+        for (let loop = 0; loop < 5; loop++) {
+            this.showStep(result, "Step 3a: Find possible keywords which match the key characters we looked up");
+            keycheck = this.findWords(result, solvingData, keycheck);
+            let maxMatches = 1
+            let tryFindKeywords = true
+            let tryUnfinishedWords = true
+            let tried: number[] = []
+            if (!solvingData.valid) {
+                const unfinishedCandidates = this.findUnfinishedWords(solvingData);
+                if (await this.restartCheck()) { return }
+                let bestCandidate: ISolverWord = undefined
+                for (const entry of unfinishedCandidates) {
+                    // The first time we are here, we only go for those that have a single missing letter
+                    if (loop === 0 && entry.missing > 1) {
+                        continue;
+                    }
+                    if (tried.indexOf(entry.position) !== -1) {
+                        continue;
+                    }
+                    let choice = this.matchWords(entry)
+                    if (choice.length > 0 && choice.length <= maxMatches) {
+                        if (bestCandidate === undefined || choice.length < bestCandidate.candidates.length) {
+                            bestCandidate = entry;
+                            entry.candidates = choice
+                        }
+                    }
+                    // result.append($('<p/>').html(`DEBUG: Unfinished word: ${entry.pt} against ${entry.ct} at ${entry.position} Pattern: ${entry.pattern} Missing: ${entry.missing} with [${entry.keywordCount.join(',')}] matched ${choice.length} words: [${choice.join(", ")}]`))
+                }
+                if (bestCandidate !== undefined) {
+                    this.showStep(result, "Step 3b: See if we see any obvious missing letters we can fill in the plaintext");
+                    if (bestCandidate.candidates.length === 1) {
+                        result.append($('<p/>').html(`We see a potential word with ${this.fixedPt(bestCandidate.pattern.replaceAll('.', '?'))} which matches exactly one word: ${this.fixedPt(bestCandidate.candidates[0])}` +
+                            ` that we can try.`))
+                    } else {
+                        result.append($('<p/>').html(`We see a potential word with ${this.fixedPt(bestCandidate.pattern.replaceAll('.', '?'))} which matches ${bestCandidate.candidates.length} words: [${bestCandidate.candidates.join(", ")}].` +
+                            ` We will try them one at a time to see which works out the best`))
+                    }
 
-        this.showStep(result, "Step 4: Fill out the remainder of the keywords and decode");
-        for (let i = 0; i < cribpos.cipherlen; i++) {
-            const keyChar = keycheck[i % keylen];
-            solvingData.keyword[i] = keyChar
-            solvingData.known[i] = true;
+                    let successful = false
+                    tried.push(bestCandidate.position)
+                    for (const word of bestCandidate.candidates) {
+                        const newData = this.tryCandidateWord(result, solvingData, bestCandidate, word)
+                        if (newData !== undefined) {
+                            solvingData = newData
+                            tryFindKeywords = true;
+                            result.append($('<p/>').html(`That looks promising, so we will continue with it.`))
+                            successful = true
+                            break;
+                        }
+                    }
+                    if (!successful) {
+                        result.append($('<p/>').html(`Unfortunately we couldn't find a match so we will have to look for something else.`))
+                    }
+                } else if (tryUnfinishedWords) {
+                    this.showStep(result, "Step 3b: See if we see any obvious missing letters we can fill in the plaintext");
+                    result.append($('<p/>').html(`Unfortunately we don't see anything obvious right now so we will look a bit harder.`))
+
+                }
+                tryUnfinishedWords = false
+                maxMatches += 2;
+            }
+            // See if we have all of the keyword letters
+            const unmatched = solvingData.keyword.filter(c => c === '?').length;
+            if (!unmatched) {
+                result.append($('<p/>').html(`With that we now have all letters of the keyword: ${this.fixedPt(solvingData.keyword.join(''))}`))
+                break;
+            }
         }
-        result.append(this.showPortaDecodeStatus(solvingData));
+        this.showStep(result, "Step 4: Fill out the remainder of the keywords and decode");
+        result.append(this.showDecodeStatus(solvingData));
         return result;
     }
     /**
@@ -1062,16 +1361,78 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * This function generates a table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out. 
      * This is used for showing the partial solution as you solve each letter of the key for the cipher.
+     * In the solvingdata structure, if the correspoding position in the known array is set to true, the letter is
+     * always shown.
      * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
      */
-    public showPortaDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
+    public showCribStatus(solvingdata: ISolverData, cribinfo: ICribInfo, showkeyword: boolean): JQuery<HTMLElement> {
         solvingdata.valid = true;
         const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
         const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
-        const [source, dest] = this.state.operation === 'encode' ? [1, 0] : [0, 1];
+        const [source, dest] = this.state.operation === 'encode' ? [this.ptIndex, this.ctIndex] : [this.ctIndex, this.ptIndex];
 
         let keywordpos = 0;
+        let ptpos = 0;
+        const cribstart = cribinfo.position
+        const cribend = cribinfo.position + cribinfo.criblen
+        const keyword = this.minimizeString(this.state.keyword).toUpperCase().split('')
+        // Make sure we have something in the keyword to avoid errors, we'll just show blanks in the table if we don't have a key
+        for (const strset of solvingdata.replacements) {
+            let showline = false
+            const src = strset[source] ?? '';
+            const dst = strset[dest] ?? '';
+            const n = src.length;
+
+            let repeatedKey = []
+            let solution = '';
+            for (let cpos = 0; cpos < n; cpos++) {
+                const c = src[cpos];
+
+                if (this.isValidChar(c)) {
+                    if (ptpos >= cribstart && ptpos < cribend) {
+                        showline = true;
+                        repeatedKey.push(keyword[keywordpos] ?? '?');
+                        solution += dst[cpos]
+                    } else {
+                        repeatedKey.push(' ')
+                        solution += ' ';
+                    }
+                    keywordpos = (keywordpos + 1) % keyword.length
+                    ptpos++;
+                } else {
+                    repeatedKey.push(' ');
+                    solution += ' ';
+                }
+            }
+            if (showline) {
+
+                this.addAnnotatedCipherTableRows(table, showkeyword ? repeatedKey : undefined, src, solution);
+                if (ptpos >= cribend) {
+                    break;
+                }
+            }
+        }
+        return table.generate();
+    }
+    /**
+     * This function generates a table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out. 
+     * This is used for showing the partial solution as you solve each letter of the key for the cipher.
+     * In the solvingdata structure, if the correspoding position in the known array is set to true, the letter is
+     * always shown.
+     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
+     */
+    public showDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
+        solvingdata.valid = true;
+        const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
+        const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
+        const [source, dest] = this.state.operation === 'encode' ? [this.ptIndex, this.ctIndex] : [this.ctIndex, this.ptIndex];
+
+        let keywordpos = 0;
+        let sufficient = false
+        const keyword = solvingdata.keyword ?? ['?']
+        const keyknown = solvingdata.known ?? [false]
         // Make sure we have something in the keyword to avoid errors, we'll just show blanks in the table if we don't have a key
         for (const strset of solvingdata.replacements) {
             const src = strset[source] ?? '';
@@ -1084,9 +1445,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 const c = src[cpos];
 
                 if (this.isValidChar(c)) {
-                    const keyc = solvingdata.keyword[keywordpos] ?? '?';
-                    const isKnown = solvingdata.known[keywordpos] ?? false;
-                    keywordpos++
+                    let keyc = keyword[keywordpos] ?? '?';
+                    const isKnown = (keyc !== '?') && keyknown[keywordpos]
                     repeatedKey.push(keyc);
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
@@ -1100,13 +1460,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
                         solution += sol ?? ' ';
                     } else {
                         solution += ' ';
+                        if (solvingdata.limitUpdates[keywordpos] > 0) {
+                            solvingdata.limitUpdates[keywordpos]--;
+                            if (solvingdata.limitUpdates[keywordpos] === 0) {
+                                sufficient = true;
+                                break;
+                            }
+                        }
                     }
+                    keywordpos = (keywordpos + 1) % keyword.length
                 } else {
                     repeatedKey.push(' ');
                     solution += ' ';
                 }
             }
             this.addAnnotatedCipherTableRows(table, repeatedKey, src, solution);
+            if (sufficient) {
+                break;
+            }
         }
         return table.generate();
     }
@@ -1120,37 +1491,38 @@ export class CipherVigenereEncoder extends CipherEncoder {
         solvingdata.keyword = [];
         solvingdata.known = [];
 
-        const source = this.state.operation === 'encode' ? 1 : 0;
-        const solvedSet = new Set(solved.split(''));
-        let keypos = 0;
-        for (const strset of solvingdata.replacements) {
-            const src = strset[source] ?? '';
-            for (const c of src) {
-                if (this.isValidChar(c)) {
-                    const keyc = keyword[keypos % keyword.length];
-                    solvingdata.keyword.push(keyc);
-                    solvingdata.known.push(solvedSet.has(keyc));
-                    keypos++;
-                }
-            }
+        for (let i = 0; i < keyword.length; i++) {
+            let keyc = keyword[i]
+            let solvec = solved[i] ?? '?'
+            solvingdata.keyword.push(keyc)
+            solvingdata.known.push(keyc === solvec)
         }
     }
+    /**
+     * 
+     * @param solvingData 
+     * @param result 
+     * @returns 
+     */
     public async genDecodeSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
 
         if (this.state.keyword === '') {
             result.append($('<h3/>').text('You must select a keyword.'));
             return result;
         }
-        result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
-        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Porta cipher table to decode each letter based on the corresponding letter in the key.`));
+        if (this.state.cipherType === ICipherType.Porta) {
+            result.append($('<p/>').text(`The Porta cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
+        }
+        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly over the cipher text, then use the ${this.cipherName} cipher table to decode each letter based on the corresponding letter in the key.`));
 
         this.setMappedKeyword(solvingData, this.state.keyword, this.state.keyword)
+        solvingData.known.fill(false)
 
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showDecodeStatus(solvingData));
         let remaining = this.undupeString(this.state.keyword).split('')
         let firstletter = remaining.shift()
         let discovered = firstletter
-        result.append($('<h4/>').text(`We start with the first letter of the keyword: ${firstletter} and use that to find the corresponding row of the decode table.  Here's the subset of that table`));
+        result.append($('<h4/>').text(`We start with the first letter of the keyword: ${firstletter} and use that to find the corresponding row of the ${this.cipherName} table.  Here's the subset of that table`));
 
         result.append(this.showShortTable(firstletter))
 
@@ -1160,19 +1532,19 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 if the letter you are looking up is between N and Z, you look for it in the row of the table and pick the letter from the top of the column.`))
         }
         this.setMappedKeyword(solvingData, this.state.keyword, discovered)
-        result.append(this.showPortaDecodeStatus(solvingData));
+        result.append(this.showDecodeStatus(solvingData));
 
         result.append($('<p/>').text(`You can repeat this process for each letter in the keyword until you have the full solution.`));
 
         while (remaining.length > 0) {
             const letter = remaining.shift()
             const prefix = remaining.length > 0 ? "Next, " : "Finally, "
-            result.append($('<h4/>').text(`${prefix}we take the letter ${letter} from the keyword and look at the corresponding row in the Porta table:`))
+            result.append($('<h4/>').text(`${prefix}we take the letter ${letter} from the keyword and look at the corresponding row in the ${this.cipherName} table:`))
             discovered += letter
             result.append(this.showShortTable(letter))
             result.append($('<p/>').text(`This allows us to decode all the letters in the cipher text that have ${letter} as the corresponding letter in the key, giving us a more complete solution:`));
             this.setMappedKeyword(solvingData, this.state.keyword, discovered)
-            result.append(this.showPortaDecodeStatus(solvingData));
+            result.append(this.showDecodeStatus(solvingData));
         }
         result.append($('<p/>').text(`After repeating this process for each letter in the keyword, we will have the full decoded solution.`));
         return result
@@ -1182,6 +1554,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        // If we are already in the process of loading then we need to request that
+        // the loading process stop instead of starting it again.
+        // Note that when the stop is processed it will trigger starting the load
+        // once again to update the UI
+        if (this.isLoading) {
+            this.stopGenerating = true;
+            return;
+        }
+        this.stopGenerating = false;
+        this.isLoading = true
+
         const result = $('<div/>');
         const { width, extraclass } = this.getEncodeWidth(testType);
 
@@ -1190,11 +1573,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const solvingData: ISolverData = {
             replacements: [],
             testType: testType,
-            extraclass: '',
+            extraclass: extraclass,
             keyword: [],
-            warned: false,
             known: [],
-            valid: false
+            warned: false,
+            valid: false,
+            limitUpdates: []
         }
 
         solvingData.replacements = this.buildReplacementVigenere(
@@ -1203,14 +1587,15 @@ export class CipherVigenereEncoder extends CipherEncoder {
             width
         );
 
-        this.stopGenerating = false;
-        this.isLoading = true
         this.loadLanguageDictionary(this.state.curlang).then(() => {
             if (this.state.operation === 'crypt') {
                 this.genCryptanalysisSolution(solvingData, result);
             } else {
                 this.genDecodeSolution(solvingData, result);
             }
+            this.isLoading = false;
+        }).catch(() => {
+            this.isLoading = false;
         })
 
         return result;
@@ -1286,5 +1671,33 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.markUndo('')
         this.setKeyword(key)
         this.updateOutput()
+    }
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    public attachHandlers(): void {
+        super.attachHandlers();
+        $('#blocksize')
+            .off('input')
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo(null);
+                    if (this.setBlocksize(blocksize)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#keyword')
+            .off('input')
+            .on('input', (e) => {
+                const newkeyword = $(e.target).val() as string;
+                if (newkeyword !== this.state.keyword) {
+                    this.markUndo('keyword');
+                    if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
     }
 }

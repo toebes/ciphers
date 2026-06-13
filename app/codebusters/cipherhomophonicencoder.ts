@@ -1118,7 +1118,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         return unfinishedWords;
     }
 
-    public matchWords(result: JQuery<HTMLElement>, entry: ISolverWord): string[] {
+    public matchWords(entry: ISolverWord): string[] {
         const matchedWords: string[] = []
 
         let pat = ""
@@ -1330,7 +1330,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 if (tried.indexOf(entry.position) !== -1) {
                     continue;
                 }
-                let choice = this.matchWords(result, entry)
+                let choice = this.matchWords(entry)
                 if (choice.length > 0 && choice.length <= maxMatches) {
                     if (bestCandidate === undefined || choice.length < bestCandidate.candidates.length) {
                         bestCandidate = entry;
@@ -1681,8 +1681,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             } else {
                 this.genDecodeSolution(solvingData, result);
             }
+            this.isLoading = false;
+        }).catch(() => {
+            this.isLoading = false;
         })
-        this.isLoading = false;
 
         return result;
     }

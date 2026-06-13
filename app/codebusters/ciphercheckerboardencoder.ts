@@ -1767,13 +1767,16 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             } else {
                 this.genEncodeSolution(target);
             }
+            // All done, so mark that we are not in the process of updating
+            this.isLoading = false
+        }).catch(() => {
+            // All done, so mark that we are not in the process of updating
+            this.isLoading = false
         })
 
         // See if they requested an abort to restart the operation before we finish
         if (await this.restartCheck()) { return }
 
-        // All done, so mark that we are not in the process of updating
-        this.isLoading = false
     }
     public gatherLetters(sequencesets: string[][][]) {
         let rowLetters = ""

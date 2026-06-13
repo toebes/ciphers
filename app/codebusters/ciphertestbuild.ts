@@ -24,7 +24,7 @@ export type IOperationBucket =
     | 'keyword'
     | 'other';
 
-export type TemplateTestTypes = 'none' | 'cregional' | 'cstate' | 'cnational' | 'cpractice' | 'bregional' | 'bstate' | 'bnational' | 'bpractice' | 'aregional' | 'apractice'
+export type TemplateTestTypes = 'none' | 'cregional' | 'cstate' | 'cnational' | 'cpractice' | 'bregional' | 'bstate' | 'bnational' | 'bpractice' | 'aregional' | 'apractice' | 'singlecipher'
 export type TestDifficultyType = 'easy' | 'standard'
 export type DifficultyType = 'easy' | 'medium' | 'hard'
 export interface ITempleteInfo {
@@ -519,6 +519,7 @@ export class CipherTestBuild extends CipherTest {
     public title = "Untitled Test";
     public templateType: TemplateTestTypes = 'none'
     public testDifficulty: TestDifficultyType = 'standard'
+    public singleCipherType = '' // empty = mixed, otherwise contains the single cipher type
     public questionCount = 10
     public xenocryptCount = 0
     public testtype: ITestType = ITestType.None;
@@ -612,6 +613,14 @@ export class CipherTestBuild extends CipherTest {
             questionCount: 6,
             xenoctyptCount: 0,
         },
+        {
+            title: 'Single Cipher',
+
+            type: ITestType.None,
+            id: 'singlecipher',
+            questionCount: 10,
+            xenoctyptCount: 0,
+        },
     ];
 
     /**
@@ -638,7 +647,7 @@ export class CipherTestBuild extends CipherTest {
         const testdiv = $('<div/>', { class: 'callout primary' });
         testdiv.append(this.makeStepCallout('Step 1',
             htmlToElement(
-                `<p>Pick a title, test type and confirm the number of questions, then click the Generate Template button to generate the list of questions</p>`
+                `<p>Pick a title, test type and confirm the number of questions, then click the Generate Template button to generate the list of questions. Select the <b>Single Cipher</b> test type to build a practice test from one cipher.</p>`
             )))
 
         testdiv.append(
@@ -652,6 +661,17 @@ export class CipherTestBuild extends CipherTest {
                 this.templateType,
                 'input-group cell small-12 medium-12 large-12'));
         testdiv.append(testTypeBox);
+
+        const singleCipherBox = $('<div/>', { id: 'singlecipherbox', class: 'grid-x grid-margin-x' });
+        if (this.templateType !== 'singlecipher') {
+            singleCipherBox.hide();
+        }
+        singleCipherBox.append(
+            this.genSingleCipherDropdown('singlecipher',
+                'Question Type',
+                this.singleCipherType,
+                'input-group cell small-12 medium-12 large-12'));
+        testdiv.append(singleCipherBox);
 
         const inputbox = $('<div/>', {
             class: 'grid-x grid-margin-x',
@@ -763,6 +783,88 @@ export class CipherTestBuild extends CipherTest {
         inputgroup.append(select);
         return inputgroup;
     }
+
+    /**
+     * Generate a dropdown for picking a single question type for the entire test
+     */
+    public genSingleCipherDropdown(
+        id: string,
+        title: string,
+        cipherType: string,
+        sizeclass: string
+    ): JQuery<HTMLElement> {
+        const inputgroup = $('<div/>', {
+            class: sizeclass,
+        });
+        $('<span/>', { class: 'input-group-label' })
+            .text(title)
+            .appendTo(inputgroup);
+        const select = $('<select/>', {
+            id: id,
+            class: 'input-group-field',
+        });
+        let option = $('<option />', {
+            value: '',
+            disabled: 'disabled',
+        }).text('--Select a Question Type--');
+        select.append(option);
+        for (const entry of this.getValidPossibilities(ITestType.None)) {
+            option = $('<option />', {
+                value: entry.title,
+            }).text(entry.title);
+            if (cipherType === entry.title) {
+                option.attr('selected', 'selected');
+            }
+            select.append(option);
+        }
+        inputgroup.append(select);
+        return inputgroup;
+    }
+
+    /**
+     * Get question choices that are valid for a test type
+     */
+    public getValidPossibilities(testtype: ITestType): QuestionType[] {
+        const possibilities: QuestionType[] = [];
+        for (const entry of this.questionChoices) {
+            const cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
+            cipherhandler.setCipherType(entry.cipherType);
+            if (entry.encodeType !== undefined) {
+                cipherhandler.state.encodeType = entry.encodeType;
+            }
+            if (entry.operation !== undefined) {
+                cipherhandler.state.operation = entry.operation;
+            }
+            if (entry.keyword !== undefined) {
+                cipherhandler.state.keyword = entry.keyword;
+            }
+            if (entry.misspelled !== undefined) {
+                cipherhandler.state.misspelled = entry.misspelled;
+            }
+            if (entry.testtype !== undefined && !entry.testtype.includes(testtype)) {
+                continue;
+            }
+            if (cipherhandler.CheckAppropriate(testtype, false) !== '') {
+                continue;
+            }
+            if (possibilities.findIndex((check) => check.title === entry.title) < 0) {
+                possibilities.push(entry);
+            }
+        }
+        return possibilities;
+    }
+
+    /**
+     * Set the question type used for a single-cipher test
+     */
+    public setSingleCipherType(type: string): boolean {
+        if (type === this.singleCipherType) {
+            return false;
+        }
+        this.singleCipherType = type;
+        return true;
+    }
+
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
@@ -772,6 +874,14 @@ export class CipherTestBuild extends CipherTest {
         this.setMenuMode(menuMode.test);
         $("#qcount").val(this.questionCount);
         $("#xcount").val(this.xenocryptCount);
+        if (this.templateType === 'singlecipher') {
+            $('#singlecipherbox').show();
+            $('#singlecipher').val(this.singleCipherType);
+            $("#xcount").prop('disabled', true);
+        } else {
+            $('#singlecipherbox').hide();
+            $("#xcount").prop('disabled', false);
+        }
         this.attachHandlers();
     }
 
@@ -834,6 +944,9 @@ export class CipherTestBuild extends CipherTest {
                 this.setXenocryptCount(template.xenoctyptCount);
                 this.setTestType(template.type);
             }
+            if (type !== 'singlecipher') {
+                this.singleCipherType = '';
+            }
         }
         return changed;
     }
@@ -881,6 +994,7 @@ export class CipherTestBuild extends CipherTest {
     public genTestTemplate() {
         const template = this.getTemplateInfo(this.templateType);
         const testtype = template.type;
+        const singleCipher = this.templateType === 'singlecipher';
         // Leave space in the Step 2 header for the Table of Question Distribution
         $("#qlist").empty()
             .append(this.makeStepCallout('Step 2', htmlToElement(
@@ -891,142 +1005,149 @@ export class CipherTestBuild extends CipherTest {
                 <div id="qdist"></div>
                 </div></div>`)));
 
-        // First based on the number of questions, we determine how many will be in each group.
-        // The four groups are:
-        // Group 0 - Timed question
-        // Group 1 - Aristocrats (the timed question doesn't count).  This will be between aristocratPCTMin (35%) and aristocratPCTMax (50%) of the questions
-        // Group 2 - Xenocrypts based on the number selected by the user
-        // Group 3 - All others
-        let groups: GroupData[] = [{ needed: 1, questions: [], minWeight: -1 }, { needed: 0, questions: [], minWeight: -1 }, { needed: this.xenocryptCount, questions: [], minWeight: -1 }, { needed: 0, questions: [], minWeight: -1 }]
-        let needed = this.questionCount - this.xenocryptCount;
-
-        let aristcount = 0
-        if (this.testtype === ITestType.aregional || this.testtype === ITestType.astate) {
-            aristcount = Math.round(needed * (aristocratDivAPCTMin + (Math.random() * (aristocratDivAPCTMax - aristocratDivAPCTMin))))
-        } else {
-            aristcount = Math.round(needed * (aristocratDivBCPCTMin + (Math.random() * (aristocratDivBCPCTMax - aristocratDivBCPCTMin))))
-        }
-        // Handle where they are asking for a lot of xenocrypts
-        if (this.xenocryptCount > aristcount) {
-            aristcount = this.xenocryptCount
-        }
-        groups[1].needed = aristcount - this.xenocryptCount;
-        groups[3].needed = this.questionCount - aristcount;
-
-        if (template.type === ITestType.aregional || template.type === ITestType.astate) {
-            groups[0].needed = 0;
-        }
-        // We have the target number of questions for each group, 
-        let possibilities: QuestionType[] = []
-        for (let entry of this.questionChoices) {
-            const cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
-            cipherhandler.setCipherType(entry.cipherType);
-            if (entry.encodeType !== undefined) {
-                cipherhandler.state.encodeType = entry.encodeType
-            }
-            if (entry.operation !== undefined) {
-                cipherhandler.state.operation = entry.operation;
-            }
-            if (entry.keyword !== undefined) {
-                cipherhandler.state.keyword = entry.keyword;
-            }
-            if (entry.misspelled !== undefined) {
-                cipherhandler.state.misspelled = entry.misspelled;
-            }
-            let appropriateCheck = ''
-            if (entry.testtype !== undefined && !entry.testtype.includes(this.testtype)) {
-                appropriateCheck = 'Question not defined for this test type;'
+        const possibilities = this.getValidPossibilities(singleCipher ? ITestType.None : testtype);
+        let selectedSingleEntry: QuestionType = undefined;
+        let templateError = '';
+        if (singleCipher) {
+            if (this.singleCipherType === '') {
+                templateError = 'Please select a question type before generating the template.';
             } else {
-                appropriateCheck = cipherhandler.CheckAppropriate(testtype, false);
-            }
-            if (appropriateCheck === '') {
-                if (possibilities.findIndex((check) => check.title === entry.title) < 0) {
-                    possibilities.push(entry);
+                selectedSingleEntry = this.getChoiceEntry(this.singleCipherType);
+                if (selectedSingleEntry === undefined) {
+                    templateError = 'The selected question type is not available for a None type test.';
                 }
+            }
+        } else if (possibilities.length === 0) {
+            templateError = 'No question types are available for the selected test type.';
+        }
+        if (templateError !== '') {
+            $("#qlist").append(makeCallout(templateError, 'alert'));
+            this.attachHandlers();
+            return;
+        }
+
+        let finalData: QuestionType[] = [];
+        let timedQuestion: QuestionType = undefined;
+        let specialCandidates = new Map<ICipherType, number>();
+
+        if (singleCipher) {
+            finalData = Array.from({ length: this.questionCount }, () => selectedSingleEntry);
+        } else {
+            // First based on the number of questions, we determine how many will be in each group.
+            // The four groups are:
+            // Group 0 - Timed question
+            // Group 1 - Aristocrats (the timed question doesn't count).  This will be between aristocratPCTMin (35%) and aristocratPCTMax (50%) of the questions
+            // Group 2 - Xenocrypts based on the number selected by the user
+            // Group 3 - All others
+            let groups: GroupData[] = [{ needed: 1, questions: [], minWeight: -1 }, { needed: 0, questions: [], minWeight: -1 }, { needed: this.xenocryptCount, questions: [], minWeight: -1 }, { needed: 0, questions: [], minWeight: -1 }]
+            let needed = this.questionCount - this.xenocryptCount;
+
+            let aristcount = 0
+            if (this.testtype === ITestType.aregional || this.testtype === ITestType.astate) {
+                aristcount = Math.round(needed * (aristocratDivAPCTMin + (Math.random() * (aristocratDivAPCTMax - aristocratDivAPCTMin))))
+            } else {
+                aristcount = Math.round(needed * (aristocratDivBCPCTMin + (Math.random() * (aristocratDivBCPCTMax - aristocratDivBCPCTMin))))
+            }
+            // Handle where they are asking for a lot of xenocrypts
+            if (this.xenocryptCount > aristcount) {
+                aristcount = this.xenocryptCount
+            }
+            groups[1].needed = aristcount - this.xenocryptCount;
+            groups[3].needed = this.questionCount - aristcount;
+
+            if (template.type === ITestType.aregional || template.type === ITestType.astate) {
+                groups[0].needed = 0;
+            }
+            // We have the target number of questions for each group, 
+            for (let entry of possibilities) {
                 // We can use it!
                 this.AssignEntryToGroup(entry, groups[entry.group]);
                 if (entry.timed) {
                     this.AssignEntryToGroup(entry, groups[0])
                 }
             }
-        }
-        // See if we have enough entries to fill the test.  If not we will have to go back through the possibilities list
-        while (this.amtNeeded(groups) > 0) {
-            groups.forEach((groupData) => {
-                const thisNeed = groupData.needed - groupData.questions.length
-                if (!thisNeed) {
-                    groupData.minWeight = 999;
-                } else {
-                    needed += thisNeed;
-                }
-            })
-            if (needed === 0) {
-                break;
-            }
-            // We need more entries, so run through the list again
-            for (let entry of possibilities) {
-                let groupData = groups[entry.group]
-                if (groupData.needed > groupData.questions.length) {
-                    this.AssignEntryToGroup(entry, groupData)
-                }
-            }
-        }
-
-
-        // Build up the GUI of questions.  For now we won't sort them, but we need to ...
-        // Gather all the questions together.  First we put them all in a list using a random number that we can sort on
-        let testData: WeightedQuestion[] = [];
-        for (let i = 1; i < groups.length; i++) {
-            groups[i].questions.forEach((entry) => {
-                testData.push({ weight: Math.random(), entry: entry.entry })
-            })
-        }
-        // Sort the list based on the random weights as an initial ordering
-        testData = testData.sort((a, b) => a.weight - b.weight)
-        // Next we need to make sure that no two cipher types are next to each other (if that is possible)
-        let finalData: QuestionType[] = [];
-        let saveData: QuestionType[] = [];
-        let specialCandidates = new Map<ICipherType, number>
-        let lastType = 'Aristocrat';
-        testData.forEach((entry) => {
-            // What general type of cipher is this?
-            let thisType = this.getCipherSubType(entry.entry.cipherType);
-            // Let's add it to the list of special candidates for the group 3 entries
-            if (entry.entry.group === 3 && this.isGoodSpecialCipherType(entry.entry.cipherType)) {
-                if (specialCandidates[entry.entry.cipherType] === undefined) {
-                    specialCandidates[entry.entry.cipherType] = 0
-                }
-                specialCandidates[entry.entry.cipherType]++
-            }
-
-            if (thisType === lastType) {
-                // We can't put this next to the current one, so push it onto the save stack
-                saveData.push(entry.entry);
-            } else {
-                finalData.push(entry.entry);
-                lastType = thisType;
-            }
-            // See if there is anything on the save stack that we can pull in
-            while (saveData.length > 0) {
-                const foundIndex = saveData.findIndex((entry) => this.getCipherSubType(entry.cipherType) !== lastType)
-                if (foundIndex === -1) {
+            // See if we have enough entries to fill the test.  If not we will have to go back through the possibilities list
+            while (this.amtNeeded(groups) > 0) {
+                groups.forEach((groupData) => {
+                    const thisNeed = groupData.needed - groupData.questions.length
+                    if (!thisNeed) {
+                        groupData.minWeight = 999;
+                    } else {
+                        needed += thisNeed;
+                    }
+                })
+                if (needed === 0) {
                     break;
                 }
-                const entries = saveData.splice(foundIndex, 1)
-                entries.forEach((entry) => {
-                    finalData.push(entry);
-                    lastType = this.getCipherSubType(entry.cipherType)
-                });
-
+                // We need more entries, so run through the list again
+                for (let entry of possibilities) {
+                    let groupData = groups[entry.group]
+                    if (groupData.needed > groupData.questions.length) {
+                        this.AssignEntryToGroup(entry, groupData)
+                    }
+                }
             }
-        })
 
-        // Anything left on the save stack will all be the same and we don't have a good way of placing them, so just put them on the end.  This typically happens when
-        // we have more than 50% aristocrats.
-        saveData.forEach((entry) => { finalData.push(entry) })
+
+            // Build up the GUI of questions.  For now we won't sort them, but we need to ...
+            // Gather all the questions together.  First we put them all in a list using a random number that we can sort on
+            let testData: WeightedQuestion[] = [];
+            for (let i = 1; i < groups.length; i++) {
+                groups[i].questions.forEach((entry) => {
+                    testData.push({ weight: Math.random(), entry: entry.entry })
+                })
+            }
+            // Sort the list based on the random weights as an initial ordering
+            testData = testData.sort((a, b) => a.weight - b.weight)
+            // Next we need to make sure that no two cipher types are next to each other (if that is possible)
+            let saveData: QuestionType[] = [];
+            let lastType = 'Aristocrat';
+            testData.forEach((entry) => {
+                // What general type of cipher is this?
+                let thisType = this.getCipherSubType(entry.entry.cipherType);
+                // Let's add it to the list of special candidates for the group 3 entries
+                if (entry.entry.group === 3 && this.isGoodSpecialCipherType(entry.entry.cipherType)) {
+                    if (specialCandidates[entry.entry.cipherType] === undefined) {
+                        specialCandidates[entry.entry.cipherType] = 0
+                    }
+                    specialCandidates[entry.entry.cipherType]++
+                }
+
+                if (thisType === lastType) {
+                    // We can't put this next to the current one, so push it onto the save stack
+                    saveData.push(entry.entry);
+                } else {
+                    finalData.push(entry.entry);
+                    lastType = thisType;
+                }
+                // See if there is anything on the save stack that we can pull in
+                while (saveData.length > 0) {
+                    const foundIndex = saveData.findIndex((entry) => this.getCipherSubType(entry.cipherType) !== lastType)
+                    if (foundIndex === -1) {
+                        break;
+                    }
+                    const entries = saveData.splice(foundIndex, 1)
+                    entries.forEach((entry) => {
+                        finalData.push(entry);
+                        lastType = this.getCipherSubType(entry.cipherType)
+                    });
+
+                }
+            })
+
+            // Anything left on the save stack will all be the same and we don't have a good way of placing them, so just put them on the end.  This typically happens when
+            // we have more than 50% aristocrats.
+            saveData.forEach((entry) => { finalData.push(entry) })
+
+            if (groups[0].questions.length > 0) {
+                timedQuestion = groups[0].questions[0].entry;
+            }
+        }
 
         // Pick which entries can be the special bonus question
-        const isSpecial = this.findSpecialBonus(testtype, specialCandidates, finalData);
+        const isSpecial = singleCipher
+            ? finalData.map(() => false)
+            : this.findSpecialBonus(testtype, specialCandidates, finalData);
 
         // Figure out which three ciphers will be special candidates
 
@@ -1039,8 +1160,8 @@ export class CipherTestBuild extends CipherTest {
         headerrow.add({ settings: { class: "txt" }, content: 'Plain Text' })
         headerrow.add({ settings: { class: "aut" }, content: 'Author' })
 
-        if (groups[0].questions.length > 0) {
-            this.generateQuestionRow(-1, table, groups[0].questions[0].entry, false, possibilities)
+        if (timedQuestion !== undefined) {
+            this.generateQuestionRow(-1, table, timedQuestion, false, possibilities)
         }
         // Lastly populate the UI
         finalData.forEach((entry, index) => {
@@ -1798,6 +1919,14 @@ export class CipherTestBuild extends CipherTest {
                 }
                 e.preventDefault();
             })
+        $('#singlecipher')
+            .off('change')
+            .on('change', (e) => {
+                if (this.setSingleCipherType($(e.target).val() as string)) {
+                    this.updateOutput();
+                }
+                e.preventDefault();
+            });
         $('#title')
             .off('input')
             .on('input', (e) => {

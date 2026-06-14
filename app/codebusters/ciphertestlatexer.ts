@@ -132,6 +132,8 @@ function getCipherTypePhrases(s: IState): string[] {
  * Apply LaTeX bolding to the question text stored in IState.question.
  * IState.question is raw innerHTML, so HTML tags and entities are stripped first.
  * Then:
+ *  0. Global cleanup: collapse superscript ordinal suffixes left by HTML tag
+ *     stripping (e.g. "27 th" → "27th").
  *  1. Bold the cipher type phrase (state-derived, most-specific first).
  *  2. For FractionatedMorse: convert Unicode Morse symbols to LaTeX math mode
  *     before any splitting, so math blocks are untouched by later passes.
@@ -141,6 +143,10 @@ function getCipherTypePhrases(s: IState): string[] {
  *     - NihilistSubstitution: bold two-digit cipher unit groups in parentheses
  *       (removing stray leading/trailing spaces), ordinal position ranges, and
  *       "keyword length of N" phrases.
+ *     - Homophonic / Checkerboard: bold number groups in parentheses (removing
+ *       stray spaces) and ordinal position ranges.
+ *     - Porta: bold letter groups in parentheses (removing stray spaces) and
+ *       ordinal position ranges.
  *     - FractionatedMorse: bold space-separated single-letter cipher sequences
  *       of three or more characters (e.g. "R Q Q B L S T").
  */
@@ -159,6 +165,9 @@ function applyQuestionBolding(text: string, s: IState): string {
         .replace(/&#(\d+);/g, (_m, code: string) => String.fromCharCode(parseInt(code, 10)))
         .replace(/\s+/g, ' ')
         .replace(/ +\./g, '.')            // remove stray spaces before periods
+        // Collapse superscript ordinal suffixes rendered as a separate word by HTML
+        // tag stripping (e.g. "27<sup>th</sup>" → "27 th" → "27th")
+        .replace(/(\d+) +(st|nd|rd|th)\b/gi, '$1$2')
         .trim();
 
     if (!q) return q;
@@ -219,6 +228,36 @@ function applyQuestionBolding(text: string, s: IState): string {
                 );
                 // Bold "keyword length of N"
                 p = p.replace(/(keyword length of \d+)/gi, '\\textbf{$1}');
+            }
+
+            if (
+                s.cipherType === ICipherType.Homophonic ||
+                s.cipherType === ICipherType.Checkerboard
+            ) {
+                // Bold number groups in parens; strip stray inner spaces
+                // (Homophonic codes are 2-digit; Checkerboard codes are 2-char pairs)
+                p = p.replace(
+                    /\(\s*(\d+(?:\s+\d+)*)\s*\)/g,
+                    (_, nums: string) => `(\\textbf{${nums.replace(/\s+/g, ' ').trim()}})`,
+                );
+                // Bold ordinal position ranges: "27th through 35th"
+                p = p.replace(
+                    /\b(\d+(?:st|nd|rd|th) through \d+(?:st|nd|rd|th))\b/gi,
+                    '\\textbf{$1}',
+                );
+            }
+
+            if (s.cipherType === ICipherType.Porta) {
+                // Bold letter groups in parens; strip stray spaces from HTML tag removal
+                p = p.replace(
+                    /\(\s*([A-Z](?:\s*[A-Z])*)\s*\)/g,
+                    (_, letters: string) => `(\\textbf{${letters.replace(/\s+/g, '')}})`,
+                );
+                // Bold ordinal position ranges: "27th through 35th"
+                p = p.replace(
+                    /\b(\d+(?:st|nd|rd|th) through \d+(?:st|nd|rd|th))\b/gi,
+                    '\\textbf{$1}',
+                );
             }
 
             if (s.cipherType === ICipherType.FractionatedMorse) {

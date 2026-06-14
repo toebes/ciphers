@@ -1,8 +1,12 @@
 import { cloneObject } from '../common/ciphercommon';
 import { IState, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
+import { generateTestLatex } from './ciphertestlatexer';
+
+const OVERLEAF_TEMPLATE_URL = 'https://www.overleaf.com/read/yxjtjdcgykgp#aa9620';
 
 /**
  * CipherTestManage
@@ -22,6 +26,8 @@ export class CipherTestManage extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     /* Boolean indicating that this is an active Scilympiad test */
     public isScilympiad: boolean = false;
+    /* Tracks which test entry the LaTeX warning dialog was opened for */
+    public latexExportEntry: number = -1;
 
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -132,6 +138,13 @@ export class CipherTestManage extends CipherTest {
                     class: 'testscoresheet button',
                 }).text('Generate Scoresheet')
             );
+            buttons.append(
+                $('<a/>', {
+                    'data-entry': entry,
+                    type: 'button',
+                    class: 'testlatex button',
+                }).text('Export to LaTeX')
+            );
 
             row.add($('<div/>', { class: 'grid-x' }).append(buttons))
                 .add(test.title)
@@ -139,6 +152,91 @@ export class CipherTestManage extends CipherTest {
         }
         result.append(table.generate());
         return result;
+    }
+
+    /**
+     * Inject the LaTeX warning dialog into the page's main menu area so that
+     * Foundation can manage its lifecycle (open / close / keyboard dismiss).
+     */
+    public createMainMenu(): JQuery<HTMLElement> {
+        const result = super.createMainMenu();
+        result.append(this.createLatexWarningDlg());
+        return result;
+    }
+
+    /**
+     * Builds the "Export to LaTeX — pre-flight checklist" warning dialog.
+     * The dialog is hidden by Foundation's reveal mechanism until opened via
+     * $('#latexWarningDLG').foundation('open').
+     */
+    public createLatexWarningDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        dlgContents.append(
+            $('<p/>', { style: 'color: red; text-align: center; font-weight: bold;' }).text(
+                'Warning: Export to LaTeX requires additional modification'
+            )
+        );
+
+        const list = $('<ol/>');
+        list.append(
+            $('<li/>').html(
+                `The generated Test and Key should be pasted in to completely replace the respective ` +
+                `Test and Key documents that are found on ` +
+                `<a href="${OVERLEAF_TEMPLATE_URL}" target="_blank">this Overleaf template</a>.`
+            )
+        );
+        list.append(
+            $('<li/>').text(
+                'The items in the EDIT_DEFINITIONS.tex file should be populated with their corresponding values.'
+            )
+        );
+        list.append(
+            $('<li/>').html(
+                "The cover image should be uploaded as a png to the project and renamed to be exactly " +
+                "<code>xcoverart.png</code>. You can modify the insertgraphics elements if you wish to " +
+                "have another type of image included."
+            )
+        );
+        list.append(
+            $('<li/>').text(
+                'Baconians must be manually inputted (this is due to their storage as HTML elements in ' +
+                'the JSON to support fancy types). Fancy Baconians should be imported as included pdfs ' +
+                '(example shown in video below).'
+            )
+        );
+        list.append(
+            $('<li/>').html(
+                'The spacing in the test must be generally audited to avoid questions going over multiple ' +
+                'pages. You can solve this by adding/removing <code>\\newpage</code> elements where ' +
+                'necessary between questions.'
+            )
+        );
+        list.append(
+            $('<li/>').text(
+                'Review question text, some may be bugged due to how the pattern matching in the script ' +
+                'identifies various forms of Cribs/Hints.'
+            )
+        );
+        list.append($('<li/>').text('Verify that there are no mistakes on the key.'));
+
+        dlgContents.append(list);
+
+        dlgContents.append(
+            $('<p/>').html(
+                'A video walking through this process can be found here <em>(link coming soon)</em>.'
+            )
+        );
+
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Cancel'))
+                .append(
+                    $('<a/>', { class: 'button', id: 'latexconfirm' }).text('I Understand')
+                )
+        );
+
+        return JTFDialog('latexWarningDLG', 'Export to LaTeX', dlgContents);
     }
 
     /**
@@ -196,5 +294,59 @@ export class CipherTestManage extends CipherTest {
             .on('click', async (e) => {
                 await this.generateScoreSheet(Number($(e.target).attr('data-entry')));
             });
+        $('.testlatex')
+            .off('click')
+            .on('click', (e) => {
+                this.latexExportEntry = Number($(e.target).attr('data-entry'));
+                $('#latexWarningDLG').foundation('open');
+            });
+        $('#latexconfirm')
+            .off('click')
+            .on('click', () => {
+                $('#latexWarningDLG').foundation('close');
+                window.open(OVERLEAF_TEMPLATE_URL, '_blank');
+                if (this.latexExportEntry >= 0) {
+                    this.exportTestToLatex(this.latexExportEntry);
+                    this.latexExportEntry = -1;
+                }
+            });
+    }
+
+    /**
+     * Trigger a plain-text file download in the browser.
+     */
+    public downloadText(filename: string, content: string): void {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Generate and download the two .tex files ({Name}-Test.tex and {Name}-Key.tex).
+     * Called after the user confirms the LaTeX warning dialog.
+     * LaTeX generation runs entirely in TypeScript — no external server required.
+     * @param entry Test index to export
+     */
+    public exportTestToLatex(entry: number): void {
+        const testdata = this.getTestEntry(entry);
+        const testDataMap = this.generateTestData(testdata);
+        const safeName = (testdata.title || 'Test').replace(/[^a-zA-Z0-9 ]/g, '').trim() || 'Test';
+
+        try {
+            const { testTex, keyTex } = generateTestLatex(testDataMap);
+            this.downloadText(`${safeName}-Test.tex`, testTex);
+            // Small delay so both downloads register cleanly in the browser
+            setTimeout(() => {
+                this.downloadText(`${safeName}-Key.tex`, keyTex);
+            }, 200);
+        } catch (err) {
+            alert(`LaTeX export failed:\n${String(err)}`);
+        }
     }
 }

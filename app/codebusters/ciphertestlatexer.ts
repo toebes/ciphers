@@ -825,20 +825,20 @@ const FRAC_TABLE =
     '\\hline\n\\end{tabular}\n\\end{center}\n';
 
 const NIH_TABLE =
-    '\n{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|}\n' +
+    '\n\\begin{flushright}\\vspace{-1.5cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|}\n' +
     '\\hline\n&1&2&3&4&5  \\\\\n\\hline\n' +
     '1&&&&&  \\\\\n\\hline\n2&&&&&  \\\\\n\\hline\n3&&&&&  \\\\\n\\hline\n4&&&&&  \\\\\n\\hline\n5&&&&&  \\\\\n\\hline\n' +
-    '\\end{tabular}} \n';
+    '\\end{tabular}}\\end{flushright} \n';
 
 const CB_TABLE =
-    '\n{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|}\n' +
+    '\n\\begin{flushright}\\vspace{-1.5cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|}\n' +
     '\\cline{2-6}\n& \\multicolumn{1}{r|}{} &  &  &  &  \\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} & \\multicolumn{1}{r|}{} &  &  &  &  \\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} &&&&&\\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} &&&&&\\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} &&&&&\\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} &&&&&\\\\ \\hline\n' +
-    '\\end{tabular}}\n';
+    '\\end{tabular}}\\end{flushright} \n';
 
 const BACON_TABLE =
     '\n{\\normalsize\n\\begin{flushleft}\n\\begin{tabular}\n' +

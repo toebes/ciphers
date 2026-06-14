@@ -181,9 +181,8 @@ export class CipherTestManage extends CipherTest {
         const list = $('<ol/>');
         list.append(
             $('<li/>').html(
-                `The generated Test and Key should be pasted in to completely replace the respective ` +
-                `Test and Key documents that are found on ` +
-                `<a href="${OVERLEAF_TEMPLATE_URL}" target="_blank">this Overleaf template</a>.`
+                `The generated Test and Key should be pasted in on a copy of <a href="${OVERLEAF_TEMPLATE_URL}" target="_blank">this Overleaf template</a> to completely ` +
+                `replace the respective Test and Key documents.`
             )
         );
         list.append(

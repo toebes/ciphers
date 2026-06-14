@@ -163,6 +163,11 @@ config = {
         new CopyWebpackPlugin({
             patterns: [
                 {
+                    from: path.join(__dirname, 'Languages'),
+                    to: path.resolve(dist, 'Languages'),
+                    filter: (resourcePath) => /\.(js|txt)$/.test(resourcePath),
+                },
+                {
                     from: path.join(__dirname, 'app', 'codebusters', 'pages', 'time.php'),
                     to: dist,
                 },

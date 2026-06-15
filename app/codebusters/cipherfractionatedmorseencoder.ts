@@ -138,7 +138,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             this.state.cipherString,
             this.maxEncodeWidth
         );
-        const bighint = this.findCrib(strings, this.minimizeString(this.state.crib));
+        const bighint = this.findCrib(strings, (this.state.crib || '').toUpperCase());
         let hint = '';
         // Clean up the crib characters eliminating any dups.
         for (const c of bighint) {
@@ -216,7 +216,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         this.state.cipherString,
                         this.maxEncodeWidth
                     );
-                    const ciphercrib = this.findCrib(strings, crib);
+                    const ciphercrib = this.findCrib(strings, this.state.crib.toUpperCase());
 
                     let cribMappingText = '';
 
@@ -274,9 +274,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         if (this.state.operation === 'crypt') {
             this.setErrorMsg(this.validateCribLetterMappings(), 'cribmap');
             this.setErrorMsg(this.validateCribStartEndHints(), 'cribpos');
+            this.setErrorMsg(this.validateCribInPlaintext(), 'cribmiss');
         } else {
             this.setErrorMsg('', 'cribmap');
             this.setErrorMsg('', 'cribpos');
+            this.setErrorMsg('', 'cribmiss');
         }
     }
 
@@ -416,6 +418,99 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             return errors[0] + '.';
         }
         return errors.join('; ') + '.';
+    }
+
+    /**
+     * Validate that the crib can be located in the encoded plain text.
+     * @returns Error message or blank string if valid or crib is empty
+     */
+    public validateCribInPlaintext(): string {
+        const crib = (this.state.crib || '').toUpperCase();
+        if (crib === '') {
+            return '';
+        }
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+        if (strings.length === 0) {
+            return '';
+        }
+        if (this.findCrib(strings, crib) === '') {
+            return `The crib ${this.state.crib} is not found in the plaintext`;
+        }
+        return '';
+    }
+
+    /**
+     * Locate the crib in the encoded plain text and return the corresponding cipher text.
+     * Spaces in the crib mark word boundaries; a crib without spaces must lie within one word.
+     */
+    public findCrib(strings: string[][], crib: string): string {
+        if (crib === undefined || crib === '') {
+            return '';
+        }
+
+        let plainText = '';
+        let cipherText = '';
+        for (const strset of strings) {
+            plainText += strset[ptindex];
+            cipherText += strset[ctindex];
+        }
+
+        // Parent passes a minimized crib; use the spaced state crib when it differs.
+        const stateCrib = (this.state.crib || '').toUpperCase();
+        let useCrib = crib.toUpperCase();
+        if (stateCrib !== '' && this.minimizeString(stateCrib) === useCrib && stateCrib !== useCrib) {
+            useCrib = stateCrib;
+        }
+
+        const words = useCrib.split(/[\s\/]+/).map((w) => this.minimizeString(w)).filter((w) => w !== '');
+        if (words.length === 0) {
+            return '';
+        }
+
+        const letterGap = '\\ {0,}';
+        const wordGap = `${letterGap}\\/${letterGap}`;
+        let cribRegex = '';
+        for (let w = 0; w < words.length; w++) {
+            if (w > 0) {
+                cribRegex += wordGap;
+            }
+            for (let i = 0; i < words[w].length; i++) {
+                if (w > 0 || i > 0) {
+                    cribRegex += letterGap;
+                }
+                cribRegex += words[w][i] + letterGap;
+            }
+        }
+
+        const regex = new RegExp(cribRegex, 'g');
+        const match = regex.exec(plainText);
+        if (match === null) {
+            return '';
+        }
+
+        let startCribPosition = match.index;
+        let lengthCribPosition = match[0].length;
+
+        let lengthAdjustment = 0;
+        let startAdjustment = 0;
+
+        if (startCribPosition % 3 === 0) {
+            startAdjustment = 3;
+        } else {
+            while ((startCribPosition - startAdjustment) % 3 != 0) {
+                startAdjustment += 1;
+            }
+        }
+        startCribPosition -= startAdjustment;
+        lengthCribPosition += startAdjustment;
+
+        while ((lengthCribPosition + lengthAdjustment) % 3 != 0) {
+            lengthAdjustment += 1;
+        }
+        lengthCribPosition += lengthAdjustment;
+
+        const cipherCrib = cipherText.substring(startCribPosition, startCribPosition + lengthCribPosition);
+        return cipherCrib.trim();
     }
 
     public randomize(): void {
@@ -620,13 +715,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         const result = $('<div/>');
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
 
-        let errorMessage = '';
-        const crib = this.minimizeString(this.state.crib);
-        const plaintext = this.minimizeString(this.state.cipherString);
-
-        if (plaintext.indexOf(crib) === -1) {
-            errorMessage = `The crib ${this.state.crib} is not found in the plaintext`;
-            this.setErrorMsg(errorMessage, 'cribmiss', null);
+        const cribError = this.validateCribInPlaintext();
+        if (cribError !== '') {
+            this.setErrorMsg(cribError, 'cribmiss', null);
         } else {
             this.setErrorMsg('', 'cribmiss', null);
         }

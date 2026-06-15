@@ -332,6 +332,7 @@ function blockWrapVerb(letters: string, bs: number, width = 52): string {
  * spaces, each letter pair/unit with `unit + ' '`, and wraps at 52 chars.
  */
 function wordSpacedVerb(tokens: string[], origSpacing: boolean[]): string {
+    if (bs === 0) return wordWrapVerb(letters, width);
     const lines: string[] = [];
     let current = '';
     for (let i = 0; i < tokens.length; i++) {

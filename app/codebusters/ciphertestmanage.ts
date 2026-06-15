@@ -186,15 +186,8 @@ export class CipherTestManage extends CipherTest {
             )
         );
         list.append(
-            $('<li/>').text(
-                'The items in the EDIT_DEFINITIONS.tex file should be populated with their corresponding values.'
-            )
-        );
-        list.append(
             $('<li/>').html(
-                "The cover image should be uploaded as a png to the project and renamed to be exactly " +
-                "<code>xcoverart.png</code>. You can modify the insertgraphics elements if you wish to " +
-                "have another type of image included."
+                'The items in the <code>EDIT_DEFINITIONS.tex</code> file should be populated with their corresponding values. Instructions for putting a cover image are included in comments in this file.'
             )
         );
         list.append(

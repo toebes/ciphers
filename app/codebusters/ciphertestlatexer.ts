@@ -351,6 +351,26 @@ function wordSpacedVerb(tokens: string[], origSpacing: boolean[]): string {
     return lines.join('\n\n\n');
 }
 
+/**
+ * Single-letter ciphers with blocksize 0: keep letters within each word
+ * contiguous and separate words with spaces.
+ */
+function wordsOnlyVerb(encoded: string, plaintext: string): string {
+    const words: string[] = [];
+    let idx = 0;
+    let word = '';
+    for (const ch of plaintext.toUpperCase()) {
+        if (/[A-Z]/.test(ch)) {
+            word += encoded[idx++];
+        } else if (ch === ' ' && word) {
+            words.push(word);
+            word = '';
+        }
+    }
+    if (word) words.push(word);
+    return wordWrapVerb(words.join(' '));
+}
+
 // ─── Cipher encoding helpers ──────────────────────────────────────────────────
 
 /** Aristocrat/Patristocrat/Xenocrypt: use the cached alphabetSource/alphabetDest stored in state */
@@ -502,9 +522,9 @@ function fracAlphabet(kw: string): string {
 function fracMorseWordRows(plaintext: string, keyword: string, maxWidth = 53): string[] {
     const alpha = fracAlphabet(keyword.replace(/\s/g, ''));
     // Triplet patterns use the same . / - / x notation as MORSE_CODE above
-    const DOTS = ['.','.','.','.','.','.','.','.','.', '-','-','-','-','-','-','-','-','-', 'x','x','x','x','x','x','x','x'];
-    const DASH = ['.','.','.', '-','-','-', 'x','x','x', '.','.','.', '-','-','-', 'x','x','x', '.','.','.', '-','-','-', 'x','x'];
-    const TIRD = ['.', '-','x', '.', '-','x', '.', '-','x', '.', '-','x', '.', '-','x', '.', '-','x', '.', '-','x', '.', '-','x', '.', '-'];
+    const DOTS = ['.', '.', '.', '.', '.', '.', '.', '.', '.', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'];
+    const DASH = ['.', '.', '.', '-', '-', '-', 'x', 'x', 'x', '.', '.', '.', '-', '-', '-', 'x', 'x', 'x', '.', '.', '.', '-', '-', '-', 'x', 'x'];
+    const TIRD = ['.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-'];
     const fracMap: Record<string, string> = {};
     for (let i = 0; i < 26; i++) fracMap[DOTS[i] + DASH[i] + TIRD[i]] = alpha[i];
 
@@ -761,19 +781,7 @@ function formatNihilistOutput(encoded: number[], bs: number, plaintext: string):
 
 function formatPortaOutput(encoded: string, bs: number, plaintext: string): string {
     if (bs === 0) {
-        const tokens: string[] = [];
-        const spacings: boolean[] = [];
-        let idx = 0;
-        for (const ch of plaintext.toUpperCase()) {
-            if (/[A-Z]/.test(ch)) {
-                tokens.push(encoded[idx++]);
-                spacings.push(false);
-            } else if (ch === ' ') {
-                tokens.push('');
-                spacings.push(true);
-            }
-        }
-        return wordSpacedVerb(tokens, spacings);
+        return wordsOnlyVerb(encoded, plaintext);
     }
     return blockWrapVerb(encoded, bs);
 }
@@ -967,11 +975,11 @@ function buildAristocratLatex(s: IState): QuestionData {
     const ctLetters = ct.replace(/[^A-Z\u00D1]/g, '');
     const formatted = isPat
         ? (() => {
-              const letOnly = ctLetters.replace(/[^A-Z]/g, '');
-              const chunks: string[] = [];
-              for (let i = 0; i < letOnly.length; i += 5) chunks.push(letOnly.slice(i, i + 5));
-              return wordWrapVerb(chunks.join(' '));
-          })()
+            const letOnly = ctLetters.replace(/[^A-Z]/g, '');
+            const chunks: string[] = [];
+            for (let i = 0; i < letOnly.length; i += 5) chunks.push(letOnly.slice(i, i + 5));
+            return wordWrapVerb(chunks.join(' '));
+        })()
         : wordWrapVerb(ct);
 
     // Crib is stored separately from the hint text; use it for bolding begins/ends/contains
@@ -1042,8 +1050,8 @@ function buildAtbashLatex(s: IState): QuestionData {
     const bonus = s.specialbonus ?? false;
     const ct = encodeAtbash(pt);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bs = (s as any).blocksize ?? 5;
-    const formatted = blockWrapVerb(ct, bs);
+    const bs = 0;
+    const formatted = formatPortaOutput(ct, 0, pt);
     const q = buildQuestionIntro(value, bonus, s,
         `Decode this phrase that was encoded using the \\textbf{Atbash} cipher.`);
     const latex =
@@ -1170,14 +1178,14 @@ function buildHillLatex(s: IState): QuestionData {
             ` = \\begin{pmatrix}${z[0]}&${z[1]}\\\\${z[2]}&${z[3]}\\end{pmatrix}\n\\]`;
     } else if (keyword.length === 9) {
         const invDet = (() => {
-            const a=z[4]*z[8]-z[5]*z[7],b=-(z[3]*z[8]-z[5]*z[6]),cc=z[3]*z[7]-z[4]*z[6];
-            const d=-(z[1]*z[8]-z[2]*z[7]),ee=z[0]*z[8]-z[2]*z[6],f=-(z[0]*z[7]-z[1]*z[6]);
-            const g=z[1]*z[5]-z[2]*z[4],h=-(z[0]*z[5]-z[2]*z[3]),ii=z[0]*z[4]-z[1]*z[3];
-            const det3 = ((a*z[0]+b*z[1]+cc*z[2]) % 26 + 26) % 26;
+            const a = z[4] * z[8] - z[5] * z[7], b = -(z[3] * z[8] - z[5] * z[6]), cc = z[3] * z[7] - z[4] * z[6];
+            const d = -(z[1] * z[8] - z[2] * z[7]), ee = z[0] * z[8] - z[2] * z[6], f = -(z[0] * z[7] - z[1] * z[6]);
+            const g = z[1] * z[5] - z[2] * z[4], h = -(z[0] * z[5] - z[2] * z[3]), ii = z[0] * z[4] - z[1] * z[3];
+            const det3 = ((a * z[0] + b * z[1] + cc * z[2]) % 26 + 26) % 26;
             // modular inverse of det mod 26
             let inv = 0;
             for (let k = 1; k < 26; k++) { if ((det3 * k) % 26 === 1) { inv = k; break; } }
-            return [a,d,g,b,ee,h,cc,f,ii].map(x => ((x%26+26)%26*inv)%26);
+            return [a, d, g, b, ee, h, cc, f, ii].map(x => ((x % 26 + 26) % 26 * inv) % 26);
         })();
         matrix =
             `\\begin{align*}\n\\begin{pmatrix}${keyword[0]}&${keyword[1]}&${keyword[2]}\\\\${keyword[3]}&${keyword[4]}&${keyword[5]}\\\\${keyword[6]}&${keyword[7]}&${keyword[8]}\\end{pmatrix}` +
@@ -2117,10 +2125,10 @@ Replacement&&&&&&&&&&&&&&&&&&&&&&&&&&\\\\
 \\begin{questions}
 % paste the output from the python script below this line
 ${questions
-    .map((q, i) =>
-        q.latex + ((i + 1) % 2 === 0 ? '\n\\newpage' : ''),
-    )
-    .join('\n')}
+            .map((q, i) =>
+                q.latex + ((i + 1) % 2 === 0 ? '\n\\newpage' : ''),
+            )
+            .join('\n')}
 % paste the output from the python script above this line
 \\end{questions}
 

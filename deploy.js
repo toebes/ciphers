@@ -46,7 +46,7 @@ async function uploadFiltered(client, localDir, remoteDir, filterFn, baseDir = l
     for (const entry of entries) {
         const localPath = path.join(localDir, entry.name);
         const relativePath = path.relative(baseDir, localPath).replace(/\\/g, '/');
-        const remotePath = `${remoteDir}/${relativePath}`;
+        const remotePath = path.posix.join(remoteDir, relativePath);
 
         if (entry.isDirectory()) {
             await uploadFiltered(client, localPath, remoteDir, filterFn, baseDir);

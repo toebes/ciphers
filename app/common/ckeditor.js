@@ -3,27 +3,16 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-import {
-    InlineEditor,
-    BlockQuote,
-    Bold,
-    Code,
-    Essentials,
-    FontBackgroundColor,
-    FontColor,
-    FontFamily,
-    FontSize,
-    Italic,
-    Link,
-    List,
-    Paragraph,
-    PasteFromOffice,
-    RemoveFormat,
-    Subscript,
-    Superscript,
-    TextTransformation,
-    Underline
-} from 'ckeditor5';
+import { InlineEditor } from '@ckeditor/ckeditor5-editor-inline';
+import { BlockQuote } from '@ckeditor/ckeditor5-block-quote';
+import { Bold, Code, Italic, Subscript, Superscript, Underline } from '@ckeditor/ckeditor5-basic-styles';
+import { Essentials } from '@ckeditor/ckeditor5-essentials';
+import { FontBackgroundColor, FontColor, FontFamily, FontSize } from '@ckeditor/ckeditor5-font';
+import { Link } from '@ckeditor/ckeditor5-link';
+import { List } from '@ckeditor/ckeditor5-list';
+import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
+import { RemoveFormat } from '@ckeditor/ckeditor5-remove-format';
+import { TextTransformation } from '@ckeditor/ckeditor5-typing';
 
 import 'ckeditor5/ckeditor5.css';
 
@@ -43,7 +32,6 @@ CKInlineEditor.builtinPlugins = [
     Link,
     List,
     Paragraph,
-    PasteFromOffice,
     RemoveFormat,
     Subscript,
     Superscript,

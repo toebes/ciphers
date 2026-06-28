@@ -1144,7 +1144,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     plainKey = plainKey.slice(lastSplit);
                     result.push([cipherPart, messagePart, mappedKeyPart, mappedMessagePart, plainKeyPart]);
                 }
-                if (result.length === 2) {
+                if (result.length === 3) {
                     lineEncodeWidth = maxEncodeWidth
                 }
             }

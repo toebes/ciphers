@@ -970,7 +970,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     result.push([cipherPart, messagePart]);
                     lastSplit = -1;
                 }
-                if (result.length === 2) {
+                if (result.length === 3) {
                     lineEncodeWidth = maxEncodeWidth
                 }
             }

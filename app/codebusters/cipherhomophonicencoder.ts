@@ -313,10 +313,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             if (hint.length > keyword.length || hint.split('').some((c) => keyword.indexOf(c) < 0)) {
                 msg += ` The Hint Text '${this.state.hint}' doesn't appear to be a subset of the Key '${this.state.keyword}'.`;
             }
-            // For an encode or decode, they need to mention the key
+            // For an encode, they need to mention the key
             const key = this.minimizeString(this.state.keyword);
-            if (key !== '' && questionText.indexOf(key) < 0) {
-                msg += `The Key '${this.state.keyword}' doesn't appear to be mentioned in the Question Text.`;
+            if (this.state.operation === 'encode') {
+                if (key !== '' && questionText.indexOf(key) < 0) {
+                    msg += `The Key '${this.state.keyword}' doesn't appear to be mentioned in the Question Text.`;
+                }
+            } // For a decode, they need to mention the hint text
+            else {
+                if (hint.split('').some((c) => this.state.question.indexOf(c.toUpperCase()) < 0)) {
+                    msg += `The Hint Text '${this.state.hint}' doesn't appear to be mentioned in the Question Text.`;
+                }
             }
             if (this.state.operation === 'encode') {
                 if (questionText.indexOf('ENCOD') < 0 && questionText.indexOf('ENCRY') < 0) {

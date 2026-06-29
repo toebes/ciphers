@@ -577,7 +577,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         };
     }
 
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
         if (this.state.usehint) {
             if (this.state.hint === undefined) {
                 // Display error message-usehint is true but no hint specified...
@@ -596,7 +596,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         else {
             hinttext = '';
         }
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
     }
     /**
      * Make sure that they are asking them to solve the cipher or fill in the keyword.

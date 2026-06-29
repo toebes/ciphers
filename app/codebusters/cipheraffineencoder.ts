@@ -448,7 +448,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * @param operationtext2 additional question text for the specific cipher
      * @param cipherAorAn literally 'a' or 'an' for referring to a cipher type.
      */
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
 
         if (this.state.operation === 'crypt') {
             const cribpos = this.placeCrib();
@@ -457,7 +457,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         } else {
             operationtext2 = ` with <strong><i>a</i>=${this.genMonoText(String(this.state.a))}</strong> and <strong><i>b</i>=${this.genMonoText(String(this.state.b))}</strong>`;
         }
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
     }
 
     /**

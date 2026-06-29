@@ -284,7 +284,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param operationtext2 additional question text for the specific cipher
      * @param cipherAorAn literally 'a' or 'an' for referring to a cipher type.
      */
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
 
         if (this.state.operation != 'crypt') {
             operationtext2 = ` using a keyword of ${this.genMonoText(this.minimizeString(this.state.keyword))}`
@@ -295,7 +295,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (fixedName == 'Vigenere') {
             fixedName = 'Vigenère';
         }
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
     }
     /**
      * This function identifies the crib placement for Affine cryptanalysis and returns question text describing the placement.

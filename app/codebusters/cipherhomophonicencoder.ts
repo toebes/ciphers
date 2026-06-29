@@ -410,26 +410,48 @@ export class CipherHomophonicEncoder extends CipherEncoder {
      * @param operationtext2 additional question text for the specific cipher
      * @param cipherAorAn literally 'a' or 'an' for referring to a cipher type.
      */
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
 
         if (this.state.operation != 'crypt') {
             let keyword = this.minimizeString(this.state.keyword);
             if (keyword !== '') {
                 let hint = this.minimizeString(this.state.hint);
-                if (hint === keyword || hint == '') {
-                    operationtext2 = ` using a keyword of ${this.genMonoText(keyword)}`
-                } else {
+                if (warnlevel == "") {
+                    if (hint === keyword || hint == '') {
+                        operationtext2 = ` using a keyword of ${this.genMonoText(keyword)}`
+                    } else {
+                        let hinttext = ''
+                        let hintsorted = hint.split("").sort((a, b) => keyword.indexOf(a) - keyword.indexOf(b));
+                        if (hint.length === 1) {
+                            hinttext = ` the ${this.getPositionText(keyword.indexOf(hint) + 1)} letter as ${this.genMonoText(hint)}`
+                        } else if (hint.length == 2) {
+                            hinttext = ` the ${this.getPositionText(keyword.indexOf(hintsorted[0]) + 1)} letter ${this.genMonoText(hintsorted[0])} and the ${this.getPositionText(keyword.indexOf(hintsorted[1]) + 1)} letter ${this.genMonoText(hintsorted[1])}`
+                        } else {
+                            hinttext = ` the `
+                            for (let i = 0; i < hint.length - 1; i++) {
+                                hinttext += `${this.getPositionText(keyword.indexOf(hintsorted[i]) + 1)} letter ${this.genMonoText(hintsorted[i])}, `
+                            }
+                            hinttext += `and the ${this.getPositionText(keyword.indexOf(hintsorted[hint.length - 1]) + 1)} letter ${this.genMonoText(hintsorted[hint.length - 1])}`
+                        }
+                        operationtext2 = ` using a keyword that has ${hinttext}`;
+                    }
+                }
+                else {
+                    if (hint == '') {
+                        hint = keyword;
+                    }
                     let hinttext = ''
+                    let hintsorted = hint.split("").sort();
                     if (hint.length === 1) {
                         hinttext = ` the letter ${this.genMonoText(hint)}`
                     } else if (hint.length == 2) {
-                        hinttext = ` the letters ${this.genMonoText(hint[0])} and ${this.genMonoText(hint[1])}`
+                        hinttext = ` the letters ${this.genMonoText(hintsorted[0])} and ${this.genMonoText(hintsorted[1])}`
                     } else {
                         hinttext = ` the letters `
                         for (let i = 0; i < hint.length - 1; i++) {
-                            hinttext += `${this.genMonoText(hint[i])}, `
+                            hinttext += `${this.genMonoText(hintsorted[i])}, `
                         }
-                        hinttext += `and ${this.genMonoText(hint[hint.length - 1])}`
+                        hinttext += `and ${this.genMonoText(hintsorted[hint.length - 1])}`
                     }
                     operationtext2 = ` using a keyword that has ${hinttext} in it`;
                 }
@@ -439,7 +461,16 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             const cribpos = this.placeCrib();
             hinttext = ` ${this.getCribPlacement(cribpos)}`;
         }
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
+    }
+    /**
+     * Update the GUI with a list of suggestions for questions
+     * @param qcount Number of questions to find
+     * @param action Callback function when a question is found
+     * @returns Total number of questions found
+     */
+    public searchForQuestions(qcount: number, action: (count: number, question: string, warnlevel: string) => boolean, warnlevel: string): number {
+        return super.searchForQuestions((qcount + 1) / 2, action, "") + super.searchForQuestions(qcount / 2, action, "warning");
     }
     /**
      * This function identifies the crib placement for Affine cryptanalysis and returns question text describing the placement.

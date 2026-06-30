@@ -846,7 +846,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
     }
 
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
         const plaintext = this.minimizeString(this.getEncodingString());
         const criblook = this.minimizeString(this.state.crib).toUpperCase();
         hinttext = '';
@@ -884,7 +884,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         else {
             qOptions.push(`The following strange headlines encode a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
         }
-        super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
         return true;
     }
     /**

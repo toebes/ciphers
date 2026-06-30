@@ -1847,7 +1847,7 @@ export class CipherEncoder extends CipherHandler {
      * @param cipherAorAn Either A or An depending on if the cipher starts with vowel
      * @returns whether qOptions was modified
      */
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
 
         // Collect all question text
         const usedQuestions = new Array<string>;
@@ -2086,7 +2086,7 @@ export class CipherEncoder extends CipherHandler {
      * @returns Total number of questions found
      */
     // TODO: morbit and pollux doesn't have the q gen button
-    public searchForQuestions(qcount: number, action: (count: number, question: string) => boolean): number {
+    public searchForQuestions(qcount: number, action: (count: number, question: string, warnlevel: string) => boolean, warnlevel: string): number {
         const lang = 'en';
 
         const picked: BoolMap = {}
@@ -2132,7 +2132,7 @@ export class CipherEncoder extends CipherHandler {
         }
         else {
             // adds questions 
-            this.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+            this.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
         }
 
         let testUsage = this.cipherName;
@@ -2148,7 +2148,7 @@ export class CipherEncoder extends CipherHandler {
                 const question = qOptions[i];
                 if (question.toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
                     picked[question] = true;
-                    if (action(found, question)) {
+                    if (action(found, question, warnlevel)) {
                         found++;
                     }
                 }
@@ -2165,7 +2165,7 @@ export class CipherEncoder extends CipherHandler {
             if (picked[question] !== true) {
                 picked[question] = true;
                 // We have a keyword, so let them process it (if they can)
-                if (action(found, question)) {
+                if (action(found, question, warnlevel)) {
                     found++
                 }
             }
@@ -2225,12 +2225,12 @@ export class CipherEncoder extends CipherHandler {
         const divAll = $("<div/>")
         output.empty().append(divAll)
 
-        const found = this.searchForQuestions(7, (found: number, question: string): boolean => {
+        const found = this.searchForQuestions(7, (found: number, question: string, warnlevel: string): boolean => {
             // let div = $('<div/>');
             let useButton = $("<button/>", {
                 'data-text': question,
                 type: "button",
-                class: "rounded button useq",
+                class: `rounded button useq ${warnlevel}`,
             }).html("Use");
             divAll.append($('<div/>')
                 .append(useButton)
@@ -2238,7 +2238,7 @@ export class CipherEncoder extends CipherHandler {
             )
             // divAll.append(div);
             return true;
-        })
+        }, "")
         this.attachHandlers()
     }
     /**

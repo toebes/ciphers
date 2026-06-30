@@ -1667,13 +1667,13 @@ export class CipherTest extends CipherEncoder {
     public isSameCipher(state1: IState, state2: IState): boolean {
         // Make sure every element in state1 that is non empty is also in state 2
         for (const elem in state1) {
-            if (!this.isEquivalent(state1[elem], state2[elem])) {
+            if (elem !== "editEntry" && !this.isEquivalent(state1[elem], state2[elem])) {
                 return false;
             }
         }
         // And do the same for everything in reverse
         for (const elem in state2) {
-            if (!this.isEquivalent(state2[elem], state1[elem])) {
+            if (elem !== "editEntry" && !this.isEquivalent(state2[elem], state1[elem])) {
                 return false;
             }
         }

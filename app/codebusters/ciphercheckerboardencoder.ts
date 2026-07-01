@@ -970,7 +970,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     result.push([cipherPart, messagePart]);
                     lastSplit = -1;
                 }
-                if (result.length === 2) {
+                if (result.length === 3) {
                     lineEncodeWidth = maxEncodeWidth
                 }
             }
@@ -1571,14 +1571,14 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     }
 
 
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
         if (this.state.operation != 'crypt') {
             // const keyword = this.genMonoText(this.cleanKeyword);
             // const keyword2 = this.genMonoText(this.cleanKeyword2);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
             operationtext2 += ` with a polybius key of  ${this.genMonoText(polybiusKey)}`;
         }
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
 
 
     }

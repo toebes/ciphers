@@ -1144,7 +1144,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     plainKey = plainKey.slice(lastSplit);
                     result.push([cipherPart, messagePart, mappedKeyPart, mappedMessagePart, plainKeyPart]);
                 }
-                if (result.length === 2) {
+                if (result.length === 3) {
                     lineEncodeWidth = maxEncodeWidth
                 }
             }
@@ -2353,7 +2353,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param cipherAorAn Either A or An depending on if the cipher starts with vowel
      * @returns whether qOptions was modified
      */
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
         if (this.state.operation != 'crypt') {
             const keyword = this.genMonoText(this.cleanKeyword);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
@@ -2363,7 +2363,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const keyword = this.cleanKeyword;
             operationtext2 += ` with a keyword length of ${keyword.length}`;
         }
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
+        
     }
     /**
      * See if any of the crib letters give us hints about the characters

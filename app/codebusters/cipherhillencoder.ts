@@ -340,11 +340,11 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         return { suggested: suggested, min: min, max: max, text: text }
     }
-    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
 
         operationtext2 = ` with a keyword of ${this.genMonoText(this.state.keyword)}`
 
-        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
 
     }
     /**

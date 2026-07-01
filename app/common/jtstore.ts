@@ -1,4 +1,4 @@
-import * as Cookies from 'js-cookie';
+import Cookies from 'js-cookie';
 
 /**
  * The base class simply says that storage isn't available and silently throws
@@ -49,7 +49,7 @@ class JTStorageLocal extends JTStorage {
             if (/^[\{\[]/.test(result)) {
                 content = result;
             }
-        } catch (e) {}
+        } catch (e) { }
 
         try {
             localStorage.setItem(entry, content);

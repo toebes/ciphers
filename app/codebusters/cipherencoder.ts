@@ -1238,8 +1238,8 @@ export class CipherEncoder extends CipherHandler {
      * @param target Place to output the step
      * @param text Text of the step number
      */
-    public showStep(target: JQuery<HTMLElement>, text: string): void {
-        target.append(makeCallout(text, 'secondary'))
+    public showStep(target: JQuery<HTMLElement>, content: string | JQuery<HTMLElement>): void {
+        target.append(makeCallout(content, 'secondary'))
     }
     /**
      * Show the current step as a callout
@@ -1739,20 +1739,69 @@ export class CipherEncoder extends CipherHandler {
     }
 
     /**
-     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
-     * @param val Character to annotate
+     * Render a string with an annotation to indicate that it is a ciphertext component
+     * @param val string to annotate
      * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
      */
     public fixedCt(val: string): string {
         return `<span class="fct">${val}</span>`;
     }
     /**
-     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
-     * @param val Character to annotate
+     * Render a string with an annotation to indicate that it is a plaintext component
+     * @param val string to annotate
      * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
      */
     public fixedPt(val: string): string {
         return `<span class="fpt">${val}</span>`;
+    }
+    /**
+     * Render a string with an annotation to indicate that it is a keyword component
+     * @param val Character to annotate
+     * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
+     */
+    public fixedKt(val: string): string {
+        return `<span class="fkt">${val}</span>`;
+    }
+    /**
+     * Format a list of words, separathing them with ',' and ' and ' as appropriate using the formatter for each word
+     * @param words List of words to format
+     * @param formatter Formatter function
+     * @returns Formatted list of words
+     */
+    public fixedAnyList(words: string[], formatter: (val: string) => string) {
+        if (words.length === 0) {
+            return ''
+        }
+        if (words.length === 1) {
+            return formatter(words[0])
+        }
+        let result = formatter(words[0])
+        for (let i = 1; i < words.length; i++) {
+            if (words.length > 2) {
+                result += ', '
+            }
+            if (i === words.length - 1) {
+                result += ' and '
+            }
+            result += formatter(words[i])
+        }
+        return result
+    }
+    /**
+     * Format a list of plaintext words, separathing them with ',' and ' and ' as appropriate using the formatter for each word
+     * @param words List of words to format
+     * @returns HTML formatted list of words
+     */
+    public fixedPtList(words: string[]): string {
+        return (this.fixedAnyList(words, this.fixedPt))
+    }
+    /**
+     * Format a list of keywords, separathing them with ',' and ' and ' as appropriate using the formatter for each word
+     * @param words List of words to format
+     * @returns HTML formatted list of words
+     */
+    public fixedKtList(words: string[]): string {
+        return (this.fixedAnyList(words, this.fixedKt))
     }
     /**
      * Fills in a question template with values in the Record map.

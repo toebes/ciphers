@@ -1147,12 +1147,13 @@ tr.highlighted-header {
 }
 
 .fpt {
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: 800;
     background-color: yellow !important;
 }
+.fkt {
+    background-color: lightblue !important;
+}
 
-.fct {
+.fpt, .fct, .fkt {
     font-family: 'Courier New', Courier, monospace;
     font-weight: 800;
 }

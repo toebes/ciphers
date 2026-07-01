@@ -1749,7 +1749,7 @@ export class CipherTest extends CipherEncoder {
         const state = this.getFileEntry(question);
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.savefileentry = state.editEntry;
-        cipherhandler.restore(state);
+        cipherhandler.restore(state, true);
         return cipherhandler;
     }
     /**
@@ -1809,7 +1809,7 @@ export class CipherTest extends CipherEncoder {
         result.append(qtext);
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.savefileentry = state.editEntry
-        cipherhandler.restore(state);
+        cipherhandler.restore(state, true);
         // Remember this question points so we can generate the tiebreaker order
         this.qdata.push({ qnum: qnum, points: state.points, specialBonus: state.specialbonus, noMistakes: cipherhandler.freeMistakes() === 0 });
         result.append(cipherhandler.genAnswer(testType));

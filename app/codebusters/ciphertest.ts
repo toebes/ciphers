@@ -13,13 +13,17 @@ import {
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { countHomonyms } from '../common/homonyms';
 import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
 import CipherScoreSheetGenerator from './cipherscoresheetgenerator';
+import { generateTestLatex } from './ciphertestlatexer';
 
 const DATABASE_VERSION = 4
+
+const OVERLEAF_TEMPLATE_URL = 'https://www.overleaf.com/read/yxjtjdcgykgp#aa9620';
 
 export interface SortableEntry {
     weight: number;
@@ -122,6 +126,8 @@ export interface ITestState extends IState {
     tiny?: string;
     /** Show the resource sheet */
     ressheet?: string;
+    /** When 'y', open the browser print preview once the page has rendered */
+    print?: string;
 }
 
 interface INewCipherEntry {
@@ -247,6 +253,10 @@ export class CipherTest extends CipherEncoder {
     ])
 
     public activeToolMode: toolMode = toolMode.codebusters;
+    /* Tracks which test entry the LaTeX warning dialog was opened for */
+    public latexExportEntry: number = -1;
+    /* Ensures the auto print preview (print=y) is only triggered once */
+    public hasAutoPrinted: boolean = false;
     public defaultstate: ITestState = {
         cipherString: '',
         cipherType: ICipherType.None,
@@ -536,6 +546,177 @@ export class CipherTest extends CipherEncoder {
         await CipherScoreSheetGenerator.generateScoreSheet(testJson, testdata.questions);
     }
     /**
+     * Inject the LaTeX warning dialog into the page's main menu area so that
+     * Foundation can manage its lifecycle (open / close / keyboard dismiss).
+     */
+    public createMainMenu(): JQuery<HTMLElement> {
+        const result = super.createMainMenu();
+        result.append(this.createLatexWarningDlg());
+        return result;
+    }
+    /**
+     * Builds the "Export to LaTeX — pre-flight checklist" warning dialog.
+     * The dialog is hidden by Foundation's reveal mechanism until opened via
+     * $('#latexWarningDLG').foundation('open').
+     */
+    public createLatexWarningDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        dlgContents.append(
+            $('<p/>', { style: 'color: red; text-align: center; font-weight: bold;' }).text(
+                'Warning: Export to LaTeX requires additional modification'
+            )
+        );
+
+        const list = $('<ol/>');
+        list.append(
+            $('<li/>').html(
+                `The generated Test and Key should be pasted in on a copy of <a href="${OVERLEAF_TEMPLATE_URL}" target="_blank">this Overleaf template</a> to completely ` +
+                `replace the respective Test and Key documents.`
+            )
+        );
+        list.append(
+            $('<li/>').html(
+                'The items in the <code>EDIT_DEFINITIONS.tex</code> file should be populated with their corresponding values. Instructions for putting a cover image are included in comments in this file.'
+            )
+        );
+        list.append(
+            $('<li/>').text(
+                'Baconians must be manually inputted (this is due to their storage as HTML elements in ' +
+                'the JSON to support fancy types). Fancy Baconians should be imported as included pdfs ' +
+                '(example shown in video below).'
+            )
+        );
+        list.append(
+            $('<li/>').html(
+                'The spacing in the test must be generally audited to avoid questions going over multiple ' +
+                'pages. You can solve this by adding/removing <code>\\newpage</code> elements where ' +
+                'necessary between questions.'
+            )
+        );
+        list.append(
+            $('<li/>').text(
+                'Review question text, some may be bugged due to how the pattern matching in the script ' +
+                'identifies various forms of Cribs/Hints.'
+            )
+        );
+        list.append($('<li/>').text('Verify that there are no mistakes on the key.'));
+
+        dlgContents.append(list);
+
+        dlgContents.append(
+            $('<p/>').html(
+                'A video walking through this process can be found here <em>(link coming soon)</em>.'
+            )
+        );
+
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Cancel'))
+                .append(
+                    $('<a/>', { class: 'button', id: 'latexconfirm' }).text('I Understand')
+                )
+        );
+
+        return JTFDialog('latexWarningDLG', 'Export to LaTeX', dlgContents);
+    }
+    /**
+     * Open the LaTeX pre-flight warning dialog for a given test.  The actual
+     * export runs after the user confirms (see the #latexconfirm handler).
+     * @param entry Test index to export
+     */
+    public promptLatexExport(entry: number): void {
+        this.latexExportEntry = entry;
+        $('#latexWarningDLG').foundation('open');
+    }
+    /**
+     * Trigger a plain-text file download in the browser.
+     */
+    public downloadText(filename: string, content: string): void {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    /**
+     * Generate and download the two .tex files ({Name}-Test.tex and {Name}-Key.tex).
+     * Called after the user confirms the LaTeX warning dialog.
+     * LaTeX generation runs entirely in TypeScript — no external server required.
+     * @param entry Test index to export
+     */
+    public exportTestToLatex(entry: number): void {
+        const testdata = this.getTestEntry(entry);
+        const testDataMap = this.generateTestData(testdata);
+        const safeName = (testdata.title || 'Test').replace(/[^a-zA-Z0-9 ]/g, '').trim() || 'Test';
+
+        try {
+            const { testTex, keyTex } = generateTestLatex(testDataMap);
+            this.downloadText(`${safeName}-Test.tex`, testTex);
+            // Small delay so both downloads register cleanly in the browser
+            setTimeout(() => {
+                this.downloadText(`${safeName}-Key.tex`, keyTex);
+            }, 200);
+        } catch (err) {
+            alert(`LaTeX export failed:\n${String(err)}`);
+        }
+    }
+    /**
+     * Build a trigger button that reveals a related action menu.  The trigger is
+     * a normal `.button` so it can live inside a `.button-group` (and pick up the
+     * group's rounding) alongside other buttons.  It is paired with a pane built
+     * by makeActionPane() sharing the same menuKey inside an `.action-menu-wrap`.
+     * The toggle/positioning wiring lives in attachHandlers().
+     * @param label Text shown on the trigger button
+     * @param menuKey Key linking this trigger to its pane within the wrapper
+     */
+    public makeActionTrigger(label: string, menuKey: string): JQuery<HTMLElement> {
+        return $('<a/>', {
+            type: 'button',
+            class: 'action-trigger button',
+            'data-menu': menuKey,
+        }).text(label);
+    }
+    /**
+     * Build the floating menu of actions revealed by an action trigger.  Each
+     * item is a normal action button (identified by its class) so the existing
+     * click handlers continue to work.  The pane is positioned under its trigger
+     * when opened (see attachHandlers).
+     * @param entry Test index the actions apply to
+     * @param menuKey Key linking this pane to its trigger within the wrapper
+     * @param items Menu items ({ title, class }) rendered inside the pane
+     */
+    public makeActionPane(
+        entry: number,
+        menuKey: string,
+        items: { title: string; class: string }[]
+    ): JQuery<HTMLElement> {
+        const pane = $('<div/>', {
+            class: 'action-pane',
+            'data-menu': menuKey,
+            style:
+                'position: absolute; z-index: 1000; display: none; ' +
+                'padding: 0.5rem; background: #fefefe; border: 1px solid #cacaca; ' +
+                'border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);',
+        });
+        const paneButtons = $('<div/>', { class: 'stacked button-group' });
+        for (const item of items) {
+            paneButtons.append(
+                $('<a/>', {
+                    'data-entry': entry,
+                    type: 'button',
+                    class: `${item.class} button`,
+                }).text(item.title)
+            );
+        }
+        pane.append(paneButtons);
+        return pane;
+    }
+    /**
      * Convert the current test information to a map which can be saved/restored later
      * @param test Test to generate data for
      * @returns string form of the JSON for the test
@@ -589,11 +770,73 @@ export class CipherTest extends CipherEncoder {
         this.updateOutput();
     }
     /**
+     * Build the `&print=y` suffix that tells the target page to open the
+     * browser print preview once it has finished rendering.
+     * @param autoPrint When true, return the print flag; otherwise empty
+     */
+    public printFlag(autoPrint: boolean): string {
+        return autoPrint ? '&print=y' : '';
+    }
+    /**
+     * When the page was opened with the `print=y` flag (e.g. from the Test
+     * Manager Print menu), open the browser print preview once the rendered
+     * test has had a chance to lay out.  Guarded so it only fires once even
+     * though updateOutput() may run multiple times.
+     */
+    public maybeAutoPrint(): void {
+        if (this.state.print === 'y' && !this.hasAutoPrinted) {
+            this.hasAutoPrinted = true;
+            // Wait for any header/content images to finish loading (otherwise
+            // they would be missing from the print preview) and then defer a
+            // little so the generated test finishes laying out before printing.
+            this.whenImagesLoaded(() => {
+                setTimeout(() => {
+                    window.print();
+                }, 300);
+            });
+        }
+    }
+    /**
+     * Invoke the callback once every image currently on the page that still has
+     * pending image data has loaded (or errored).  Images that are already
+     * loaded are ignored, and a safety timeout guarantees the callback still
+     * fires even if an image never signals completion.
+     * @param done Callback to run once images have settled
+     */
+    public whenImagesLoaded(done: () => void): void {
+        const pending = $('img')
+            .toArray()
+            .filter((img: HTMLImageElement) => img.getAttribute('src') && !img.complete);
+        if (pending.length === 0) {
+            done();
+            return;
+        }
+        let remaining = pending.length;
+        let finished = false;
+        const finish = (): void => {
+            if (!finished) {
+                finished = true;
+                done();
+            }
+        };
+        for (const img of pending) {
+            $(img).one('load error', () => {
+                remaining--;
+                if (remaining <= 0) {
+                    finish();
+                }
+            });
+        }
+        // Safety net so we never block the print preview on a stuck image
+        setTimeout(finish, 5000);
+    }
+    /**
      * Print out the test
      * @param test Test number to print
+     * @param autoPrint Open the print preview once the page has rendered
      */
-    public gotoPrintTest(test: number): void {
-        location.assign(`TestPrint.html?test=${test}`);
+    public gotoPrintTest(test: number, autoPrint = false): void {
+        location.assign(`TestPrint.html?test=${test}${this.printFlag(autoPrint)}`);
     }
     /**
      * Print out the test
@@ -605,9 +848,10 @@ export class CipherTest extends CipherEncoder {
     /**
      * Print out the answers for a test
      * @param test Test number to print
+     * @param autoPrint Open the print preview once the page has rendered
      */
-    public gotoPrintTestAnswers(test: number): void {
-        location.assign(`TestAnswers.html?test=${test}`);
+    public gotoPrintTestAnswers(test: number, autoPrint = false): void {
+        location.assign(`TestAnswers.html?test=${test}${this.printFlag(autoPrint)}`);
     }
     /**
      * Print out the answers for a test
@@ -619,9 +863,10 @@ export class CipherTest extends CipherEncoder {
     /**
      * Print out the answers and solutions for a test
      * @param test Test number to print
+     * @param autoPrint Open the print preview once the page has rendered
      */
-    public gotoPrintTestSols(test: number): void {
-        location.assign(`TestAnswers.html?test=${test}` + '&sols=y');
+    public gotoPrintTestSols(test: number, autoPrint = false): void {
+        location.assign(`TestAnswers.html?test=${test}&sols=y${this.printFlag(autoPrint)}`);
     }
     /**
      * Show all the locally stored tests
@@ -1276,6 +1521,7 @@ export class CipherTest extends CipherEncoder {
      * @param showPlain Boolean to show the plain text
      * @param testtype Type of test the question is being used for
      * @param prevuse Any previous use of the question on another test
+     * @param draggable Whether the row can be drag-reordered (adds a drag handle)
      * @returns State representing the test question data,  state.errorcount tells how many errors were found
      */
     public addQuestionRow(
@@ -1285,7 +1531,8 @@ export class CipherTest extends CipherEncoder {
         buttons: buttonInfo[],
         showPlain: boolean,
         testtype: ITestType,
-        prevuse: any
+        prevuse: any,
+        draggable = false
     ): IEncoderState {
         let ordertext = 'Timed';
         let plainclass = '';
@@ -1302,6 +1549,12 @@ export class CipherTest extends CipherEncoder {
         }
         let state: IEncoderState = undefined;
         let row = table.addBodyRow();
+        // A draggable question row can be rearranged, so tag it (and any error
+        // row that follows) so the Sortable can group and move them together.
+        const isDraggable = draggable && order !== -1;
+        if (isDraggable) {
+            row.rowClass = 'qrow';
+        }
         // We have a timed question on everything except the Division A
         if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
             const callout = $('<div/>', {
@@ -1317,7 +1570,20 @@ export class CipherTest extends CipherEncoder {
             });
         } else {
             let qerror = '';
-            row.add(ordertext);
+            if (isDraggable) {
+                // Put a plain hamburger handle to the left of the question number
+                const numcell = $('<div/>', { class: 'qnumcell' });
+                numcell.append(
+                    $('<span/>', {
+                        class: 'quesdrag',
+                        title: 'Drag to reorder',
+                    }).html('&#9776;')
+                );
+                numcell.append($('<span/>', { class: 'qnum' }).text(ordertext));
+                row.add(numcell);
+            } else {
+                row.add(ordertext);
+            }
             state = this.getFileEntry(qnum);
             if (state === null) {
                 state = {
@@ -1406,6 +1672,11 @@ export class CipherTest extends CipherEncoder {
             }
             if (qerror !== '' || errContent !== undefined) {
                 row = table.addBodyRow();
+                // Tag the error row so it can be grouped with its question row
+                // and travel with it when the question is dragged to reorder.
+                if (isDraggable) {
+                    row.rowClass = 'qerr';
+                }
                 const callout = $('<div/>', {
                     class: 'callout alert',
                 }).text(qerror);
@@ -2141,6 +2412,57 @@ export class CipherTest extends CipherEncoder {
                 $(e.target).addClass('is-active');
                 this.gotoTestManage($(e.target).val() as ITestManage);
                 this.updateOutput();
+            });
+        $('#latexconfirm')
+            .off('click')
+            .on('click', () => {
+                $('#latexWarningDLG').foundation('close');
+                window.open(OVERLEAF_TEMPLATE_URL, '_blank');
+                if (this.latexExportEntry >= 0) {
+                    this.exportTestToLatex(this.latexExportEntry);
+                    this.latexExportEntry = -1;
+                }
+            });
+        // Export a single test to a JSON file (shared Export menu item).
+        $('.testexportjson')
+            .off('click')
+            .on('click', (e) => {
+                const entry = Number($(e.target).attr('data-entry'));
+                const test = this.getTestEntry(entry);
+                const safeName = (test.title || 'Test').trim() || 'Test';
+                this.downloadText(`${safeName}.json`, this.generateTestJSON(test));
+            });
+        // Export a single test to LaTeX (shared Export menu item).
+        $('.testlatex')
+            .off('click')
+            .on('click', (e) => {
+                this.promptLatexExport(Number($(e.target).attr('data-entry')));
+            });
+        // Toggle an action menu, positioning its pane under the clicked trigger.
+        $('.action-trigger')
+            .off('click')
+            .on('click', (e) => {
+                e.stopPropagation();
+                const trigger = $(e.currentTarget);
+                const key = trigger.attr('data-menu');
+                const wrap = trigger.closest('.action-menu-wrap');
+                const pane = wrap.find(`.action-pane[data-menu="${key}"]`);
+                const wasOpen = pane.is(':visible');
+                $('.action-pane').hide();
+                if (!wasOpen) {
+                    const pos = trigger.position();
+                    pane.css({
+                        left: `${pos.left}px`,
+                        top: `${pos.top + (trigger.outerHeight() || 0)}px`,
+                    });
+                    pane.show();
+                }
+            });
+        // Clicking anywhere else dismisses any open action menu.
+        $(document)
+            .off('click.actionmenu')
+            .on('click.actionmenu', () => {
+                $('.action-pane').hide();
             });
     }
 }

@@ -2337,6 +2337,30 @@ table.nameline td.u {
 .draggable--over {
     opacity: 0.25;
 }
+.qnumcell {
+    display: flex;
+    align-items: center;
+}
+.quesdrag {
+    cursor: grab;
+    margin-right: 0.5rem;
+    color: #8a8a8a;
+    line-height: 1;
+    user-select: none;
+}
+.quesdrag:hover {
+    color: #1779ba;
+}
+.quesdrag:active {
+    cursor: grabbing;
+}
+tbody.qgroup.draggable-mirror {
+    background-color: #fefefe;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+tbody.qgroup.draggable-source--is-dragging {
+    opacity: 0.35;
+}
 
 .wshift {
     margin: 0.2rem;

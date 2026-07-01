@@ -2146,7 +2146,7 @@ export class CipherEncoder extends CipherHandler {
         if (this.questionSearchText !== undefined && this.questionSearchText.length > 0) {
             for (let i = 0; found < qcount && i < qOptions.length; i++) {
                 const question = qOptions[i];
-                if (question.toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
+                if (this.removeHtml(question).toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
                     picked[question] = true;
                     if (action(found, question)) {
                         found++;

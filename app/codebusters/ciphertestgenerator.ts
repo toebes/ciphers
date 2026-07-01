@@ -1,4 +1,5 @@
 import 'foundation-sites';
+import { Sortable } from '@shopify/draggable';
 import { BoolMap, cloneObject, StringMap } from '../common/ciphercommon';
 import { ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
@@ -29,6 +30,8 @@ type Bounds = Readonly<{ min: number; max: number }>;
 export class CipherTestGenerator extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
     public showPlain = false;
+    /** Sortable instance managing drag-to-reorder of the question rows */
+    public questionSortable: Sortable = undefined;
 
     public defaultstate: ITestState = {
         cipherString: '',
@@ -41,10 +44,8 @@ export class CipherTestGenerator extends CipherTest {
         { title: 'Hide Custom Header', color: 'primary', id: 'hide-custom-header' },
         { title: 'Show Custom Header', color: 'primary', id: 'show-custom-header' },
         { title: 'Adjust Scores', color: 'primary', id: 'adjust' },
-        { title: 'Export Test', color: 'primary', id: 'export' },
         { title: 'Append Another Test', color: 'primary', id: 'append' },
-        { title: 'Import Tests from File', color: 'primary', id: 'import' },
-        { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
+        { title: 'Generate Scoresheet', color: 'primary', id: 'scoresheet' },
     ];
     public restore(data: ITestState, suppressOutput = false): void {
         const curlang = this.state.curlang;
@@ -64,6 +65,23 @@ export class CipherTestGenerator extends CipherTest {
      */
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState('testedit');
+    }
+    /**
+     * Add an Export menu (JSON / LaTeX) to the command bar.  It sits in the same
+     * rounded button-group as the other command buttons and reveals a pane with
+     * the two supported export formats for the current test.
+     */
+    public genCmdButtons(): JQuery<HTMLElement> {
+        const result = super.genCmdButtons();
+        result.addClass('action-menu-wrap').css('position', 'relative');
+        result.find('.cmds').append(this.makeActionTrigger('Export', 'export'));
+        result.append(
+            this.makeActionPane(this.state.test, 'export', [
+                { title: 'Export to JSON', class: 'testexportjson' },
+                { title: 'Export to LaTeX', class: 'testlatex' },
+            ])
+        );
+        return result;
     }
     public genTestQuestions(test: ITest): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testdata' });
@@ -166,9 +184,8 @@ export class CipherTestGenerator extends CipherTest {
                 }
             } else {
                 qnum = test.questions[entry]
-                buttons.unshift({ title: '&uarr;', btnClass: 'quesup', disabled: entry === 0 });
-                buttons.unshift({ title: '&darr;', btnClass: 'quesdown', disabled: entry === test.count - 1 });
             }
+            // Regular (non-timed) questions get a drag handle to rearrange them
             let qstate = this.addQuestionRow(
                 table,
                 slot,
@@ -176,7 +193,8 @@ export class CipherTestGenerator extends CipherTest {
                 buttons,
                 this.showPlain,
                 test.testtype,
-                undefined
+                undefined,
+                entry !== -1
             );
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
@@ -225,20 +243,54 @@ export class CipherTestGenerator extends CipherTest {
         }
         this.checkTestLimits(errors, test, SpanishCount, SpecialBonusCount);
 
-        testdiv.append(table.generate());
+        const $table = table.generate();
+        this.groupQuestionRows($table);
+        testdiv.append($table);
         // Put in buttons for adding blank tests of various types..
         result.append(testdiv);
         return result;
     }
-    public exportTest(link: JQuery<HTMLElement>): void {
-        const test = this.getTestEntry(this.state.test);
-        const blob = new Blob([this.generateTestJSON(test)], {
-            type: 'text/json',
-        });
-        const url = URL.createObjectURL(blob);
-
-        link.attr('download', test.title + '.json');
-        link.attr('href', url);
+    /**
+     * Split the single question table body into one <tbody> per question so that
+     * a question and its (optional) error row form a single draggable unit.
+     * Each question group gets the 'qgroup' class; all other rows (timed
+     * question, callouts, add-question dropdown) go into plain tbodies so they
+     * are not draggable.
+     * @param $table The generated question table to restructure in place
+     */
+    public groupQuestionRows($table: JQuery<HTMLElement>): void {
+        const $oldBody = $table.children('tbody').first();
+        if ($oldBody.length === 0) {
+            return;
+        }
+        const rows = $oldBody.children('tr').detach().toArray();
+        const bodies: JQuery<HTMLElement>[] = [];
+        let $current: JQuery<HTMLElement> = undefined;
+        for (const rowElem of rows) {
+            const $row = $(rowElem);
+            if ($row.hasClass('qrow')) {
+                // Start a new draggable group for this question
+                $current = $('<tbody/>', { class: 'qgroup' });
+                bodies.push($current);
+            } else if (
+                $row.hasClass('qerr') &&
+                $current !== undefined &&
+                $current.hasClass('qgroup')
+            ) {
+                // Error row belongs to the question group it follows
+            } else {
+                // Non-draggable row (timed, callout, dropdown) - keep it separate
+                if ($current === undefined || $current.hasClass('qgroup')) {
+                    $current = $('<tbody/>');
+                    bodies.push($current);
+                }
+            }
+            $current.append($row);
+        }
+        $oldBody.remove();
+        for (const $body of bodies) {
+            $table.append($body);
+        }
     }
     public createEmptyQuestion(ciphertype: ICipherType, reqlang: string, fortimed: boolean): void {
         let lang = reqlang;
@@ -348,18 +400,61 @@ export class CipherTestGenerator extends CipherTest {
             this.gotoEditCipher(editEntry);
         }
     }
-    public gotoMoveTestCipher(entry: number, dist: number): void {
+    /**
+     * Move a question from one position in the test to another.  This is used
+     * by the drag-to-reorder handle to move a question any number of places.
+     * The indices are 0-based positions within the list of (non-timed) questions.
+     * @param fromIndex Current position of the question being moved
+     * @param toIndex Position the question should be moved to
+     */
+    public gotoMoveQuestionToPosition(fromIndex: number, toIndex: number): void {
         const test = this.getTestEntry(this.state.test);
-        const sourceent = entry - 1;
-        const toswap = sourceent + dist;
-        if (sourceent < 0 || toswap < 0 || sourceent >= test.count || toswap >= test.count) {
+        if (
+            fromIndex === toIndex ||
+            fromIndex < 0 ||
+            toIndex < 0 ||
+            fromIndex >= test.questions.length ||
+            toIndex >= test.questions.length
+        ) {
             return;
         }
-        const save = test.questions[sourceent];
-        test.questions[sourceent] = test.questions[toswap];
-        test.questions[toswap] = save;
+        const [moved] = test.questions.splice(fromIndex, 1);
+        test.questions.splice(toIndex, 0, moved);
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
+    }
+    /**
+     * Make the question rows drag-to-reorder using the hamburger handle.
+     * Only the (non-timed) question rows are draggable and they are ordered
+     * the same as the entries in test.questions, so the Sortable indices map
+     * directly onto that array.
+     */
+    public attachQuestionSortable(): void {
+        // Tear down any previous instance since updateOutput() rebuilds the table
+        if (this.questionSortable !== undefined) {
+            this.questionSortable.destroy();
+            this.questionSortable = undefined;
+        }
+        const queslist = $('.queslist').first().get(0);
+        if (queslist === undefined) {
+            return;
+        }
+        // Each question is its own <tbody class="qgroup"> so that the question
+        // and its error row move together (see groupQuestionRows).
+        this.questionSortable = new Sortable(queslist, {
+            draggable: 'tbody.qgroup:not(.draggable-mirror)',
+            handle: '.quesdrag',
+            mirror: { constrainDimensions: true },
+        });
+        this.questionSortable.on('sortable:stop', (e) => {
+            // Defer so the Sortable finishes its own DOM cleanup before we
+            // re-render the question table in gotoMoveQuestionToPosition.
+            const fromIndex = e.oldIndex;
+            const toIndex = e.newIndex;
+            setTimeout(() => {
+                this.gotoMoveQuestionToPosition(fromIndex, toIndex);
+            }, 0);
+        });
     }
     /**
      * Populate the file list dialog to match all the entries of a given type
@@ -655,25 +750,15 @@ export class CipherTestGenerator extends CipherTest {
 
     public attachHandlers(): void {
         super.attachHandlers();
-        $('#export')
-            .off('click')
-            .on('click', (e) => {
-                this.exportTest($(e.target));
-            });
         $('#append')
             .off('click')
             .on('click', () => {
                 this.appendQuestions();
             });
-        $('#import')
+        $('#scoresheet')
             .off('click')
-            .on('click', () => {
-                this.importQuestions(true);
-            });
-        $('#importurl')
-            .off('click')
-            .on('click', () => {
-                this.importQuestions(false);
+            .on('click', async () => {
+                await this.generateScoreSheet(this.state.test);
             });
         $('#randorder')
             .off('click')
@@ -685,16 +770,7 @@ export class CipherTestGenerator extends CipherTest {
             .on('click', () => {
                 this.gotoAdjustScores(this.state.test);
             });
-        $('.quesup')
-            .off('click')
-            .on('click', (e) => {
-                this.gotoMoveTestCipher(Number($(e.target).attr('data-entry')), -1);
-            });
-        $('.quesdown')
-            .off('click')
-            .on('click', (e) => {
-                this.gotoMoveTestCipher(Number($(e.target).attr('data-entry')), 1);
-            });
+        this.attachQuestionSortable();
         $('.quesedit')
             .off('click')
             .on('click', (e) => {

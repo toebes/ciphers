@@ -120,6 +120,9 @@ export class CipherTestAnswers extends CipherTest {
             $(".testexample").remove();
         }
         this.attachHandlers();
+        // If launched with print=y (e.g. from the Test Manager Print menu),
+        // open the browser print preview once the answers have rendered.
+        this.maybeAutoPrint();
     }
     /*
      * Sorter to break ties

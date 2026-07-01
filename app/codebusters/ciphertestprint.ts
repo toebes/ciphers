@@ -64,6 +64,9 @@ export class CipherTestPrint extends CipherTest {
         $(".testurl").attr('href', `TestPrint.html?test=${this.state.test}`)
         $(".resurl").attr('href', `TestPrint.html?test=${this.state.test}&ressheet=y`)
         this.attachHandlers();
+        // If launched with print=y (from the Test Manager Print menu),
+        // open the browser print preview once the test has rendered.
+        this.maybeAutoPrint();
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

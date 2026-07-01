@@ -1,7 +1,7 @@
 import 'foundation-sites';
 import { Sortable } from '@shopify/draggable';
 import { BoolMap, cloneObject, StringMap } from '../common/ciphercommon';
-import { ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
+import { ITest, ITestType, menuMode, toolMode, CipherHandler } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -47,6 +47,16 @@ export class CipherTestGenerator extends CipherTest {
         { title: 'Append Another Test', color: 'primary', id: 'append' },
         { title: 'Generate Scoresheet', color: 'primary', id: 'scoresheet' },
     ];
+    /**
+     * Opening the question-list editor always replaces the scratch copy with the
+     * latest cloud version, discarding any local unsaved changes.
+     */
+    public async ensureCloudEditReady(): Promise<boolean> {
+        if (this.cloudEditMode && this.cloudEditExtId !== '') {
+            this.setConfigString(CipherHandler.CLOUD_LOADED_KEY, '');
+        }
+        return super.ensureCloudEditReady();
+    }
     public restore(data: ITestState, suppressOutput = false): void {
         const curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;

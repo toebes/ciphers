@@ -40,6 +40,7 @@ import 'datatables.net-plugins/sorting/natural.js';
 
 import { CipherHandler } from '../common/cipherhandler';
 import { CipherFactory } from './cipherfactory';
+import { cloudSignIn, cloudSignOut, initCloudAuth, isCloudAvailable } from './cloudauth';
 import { JTFDialogFixColors } from '../common/jtfdialog';
 
 let cipherTool: CipherHandler = new CipherHandler();
@@ -51,6 +52,60 @@ $(function (): void {
     $(window).on('changed.zf.mediaquery', () => {
         $('.is-dropdown-submenu.invisible').removeClass('invisible');
     });
+    $(document)
+        .off('cb-cloud-signin cb-cloud-signout')
+        .on('cb-cloud-signin', (_e, returnUrl?: string) => {
+            if (!isCloudAvailable()) {
+                alert('Cloud storage is not configured for this site.');
+                return;
+            }
+            void cloudSignIn()
+                .then(() => {
+                    if (window.cipherTool !== undefined) {
+                        window.cipherTool.updateLoginInfo();
+                    }
+                    const target =
+                        typeof returnUrl === 'string' && returnUrl !== ''
+                            ? returnUrl
+                            : window.location.href;
+                    if (target === window.location.href) {
+                        window.location.reload();
+                    } else {
+                        window.location.assign(target);
+                    }
+                })
+                .catch((err) => {
+                    console.error('Google sign-in failed', err);
+                    alert('Sign-in was not completed. Please try again.');
+                });
+        })
+        .on('cb-cloud-signout', () => {
+            const onCloudTest =
+                window.cipherTool !== undefined && window.cipherTool.cloudEditMode;
+            if (!isCloudAvailable()) {
+                return;
+            }
+            void cloudSignOut()
+                .then(() => {
+                    if (window.cipherTool !== undefined) {
+                        if (onCloudTest) {
+                            window.cipherTool.clearCloudEditScratch();
+                        }
+                        window.cipherTool.updateLoginInfo();
+                    }
+                    if (onCloudTest) {
+                        window.location.assign('TestManage.html');
+                    } else {
+                        window.location.reload();
+                    }
+                })
+                .catch((err) => {
+                    console.error('Sign-out failed', err);
+                });
+        });
+    // Start tracking cloud auth state on every page so cloud-linked tests can be
+    // saved from any editor.  No-op when the cloud is not configured.
+    initCloudAuth();
     let data_lang;
     let data_cipher;
     // First figure out what type of solver we are building
@@ -59,7 +114,14 @@ $(function (): void {
         data_lang = $(elem).attr('data-lang');
     });
     window.cipherTool = cipherTool = CipherFactory(data_cipher, data_lang);
-    cipherTool.layout();
-    $(document).foundation();
-    JTFDialogFixColors();
+    // For a cloud edit session, load the cloud test into the isolated scratch
+    // namespace (with a permission check) before laying out the page.
+    void cipherTool.ensureCloudEditReady().then((ready) => {
+        if (!ready) {
+            return;
+        }
+        cipherTool.layout();
+        $(document).foundation();
+        JTFDialogFixColors();
+    });
 });

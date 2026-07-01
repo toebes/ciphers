@@ -161,6 +161,18 @@ export interface ITest {
     sourcemodelid?: string;
     /** Indicates that we should check for copying from paper */
     checkPaper?: boolean;
+    /** When set, this local test is linked to a cloud test (ext- id) and every
+     * save is mirrored to the cloud.  Managed by the cloud test sync layer; this
+     * is intentionally just a string so the shared interface has no cloud/Firebase
+     * dependency. */
+    cloudExtId?: string;
+    /** Last cloud revision this local copy was known to be in sync with (used to
+     * detect edits made elsewhere).  Managed by the cloud test sync layer. */
+    cloudRevision?: number;
+    /** JSON snapshot of the cloud payload at the last successful sync, used to
+     * merge concurrent edits to different questions.  Managed by the cloud test
+     * sync layer; never stored in Firestore. */
+    cloudSyncBaseline?: string;
 }
 
 /**
@@ -1041,9 +1053,35 @@ export class CipherHandler {
     public freq: { [key: string]: number } = {};
     public savefileentry = -1;
     public storage: JTStorage;
+    /**
+     * When set (via the `cloudedit` URL parameter), this page is editing a cloud
+     * test.  In this mode all test/cipher storage is redirected to an isolated
+     * "CloudEdit-*" namespace so cloud tests never mix with the user's local
+     * numbered tests, and every save is mirrored up to the cloud test identified
+     * by `cloudEditExtId`.
+     */
+    public cloudEditMode = false;
+    public cloudEditExtId = '';
 
     constructor() {
         this.storage = InitStorage();
+        this.detectCloudEditMode();
+    }
+    /**
+     * Look for the `cloudedit=<ext-id>` URL parameter that marks this page as an
+     * isolated cloud-test editing session.
+     */
+    public detectCloudEditMode(): void {
+        try {
+            const parms = parseQueryString(window.location.search.substring(1));
+            const extId = parms.cloudedit;
+            if (typeof extId === 'string' && extId !== '') {
+                this.cloudEditMode = true;
+                this.cloudEditExtId = extId;
+            }
+        } catch {
+            // window/location may be unavailable in some contexts - ignore.
+        }
     }
 
     public initToolModeSettings(): void {
@@ -1060,6 +1098,49 @@ export class CipherHandler {
             this.storageCipherEntryPrefix = 'Cipher-Data';
             $('.menu-text a').text('Science Olympiad CodeBusters');
         }
+        // A cloud edit session uses an isolated storage namespace regardless of
+        // the tool mode so it can never collide with local tests/ciphers.
+        if (this.cloudEditMode) {
+            this.storageTestCountName = 'CloudEdit-Test-Count';
+            this.storageTestEntryPrefix = 'CloudEdit-Test';
+            this.storageCipherCountName = 'CloudEdit-Count';
+            this.storageCipherEntryPrefix = 'CloudEdit-Data';
+        }
+    }
+    /**
+     * Append the active cloud-edit marker to a URL so navigation between the Test
+     * Generator and the individual cipher editors stays inside the isolated cloud
+     * editing session.  A no-op when not in cloud edit mode.
+     */
+    public withCloudEditParam(url: string): string {
+        if (!this.cloudEditMode || url === '') {
+            return url;
+        }
+        const sep = url.indexOf('?') > -1 ? '&' : '?';
+        return url + sep + 'cloudedit=' + encodeURIComponent(this.cloudEditExtId);
+    }
+    /** Config key marking which cloud test is loaded in the scratch namespace. */
+    public static readonly CLOUD_LOADED_KEY = 'CloudEdit-Loaded';
+    /**
+     * Clear the cloud-edit scratch namespace and the loaded marker.  Called when
+     * access is revoked or a cloud save is denied.
+     */
+    public clearCloudEditScratch(): void {
+        this.setConfigString(CipherHandler.CLOUD_LOADED_KEY, '');
+        if (this.cloudEditMode) {
+            this.setTestCount(0);
+            this.setCipherCount(0);
+        }
+    }
+    /**
+     * Hook run (and awaited) before layout() when a page is opened.  For a cloud
+     * edit session this is where the cloud test is fetched (with a permission
+     * check) and loaded into the isolated scratch namespace so a shared
+     * `?cloudedit=<ext-id>` URL works on its own.  The base implementation is a
+     * no-op; CipherTest provides the real hydration.
+     */
+    public async ensureCloudEditReady(): Promise<boolean> {
+        return true;
     }
 
     // public restoreCurrentTest(): void {
@@ -1164,20 +1245,20 @@ export class CipherHandler {
         return baseUrl + '/realtime/' + namespace + '/' + domain;
     }
     /**
-     * Sends the user to the authentication page. Upon success sends user back to href.
-     * @param href Location to go to upon successful authentication. If undefined/null uses current window location's href.
-     * @param shouldPerformSignout If a signout should be performed upon loading of authentication page.
+     * Request cloud sign-in or sign-out.  The Codebusters bootstrap listens for
+     * these events and runs Google OAuth inline (no dedicated login page).
+     * @param shouldPerformSignout When true, sign out instead of signing in.
+     * @param href Page to return to after sign-in (defaults to the current URL).
      */
     protected goToAuthenticationPage(
         shouldPerformSignout = false,
         href: string = window.location.href
     ): void {
-        location.assign(
-            'Login.html?returnUrl=' +
-            encodeURIComponent(href) +
-            '&shouldPerformSignout=' +
-            shouldPerformSignout
-        );
+        if (shouldPerformSignout) {
+            $(document).trigger('cb-cloud-signout');
+        } else {
+            $(document).trigger('cb-cloud-signin', [href]);
+        }
     }
 
     /**
@@ -1665,7 +1746,7 @@ export class CipherHandler {
         window.history.replaceState(
             {},
             $('title').text(),
-            url + '?editEntry=' + this.savefileentry
+            this.withCloudEditParam(url + '?editEntry=' + this.savefileentry)
         );
     }
 
@@ -2129,7 +2210,7 @@ export class CipherHandler {
                     }
                     const link = $('<a/>', {
                         class: 'chkmod',
-                        href: 'TestGenerator.html?test=' + String(entry),
+                        href: this.withCloudEditParam('TestGenerator.html?test=' + String(entry)),
                     }).text(test.title + ' ' + use);
                     if (usemsg !== '') {
                         link.append($('<span/>', { class: 'usemsg' }).text(usemsg));
@@ -2525,9 +2606,11 @@ export class CipherHandler {
             this.savefileentry = Number(parms.editEntry);
             saveSet = this.getFileEntry(this.savefileentry);
         }
-        // Copy over any additional parameters they might have given
+        // Copy over any additional parameters they might have given.  `cloudedit`
+        // is a routing marker only (handled in the constructor) - never let it
+        // leak into the persisted state / cloud payload.
         for (const v in parms) {
-            if (parms.hasOwnProperty(v)) {
+            if (parms.hasOwnProperty(v) && v !== 'cloudedit') {
                 saveSet[v] = parms[v];
             }
         }
@@ -3552,6 +3635,7 @@ export class CipherHandler {
             } else {
                 entryURL += '?editEntry=' + entry;
             }
+            entryURL = this.withCloudEditParam(entryURL);
         }
         return entryURL;
     }
@@ -3710,18 +3794,7 @@ export class CipherHandler {
 
         const divLoginInfo = $('<div/>', {
             class: 'login-info',
-        })
-        // NOTE: Disable Interactive tests
-        // .append(
-        //     $('<div/>', {
-        //         class: 'login-button button',
-        //     }).text('Login')
-        // )
-        // .append(
-        //     $('<div/>', {
-        //         id: 'logged-in-user',
-        //     })
-        // );
+        });
 
         result
             .append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools', divLoginInfo))
@@ -3732,6 +3805,33 @@ export class CipherHandler {
             .append(this.createImportImageDialog());
         // .append(this.createRegisterDlg())
         return result;
+    }
+    /**
+     * Populate the login area of the main menu based on the mirrored cloud
+     * identity (see cloudauth.ts).  This intentionally reads only the shared
+     * config strings so the common/ACA code never depends on any cloud/Firebase
+     * module.  Sign in / out trigger cb-cloud-* events handled by the bootstrap.
+     */
+    public updateLoginInfo(): void {
+        const container = $('.login-info');
+        if (container.length === 0) {
+            return;
+        }
+        const userid = this.getConfigString(CipherHandler.KEY_USER_ID, '');
+        container.empty();
+        if (userid !== '') {
+            const name = this.getConfigString(CipherHandler.KEY_FIRST_NAME, userid);
+            container.append(
+                $('<span/>', { id: 'logged-in-user', class: 'logged-in-user' }).text(name)
+            );
+            container.append(
+                $('<a/>', { class: 'login-signout button', type: 'button' }).text('Sign Out')
+            );
+        } else {
+            container.append(
+                $('<a/>', { class: 'login-signin button', type: 'button' }).text('Sign In')
+            );
+        }
     }
     /**
      * Preserve the current replacement order
@@ -3922,10 +4022,16 @@ export class CipherHandler {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
-        $('.login-button')
+        this.updateLoginInfo();
+        $('.login-signin')
             .off('click')
             .on('click', () => {
                 this.goToAuthenticationPage();
+            });
+        $('.login-signout')
+            .off('click')
+            .on('click', () => {
+                this.goToAuthenticationPage(true);
             });
 
         $('.sli')

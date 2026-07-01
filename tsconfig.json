@@ -9,6 +9,7 @@
     ],
     "compilerOptions": {
         "strict": false,
+        "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "sourceMap": true,
         "target": "es2017",

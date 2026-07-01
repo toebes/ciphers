@@ -218,8 +218,17 @@ table.tview {
 }
 
 .login-info {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     float: right;
+    margin: 0;
+    padding: 0 0.75rem;
+}
+
+.logged-in-user {
+    white-space: nowrap;
+    font-weight: 600;
 }
 
 li.purge {
@@ -231,10 +240,45 @@ li.purge {
     cursor: pointer;
 }
 
-.login-button {
+.login-signin,
+.login-signout {
     background-color: #1779ba;
     color: white;
     border-radius: 0.625rem;
+    margin: 0;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.login-signin:hover,
+.login-signout:hover {
+    background-color: #14679e;
+    color: white;
+}
+
+/* Vertically center the Share button against the email field in the share dialog */
+.input-group .cloud-share-add {
+    margin: 0;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cloud-share-table {
+    width: 100%;
+}
+
+.cloud-share-table td,
+.cloud-share-table th {
+    vertical-align: middle;
+}
+
+.cloud-share-table .cloud-share-remove {
+    margin: 0;
 }
 
 .bademail {

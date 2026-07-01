@@ -15,6 +15,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTTable } from '../common/jttable';
+import { pushForQuestion } from './cloudtestsync';
 
 export interface IEncoderState extends IState {
     /** K1/K2/K3/K4 Offset */
@@ -103,6 +104,11 @@ export class CipherEncoder extends CipherHandler {
     // String to hold search text for suggested questions
     private questionSearchText = '';
 
+    public setFileEntry(entry: number, state: IState): number {
+        const result = super.setFileEntry(entry, state);
+        pushForQuestion(this, result);
+        return result;
+    }
     /**
      * Make a copy of the current state
      */

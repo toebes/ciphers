@@ -18,6 +18,10 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
+import { getCloudTest, isCloudId } from './cloudstore';
+import { cloudPayloadToSource } from './cloudsync';
+import { pushLinkedTest, withCloudSyncSuppressed } from './cloudtestsync';
+import { waitForCloudAuth } from './cloudauth';
 import CipherScoreSheetGenerator from './cipherscoresheetgenerator';
 import { generateTestLatex } from './ciphertestlatexer';
 
@@ -527,14 +531,14 @@ export class CipherTest extends CipherEncoder {
      * @param test Test number to edit
      */
     public gotoEditTest(test: number): void {
-        location.assign(`TestGenerator.html?test=${test}`);
+        location.assign(this.withCloudEditParam(`TestGenerator.html?test=${test}`));
     }
     /**
      * Adjust the scores on an existing test
      * @param test Test number to adjust scores for
      */
     public gotoAdjustScores(test: number): void {
-        location.assign(`TestScoreAdjust.html?test=${test}`)
+        location.assign(this.withCloudEditParam(`TestScoreAdjust.html?test=${test}`))
     }
     /**
      * Generate .xlsx scoresheet for an existing test
@@ -716,6 +720,83 @@ export class CipherTest extends CipherEncoder {
         pane.append(paneButtons);
         return pane;
     }
+
+    public setTestEntry(entry: number, state: ITest): number {
+        const result = super.setTestEntry(entry, state);
+        pushLinkedTest(this, result);
+        return result;
+    }
+    /**
+     * When this page is a cloud edit session, make sure the isolated scratch
+     * namespace holds the requested cloud test.  The document is always fetched
+     * from Firestore first so revoked users cannot keep editing from a cached
+     * scratch copy.  Full re-hydration is skipped when navigating to a cipher
+     * editor within the same session; CipherTestGenerator overrides this so the
+     * question-list page always reloads from the cloud on open.
+     */
+    public async ensureCloudEditReady(): Promise<boolean> {
+        if (!this.cloudEditMode || this.cloudEditExtId === '') {
+            return true;
+        }
+        const skipHydrate =
+            this.getConfigString(CipherHandler.CLOUD_LOADED_KEY, '') === this.cloudEditExtId;
+        const user = await waitForCloudAuth();
+        if (user === null) {
+            alert('Sign in to open this cloud test.');
+            this.goToAuthenticationPage(false, window.location.href);
+            return false;
+        }
+        let cloud;
+        try {
+            cloud = await getCloudTest(this.cloudEditExtId);
+        } catch (e) {
+            console.error('Unable to load cloud test', e);
+            this.clearCloudEditScratch();
+            alert('You do not have access to that cloud test.');
+            return false;
+        }
+        if (cloud === null) {
+            this.clearCloudEditScratch();
+            alert('That cloud test could not be found.');
+            return false;
+        }
+        if (skipHydrate) {
+            // Access verified; refresh revision on the scratch copy without wiping
+            // in-progress local edits during navigation within the session.
+            withCloudSyncSuppressed(() => {
+                const testCount = this.getTestCount();
+                for (let i = 0; i < testCount; i++) {
+                    const test = this.getTestEntry(i);
+                    if (test.cloudExtId === this.cloudEditExtId) {
+                        test.cloudRevision = cloud.revision;
+                        this.setTestEntry(i, test);
+                        break;
+                    }
+                }
+            });
+            return true;
+        }
+        const source = cloudPayloadToSource(cloud.payload);
+        if (source === null) {
+            alert('That cloud test could not be read.');
+            return false;
+        }
+        withCloudSyncSuppressed(() => {
+            // Reset the scratch namespace and import the exact cloud contents.
+            this.setTestCount(0);
+            this.setCipherCount(0);
+            const idx = this.processTestXML(source, false, true, false);
+            if (idx >= 0) {
+                const test = this.getTestEntry(idx);
+                test.cloudExtId = this.cloudEditExtId;
+                test.cloudRevision = cloud.revision;
+                test.cloudSyncBaseline = cloud.payload;
+                this.setTestEntry(idx, test);
+            }
+        });
+        this.setConfigString(CipherHandler.CLOUD_LOADED_KEY, this.cloudEditExtId);
+        return true;
+    }
     /**
      * Convert the current test information to a map which can be saved/restored later
      * @param test Test to generate data for
@@ -836,14 +917,14 @@ export class CipherTest extends CipherEncoder {
      * @param autoPrint Open the print preview once the page has rendered
      */
     public gotoPrintTest(test: number, autoPrint = false): void {
-        location.assign(`TestPrint.html?test=${test}${this.printFlag(autoPrint)}`);
+        location.assign(this.withCloudEditParam(`TestPrint.html?test=${test}${this.printFlag(autoPrint)}`));
     }
     /**
      * Print out the test
      * @param test Test number to print
      */
     public gotoResourceSheet(test: number): void {
-        location.assign(`TestPrint.html?test=${test}&ressheet=y`);
+        location.assign(this.withCloudEditParam(`TestPrint.html?test=${test}&ressheet=y`));
     }
     /**
      * Print out the answers for a test
@@ -851,14 +932,14 @@ export class CipherTest extends CipherEncoder {
      * @param autoPrint Open the print preview once the page has rendered
      */
     public gotoPrintTestAnswers(test: number, autoPrint = false): void {
-        location.assign(`TestAnswers.html?test=${test}${this.printFlag(autoPrint)}`);
+        location.assign(this.withCloudEditParam(`TestAnswers.html?test=${test}${this.printFlag(autoPrint)}`));
     }
     /**
      * Print out the answers for a test
      * @param test Test number to print
      */
     public gotoPrintAnswersTiny(test: number): void {
-        location.assign(`TestAnswers.html?test=${test}&tiny=y`);
+        location.assign(this.withCloudEditParam(`TestAnswers.html?test=${test}&tiny=y`));
     }
     /**
      * Print out the answers and solutions for a test
@@ -866,7 +947,7 @@ export class CipherTest extends CipherEncoder {
      * @param autoPrint Open the print preview once the page has rendered
      */
     public gotoPrintTestSols(test: number, autoPrint = false): void {
-        location.assign(`TestAnswers.html?test=${test}&sols=y${this.printFlag(autoPrint)}`);
+        location.assign(this.withCloudEditParam(`TestAnswers.html?test=${test}&sols=y${this.printFlag(autoPrint)}`));
     }
     /**
      * Show all the locally stored tests
@@ -1960,6 +2041,11 @@ export class CipherTest extends CipherEncoder {
         const testcount = this.getTestCount();
         for (let testnum = 0; testnum < testcount; testnum++) {
             const test = this.getTestEntry(testnum);
+            // Cloud-linked working copies are not dedupe targets - they are
+            // hidden mirrors of cloud tests, not real local tests.
+            if (isCloudId(test.cloudExtId)) {
+                continue;
+            }
             if (
                 test.title === newTest.title &&
                 test.timed === newTest.timed &&
@@ -2193,7 +2279,13 @@ export class CipherTest extends CipherEncoder {
         this.updateOutput();
     }
     // tslint:disable-next-line:cyclomatic-complexity
-    public processTestXML(data: any): void {
+    public processTestXML(
+        data: any,
+        navigate = true,
+        forceNewTest = false,
+        forceNewCiphers = false
+    ): number {
+        let importedTest = -1;
         // Load in all the ciphers we know of so that we don't end up doing a duplicate
         let cipherCount = this.getCipherCount();
         const cipherCache: { [index: number]: IState } = {};
@@ -2217,12 +2309,16 @@ export class CipherTest extends CipherEncoder {
                 const oldPos = Number(pieces[1]);
                 const toAdd: IState = data[ent];
                 let needNew = true;
-                // Now make sure that we don't already have this cipher loaded
-                for (let oldEnt = 0; oldEnt < cipherCount; oldEnt++) {
-                    if (this.isSameCipher(cipherCache[oldEnt], toAdd)) {
-                        inputMap[String(oldPos)] = oldEnt;
-                        needNew = false;
-                        break;
+                // Now make sure that we don't already have this cipher loaded.
+                // When forceNewCiphers is set (cloud copies) we always create
+                // fresh entries so the copy is fully independent of any other test.
+                if (!forceNewCiphers) {
+                    for (let oldEnt = 0; oldEnt < cipherCount; oldEnt++) {
+                        if (this.isSameCipher(cipherCache[oldEnt], toAdd)) {
+                            inputMap[String(oldPos)] = oldEnt;
+                            needNew = false;
+                            break;
+                        }
                     }
                 }
                 // If we hadn't found it, let's go ahead and add it
@@ -2328,15 +2424,19 @@ export class CipherTest extends CipherEncoder {
                 }
                 // For good measure, just fix up the questions length
                 newTest.count = newTest.questions.length;
-                let testnum = this.findTest(newTest);
+                let testnum = forceNewTest ? -1 : this.findTest(newTest);
                 if (testnum === -1) {
                     testnum = this.setTestEntry(-1, newTest);
                 }
                 if (testnum !== -1) {
-                    this.gotoEditTest(testnum);
+                    importedTest = testnum;
+                    if (navigate) {
+                        this.gotoEditTest(testnum);
+                    }
                 }
             }
         }
+        return importedTest;
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

@@ -1,0 +1,94 @@
+rules_version = '2';
+
+// Security rules for CodeBusters cloud tests.
+//
+// Model:
+//   - tests/{id}: one self-contained cloud test document.
+//       ownerUid / ownerEmail : the single owner (only they may share/delete).
+//       editorUids / editorEmails : collaborators who may edit content.
+//       pendingInvites : emails invited but not yet signed up / claimed.
+//   - users/{uid}: profile used to resolve an invited email to a uid.
+//
+// Enforcement summary:
+//   read    : owner, editor, or a pending invitee (by email).
+//   create  : any signed-in user, as owner of their own new doc.
+//   update  : owner (anything); editor (content only, sharing unchanged);
+//             pending invitee (only the self-claim transition).
+//   delete  : owner only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function uid() {
+      return request.auth.uid;
+    }
+    function email() {
+      return request.auth.token.email.lower();
+    }
+
+    match /users/{userId} {
+      // Any signed-in user may look up a profile (needed to resolve an invited
+      // email to a uid).  A user may only write their own profile.
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /tests/{testId} {
+      function existing() {
+        return resource.data;
+      }
+      function incoming() {
+        return request.resource.data;
+      }
+      function isOwner() {
+        return signedIn() && existing().ownerUid == uid();
+      }
+      function isEditor() {
+        return signedIn() && (uid() in existing().editorUids);
+      }
+      function isPending() {
+        return signedIn() && (email() in existing().pendingInvites);
+      }
+
+      // Non-owner content edits must leave every sharing/ownership field intact.
+      function sharingUnchanged() {
+        return incoming().ownerUid == existing().ownerUid
+          && incoming().ownerEmail == existing().ownerEmail
+          && incoming().editorUids == existing().editorUids
+          && incoming().editorEmails == existing().editorEmails
+          && incoming().pendingInvites == existing().pendingInvites;
+      }
+
+      // The only sharing mutation a non-owner may make: a pending invitee moves
+      // their own email out of pendingInvites and adds their uid/email to the
+      // editor lists.  Ownership stays fixed.
+      function validClaim() {
+        return incoming().ownerUid == existing().ownerUid
+          && incoming().ownerEmail == existing().ownerEmail
+          && incoming().editorUids.hasAll(existing().editorUids)
+          && (uid() in incoming().editorUids)
+          && incoming().editorUids.size() == existing().editorUids.size() + 1
+          && incoming().editorEmails.hasAll(existing().editorEmails)
+          && (email() in incoming().editorEmails)
+          && incoming().editorEmails.size() == existing().editorEmails.size() + 1
+          && existing().pendingInvites.hasAll(incoming().pendingInvites)
+          && !(email() in incoming().pendingInvites)
+          && incoming().pendingInvites.size() == existing().pendingInvites.size() - 1;
+      }
+
+      allow read: if isOwner() || isEditor() || isPending();
+
+      allow create: if signedIn()
+        && incoming().ownerUid == uid()
+        && incoming().ownerEmail == email();
+
+      allow update: if isOwner()
+        || (isEditor() && sharingUnchanged())
+        || (isPending() && validClaim());
+
+      allow delete: if isOwner();
+    }
+  }
+}

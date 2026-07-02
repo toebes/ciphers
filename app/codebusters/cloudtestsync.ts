@@ -7,9 +7,10 @@
  */
 import { cloneObject } from '../common/ciphercommon';
 import type { CipherHandler, IState, ITest } from '../common/cipherhandler';
+import type { sourceTestData } from './ciphertest';
 import { getCloudUser, isCloudAvailable } from './cloudauth';
-import { CloudTestContent, isCloudId, saveCloudTest } from './cloudstore';
-import { cloudPayloadToSource } from './cloudsync';
+import { isCloudId, saveCloudTest } from './cloudstore';
+import { cloudPayloadToSource, sourceToCloudContent } from './cloudsync';
 
 type CloudStatus = 'saving' | 'saved' | 'error' | 'offline' | 'stale' | 'denied';
 
@@ -44,21 +45,15 @@ async function doPush(handler: CipherHandler, testIndex: number): Promise<void> 
         delete clean.cloudRevision;
         delete clean.cloudSyncBaseline;
 
-        const source: { [key: string]: unknown } = { 'TEST.0': clean };
+        const source: sourceTestData = { 'TEST.0': clean };
         if (test.timed !== undefined && test.timed !== -1) {
             source['CIPHER.' + String(test.timed)] = handler.getFileEntry(test.timed);
         }
         for (const entry of test.questions) {
             source['CIPHER.' + String(entry)] = handler.getFileEntry(entry);
         }
-        const timedCount = test.timed !== undefined && test.timed !== -1 ? 1 : 0;
-        const localPayload = JSON.stringify(source);
-        const content: CloudTestContent = {
-            title: clean.title || 'Untitled Test',
-            testtype: (clean.testtype as string) || '',
-            questionCount: test.questions.length + timedCount,
-            payload: localPayload,
-        };
+        const content = sourceToCloudContent(source);
+        const localPayload = content.payload;
 
         const syncBaseline = test.cloudSyncBaseline;
         const result = await saveCloudTest(
@@ -68,12 +63,14 @@ async function doPush(handler: CipherHandler, testIndex: number): Promise<void> 
             syncBaseline
         );
 
-        if (syncBaseline && result.stale) {
-            const merged = cloudPayloadToSource(result.savedPayload);
-            const baseline = cloudPayloadToSource(syncBaseline);
-            const local = cloudPayloadToSource(localPayload);
-            if (merged !== null && baseline !== null && local !== null) {
-                withCloudSyncSuppressed(() => {
+        withCloudSyncSuppressed(() => {
+            // When our save was merged against a concurrent edit, fold the merged
+            // result back into the scratch copy for entries we did not touch.
+            if (syncBaseline && result.stale) {
+                const merged = cloudPayloadToSource(result.savedPayload);
+                const baseline = cloudPayloadToSource(syncBaseline);
+                const local = cloudPayloadToSource(localPayload);
+                if (merged !== null && baseline !== null && local !== null) {
                     const linked = handler.getTestEntry(testIndex);
                     const testUnchanged =
                         JSON.stringify(local['TEST.0']) === JSON.stringify(baseline['TEST.0']);
@@ -96,11 +93,9 @@ async function doPush(handler: CipherHandler, testIndex: number): Promise<void> 
                             handler.setFileEntry(entry, merged[key] as IState);
                         }
                     }
-                });
+                }
             }
-        }
-
-        withCloudSyncSuppressed(() => {
+            // Record the new revision / baseline on the scratch copy.
             const linked = handler.getTestEntry(testIndex);
             if (isCloudId(linked.cloudExtId)) {
                 linked.cloudRevision = result.revision;

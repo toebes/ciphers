@@ -26,6 +26,34 @@ function payloadEntryEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * Three-way merge of a single entry (a question or the test structure).  When
+ * both sides changed it away from the baseline the local (incoming) copy wins
+ * and the entry is flagged as a conflict.  Returns undefined when the entry does
+ * not exist on any side.
+ */
+function mergeEntry<T>(
+    baseVal: unknown,
+    localVal: unknown,
+    remoteVal: unknown
+): { value: T | undefined; conflict: boolean } {
+    const localChanged = !payloadEntryEqual(localVal, baseVal);
+    const remoteChanged = !payloadEntryEqual(remoteVal, baseVal);
+
+    if (localChanged && remoteChanged && !payloadEntryEqual(localVal, remoteVal)) {
+        return { value: cloneObject(localVal as object) as T, conflict: true };
+    } else if (localChanged) {
+        return { value: cloneObject(localVal as object) as T, conflict: false };
+    } else if (remoteChanged) {
+        return { value: cloneObject(remoteVal as object) as T, conflict: false };
+    } else if (remoteVal !== undefined) {
+        return { value: cloneObject(remoteVal as object) as T, conflict: false };
+    } else if (localVal !== undefined) {
+        return { value: cloneObject(localVal as object) as T, conflict: false };
+    }
+    return { value: undefined, conflict: false };
+}
+
+/**
  * Merge a local save with the current cloud copy using the baseline from the
  * caller's last sync.  Unchanged questions keep the other editor's work; when
  * both sides changed the same entry the local (incoming) copy wins.
@@ -45,45 +73,19 @@ export function mergeCloudPayloads(
 
     for (const key of keys) {
         if (key.startsWith('CIPHER.')) {
-            const baseVal = baseline[key];
-            const localVal = local[key];
-            const remoteVal = remote[key];
-            const localChanged = !payloadEntryEqual(localVal, baseVal);
-            const remoteChanged = !payloadEntryEqual(remoteVal, baseVal);
-
-            if (localChanged && remoteChanged && !payloadEntryEqual(localVal, remoteVal)) {
-                merged[key] = cloneObject(localVal) as IState;
-                hadConflict = true;
-            } else if (localChanged) {
-                merged[key] = cloneObject(localVal) as IState;
-            } else if (remoteChanged) {
-                merged[key] = cloneObject(remoteVal) as IState;
-            } else if (remoteVal !== undefined) {
-                merged[key] = cloneObject(remoteVal) as IState;
-            } else if (localVal !== undefined) {
-                merged[key] = cloneObject(localVal) as IState;
+            const entry = mergeEntry<IState>(baseline[key], local[key], remote[key]);
+            if (entry.value !== undefined) {
+                merged[key] = entry.value;
             }
+            hadConflict = hadConflict || entry.conflict;
         }
     }
 
-    const baseTest = baseline['TEST.0'];
-    const localTest = local['TEST.0'];
-    const remoteTest = remote['TEST.0'];
-    const testLocalChanged = !payloadEntryEqual(localTest, baseTest);
-    const testRemoteChanged = !payloadEntryEqual(remoteTest, baseTest);
-
-    if (testLocalChanged && testRemoteChanged && !payloadEntryEqual(localTest, remoteTest)) {
-        merged['TEST.0'] = cloneObject(localTest) as ITest;
-        hadConflict = true;
-    } else if (testLocalChanged) {
-        merged['TEST.0'] = cloneObject(localTest) as ITest;
-    } else if (testRemoteChanged) {
-        merged['TEST.0'] = cloneObject(remoteTest) as ITest;
-    } else if (remoteTest !== undefined) {
-        merged['TEST.0'] = cloneObject(remoteTest) as ITest;
-    } else if (localTest !== undefined) {
-        merged['TEST.0'] = cloneObject(localTest) as ITest;
+    const testEntry = mergeEntry<ITest>(baseline['TEST.0'], local['TEST.0'], remote['TEST.0']);
+    if (testEntry.value !== undefined) {
+        merged['TEST.0'] = testEntry.value;
     }
+    hadConflict = hadConflict || testEntry.conflict;
 
     return { merged, hadConflict };
 }

@@ -14,6 +14,7 @@ import {
     signOut,
 } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { CipherHandler } from '../common/cipherhandler';
 import { InitStorage, JTStorage } from '../common/jtstore';
 import { getFirebaseAuth, getFirebaseDb } from './firebaseapp';
 import { isFirebaseConfigured } from './firebaseconfig';
@@ -21,11 +22,11 @@ import { isFirebaseConfigured } from './firebaseconfig';
 /**
  * Local-storage keys used to mirror the signed-in identity so the shared menu
  * (cipherhandler.updateLoginInfo) can show "Signed in as ..." without importing
- * any cloud/Firebase code.  These MUST match CipherHandler.KEY_USER_ID /
+ * any cloud/Firebase code.  Derived from CipherHandler.KEY_USER_ID /
  * KEY_FIRST_NAME with the 'config_' prefix that setConfigString applies.
  */
-const CONFIG_USER_ID_KEY = 'config_userid';
-const CONFIG_FIRST_NAME_KEY = 'config_fname';
+const CONFIG_USER_ID_KEY = 'config_' + CipherHandler.KEY_USER_ID;
+const CONFIG_FIRST_NAME_KEY = 'config_' + CipherHandler.KEY_FIRST_NAME;
 
 /**
  * Minimal view of the signed-in user used throughout the app.

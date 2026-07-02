@@ -195,21 +195,23 @@ export async function saveCloudTest(
         }
         const current = snap.data().revision ?? 0;
         const stale = expectedRevision !== undefined && current !== expectedRevision;
-        let savedPayload = content.payload;
         let hadConflict = false;
+        let mergedSource;
 
         if (stale && syncBaseline) {
             const remoteSource = cloudPayloadToSource(snap.data().payload ?? '') ?? {};
             const localSource = cloudPayloadToSource(content.payload) ?? {};
             const baselineSource = cloudPayloadToSource(syncBaseline) ?? remoteSource;
             const mergeResult = mergeCloudPayloads(baselineSource, localSource, remoteSource);
-            savedPayload = JSON.stringify(mergeResult.merged);
+            mergedSource = mergeResult.merged;
             hadConflict = mergeResult.hadConflict;
-        } else if (stale) {
-            hadConflict = true;
+        } else {
+            mergedSource = cloudPayloadToSource(content.payload);
+            if (stale) {
+                hadConflict = true;
+            }
         }
 
-        const mergedSource = cloudPayloadToSource(savedPayload);
         if (mergedSource === null) {
             throw new Error('Unable to build cloud save payload.');
         }

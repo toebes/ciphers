@@ -9,6 +9,9 @@
     ],
     "compilerOptions": {
         "strict": false,
+        // Skip type-checking of .d.ts files (needed for the Firebase SDK typings).
+        // Note: this relaxes declaration-file checking across the whole project.
+        "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "sourceMap": true,
         "target": "es2017",

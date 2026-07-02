@@ -92,6 +92,7 @@
         "es5-shim": "^4.5.15",
         "es6-shim": "^0.35.6",
         "express": "^5.2.1",
+        "firebase": "^12.15.0",
         "flatpickr": "^4.6.9",
         "foundation-sites": "^6.6.3",
         "jquery": "^3.6.0",

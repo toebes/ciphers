@@ -151,7 +151,9 @@ export class CipherTestManage extends CipherTest {
             // );
 
 
-            if (isCloudAvailable()) {
+            // Cloud actions are only offered once the user has signed in (on
+            // the dedicated Login page) - signed-out users never see them.
+            if (isCloudAvailable() && isSignedIn()) {
                 buttons.append(
                     $('<a/>', {
                         'data-entry': entry,
@@ -200,7 +202,8 @@ export class CipherTestManage extends CipherTest {
      */
     public genCloudTestSection(): JQuery<HTMLElement> {
         const container = $('<div/>', { class: 'cloudtestlist' });
-        if (!isCloudAvailable()) {
+        // The whole section stays hidden until the user has signed in.
+        if (!isCloudAvailable() || !isSignedIn()) {
             return container;
         }
         container.append($('<h3/>').text('Cloud Tests'));
@@ -221,7 +224,17 @@ export class CipherTestManage extends CipherTest {
         }
         this.cloudSubscribed = true;
         initCloudAuth();
+        // Firebase restores an existing session asynchronously, so the
+        // sign-in-gated pieces (Copy to Cloud buttons, Cloud Tests section)
+        // must be re-rendered whenever the auth state changes.
         onCloudAuthChanged(() => {
+            $('.testlist').each((i, elem) => {
+                $(elem).replaceWith(this.genTestList());
+            });
+            $('.cloudtestlist').each((i, elem) => {
+                $(elem).replaceWith(this.genCloudTestSection());
+            });
+            this.attachHandlers();
             void this.refreshCloudTests();
         });
     }
@@ -234,20 +247,9 @@ export class CipherTestManage extends CipherTest {
             return;
         }
         if (!isSignedIn()) {
-            body.empty().append(
-                $('<div/>', { class: 'callout primary' })
-                    .append(
-                        $('<p/>').text(
-                            'Sign in with Google to access your cloud tests and tests shared with you.'
-                        )
-                    )
-                    .append(
-                        $('<a/>', { class: 'button cloud-signin-cta', type: 'button' }).text(
-                            'Sign In'
-                        )
-                    )
-            );
-            this.attachCloudHandlers();
+            // Signed out: the section shell is empty (genCloudTestSection) and
+            // no sign-in prompt is shown here.
+            body.empty();
             return;
         }
         body.empty().append($('<p/>').text('Loading your cloud tests\u2026'));
@@ -332,11 +334,6 @@ export class CipherTestManage extends CipherTest {
         this.attachCloudHandlers();
     }
     attachCloudHandlers(): void {
-        $('.cloud-signin-cta')
-            .off('click')
-            .on('click', () => {
-                this.goToAuthenticationPage();
-            });
         $('.cloudedit')
             .off('click')
             .on('click', (e) => {

@@ -595,13 +595,13 @@ config = {
         //     cipher: 'Scilympiad',
         //     title: 'Take a Scilympiad Test',
         // }),
-        // new HtmlWebpackPlugin({
-        //     inject: false,
-        //     filename: 'Login.html',
-        //     template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Login.html'),
-        //     cipher: 'Login',
-        //     title: 'Login',
-        // }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'Login.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Login.html'),
+            cipher: 'Login',
+            title: 'Cloud Sign In',
+        }),
         // new HtmlWebpackPlugin({
         //     inject: false,
         //     filename: 'TestResults.html',

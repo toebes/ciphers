@@ -75,8 +75,19 @@ $(function (): void {
                     }
                 })
                 .catch((err) => {
+                    const code =
+                        err !== null && typeof err === 'object'
+                            ? (err as { code?: string }).code
+                            : undefined;
+                    if (
+                        code === 'auth/popup-closed-by-user' ||
+                        code === 'auth/cancelled-popup-request' ||
+                        code === 'auth/user-cancelled'
+                    ) {
+                        return;
+                    }
                     console.error('Google sign-in failed', err);
-                    alert('Sign-in was not completed. Please try again.');
+                    alert('Sign In was not completed. Please try again.');
                 });
         })
         .on('cb-cloud-signout', () => {

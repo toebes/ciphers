@@ -1933,6 +1933,10 @@ div.vsolv {
 .ansblock .v {
     border: 1px solid black;
 }
+.ansblock td.k {
+    background-color: lightblue !important;
+}
+
 .ansblock td.a {
     background-color: yellow !important;
     height: 3rem;

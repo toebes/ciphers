@@ -1026,30 +1026,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return true;
     }
     /**
-     * 
-     * @param words List of words to format
-     * @returns HTML formatted list of words
-     */
-    public formatPTList(words: string[]): string {
-        if (words.length === 0) {
-            return ''
-        }
-        if (words.length === 1) {
-            return this.fixedPt(words[0])
-        }
-        let result = this.fixedPt(words[0])
-        for (let i = 1; i < words.length; i++) {
-            if (words.length > 2) {
-                result += ', '
-            }
-            if (i === words.length - 1) {
-                result += 'and '
-            }
-            result += this.fixedPt(words[i])
-        }
-        return result
-    }
-    /**
      * Find all the words which can match the known keyword letters.
      * @param result Place to output any notes
      * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
@@ -1094,12 +1070,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
             Since there are so many possibilities, we cannot determine the correct keyword yet.`));
             return keycheck
         } else if (found.length == 1) {
-            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find one matching possibility: ${this.formatPTList(found)} so we will try it.`));
+            result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find one matching possibility: ${this.fixedPtList(found)} so we will try it.`));
             solvingData.valid = true
             return found[0].split('')
         } else if (found.length > 0) {
             if (this.allEquivalent(found)) {
-                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find the following ${found.length} possibilities: ${this.formatPTList(found)}.
+                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English for ${this.fixedPt(keydisp)}, we find the following ${found.length} possibilities: ${this.fixedPtList(found)}.
             Since they all share the same pattern letters, we will just pick the first one.`));
                 solvingData.valid = true
                 return found[0].split('')
@@ -1108,7 +1084,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 if (this.state.cipherType === ICipherType.Vigenere) {
                     extra = ` Note that we could try them all to see if any of them provide a solution, but for now we will see if there is an easier approach.`
                 }
-                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following ${found.length} possibilities for ${this.fixedPt(keydisp)} we found: ${this.formatPTList(found)}. ${extra}`));
+                result.append($('<p/>').html(`Looking at the most common ${keylen} letter words in English, we find the following ${found.length} possibilities for ${this.fixedPt(keydisp)} we found: ${this.fixedPtList(found)}. ${extra}`));
                 return keycheck
             }
         } else {

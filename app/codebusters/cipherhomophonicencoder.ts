@@ -138,8 +138,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.state = cloneObject(this.defaultstate) as IHomophonicState;
         this.copyState(this.state, data);
         this.setSourceCharset('ABCDEFGHIKLMNOPQRSTUVWXYZ');
+        this.setUIDefaults();
         if (!suppressOutput) {
-            this.setUIDefaults();
             this.updateOutput();
         }
     }
@@ -491,8 +491,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     /**
      * This function identifies the crib placement for Affine cryptanalysis and returns question text describing the placement.
      * @param cribpos structure containing crib placement info from selected crib letters
-     * @param ptstring the plain text string
-     * @return string describing what the selected cipher characters map to in plain text.
+     * @param ptstring the plaintext string
+     * @return string describing what the selected cipher characters map to in plaintext.
      * @private
      */
     private getCribPlacement(cribpos: ICribInfo): string {
@@ -731,6 +731,17 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         return changed;
     }
     /**
+     * Render a character with an annotation to indicate that it is important for the crib placement and key deduction steps in the solution.  This is used in the solution to show the important characters in the crib placement and key deduction steps.
+     * @param val Character to annotate
+     * @returns HTML annotated character for display in the solution to show the important characters in the crib placement and key deduction steps.
+     */
+    public fixedCt100(val: string): string {
+        if (val === '100') {
+            return '[' + this.fixedCt('1') + ']' + this.fixedCt('00');
+        }
+        return this.fixedCt(val);
+    }
+    /**
      * This function builds the homophonic replacements for a given message based on the current settings.
      * Passing in a value of 9999 for the max encode width will ensure that it doesn't split the message into multiple lines for encoding.
      * @param msg The message to encode
@@ -821,17 +832,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const strings = this.buildReplacementHomophonic(msg, width);
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         for (const stringset of strings) {
-            const rowct = table.addBodyRow();
             const rowpt = table.addBodyRow();
+            const rowct = table.addBodyRow();
             const rowblank = table.addBodyRow();
             for (let i = 0; i < stringset[0].length; i++) {
-                const ct = stringset[dest][i];
-                const pt = stringset[source][i];
-                rowct.add(ct);
+                const pt = stringset[dest][i];
+                let ct = stringset[source][i];
+                if (ct === '100') {
+                    ct = '00'
+                }
+                rowpt.add(pt);
 
-                rowpt.add({
+                rowct.add({
                     settings: { class: 'o v' },
-                    content: pt,
+                    content: ct,
                 });
                 rowblank.add(' ');
             }
@@ -923,17 +937,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             const rowpt = table.addBodyRow();
             const rowblank = table.addBodyRow();
             for (let i = 0; i < strset[dest].length; i++) {
-                const ct = strset[dest][i];
+                let ct = strset[dest][i];
+                if (ct === '100') {
+                    ct = '00'
+                }
                 const pt = strset[source][i];
                 rowct.add({
-                    settings: { class: 'q v' },
+                    settings: { class: 'q' },
                     content: ct,
                 });
 
 
                 if (this.isValidChar(pt)) {
                     rowpt.add({
-                        settings: { class: 'a v' },
+                        settings: { class: 'a' },
                         content: pt,
                     });
                 } else {
@@ -1044,7 +1061,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const unfinishedWords: ISolverWord[] = [];
         const wordlengths: number[] = []
 
-        // Build the list of cipher word lengths from the original cipher text.
+        // Build the list of cipher word lengths from the original ciphertext.
         // This lets us recover word boundaries even though the replacement arrays
         // only contain cipher/plaintext symbols.
         let wordlen = 0
@@ -1232,18 +1249,18 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             }
         }
         if (found.length >= 10) {
-            result.append($('<p/>').html(`Since there are so many common words which match ${tomatch} we can't make any reasonable
+            result.append($('<p/>').html(`Since there are so many common words which match ${this.fixedKt(tomatch)} we can't make any reasonable
                 guesses at this time for the keyword, so we will have to use other strategies `))
             found.length = 0
         } else if (found.length === 1) {
-            result.append($("<p/>").html(`There is exactly one word "${found[0]}" which matches the keyword letters "${tomatch}" we found so far, so we will run with it.`))
+            result.append($("<p/>").html(`There is exactly one word "${this.fixedKt(found[0])}" which matches the keyword letters "${this.fixedKt(tomatch)}" we found so far, so we will run with it.`))
         } else if (found.length === 0) {
-            result.append($("<p/>").html(`We were unable to find any words which match the keyword letters "${tomatch}" we found so far,
+            result.append($("<p/>").html(`We were unable to find any words which match the keyword letters "${this.fixedKt(tomatch)}" we found so far,
                  so either we have made a mistake or the keyword is not a common English word.`))
         } else if (found.length <= 3) {
-            result.append($("<p/>").html(`There are ${found.length} words (${found.join(', ')}) which match the keyword letters "${tomatch}" so we can quickly try them to see if it gives us the answer.`))
+            result.append($("<p/>").html(`There are ${found.length} words (${this.fixedKtList(found)}) which match the keyword letters "${this.fixedKt(tomatch)}" so we can quickly try them to see if it gives us the answer.`))
         } else {
-            result.append($('<p/>').html(`Since there ${found.length} words which match ${tomatch} we can't make any reasonable
+            result.append($('<p/>').html(`Since there ${found.length} words which match ${this.fixedKt(tomatch)} we can't make any reasonable
                 guesses at this time for the keyword, so we will have to use other strategies `))
             found.length = 0
         }
@@ -1274,14 +1291,14 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 const kwslotchar = localData.charset[kwIndex]
                 localData.keyword[slot] = kwslotchar
                 if (parseInt(ct) === (slot * 25) + 1) {
-                    result.append($('<p/>').html(`Using the word ${word} to fill in the slot has ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                    result.append($('<p/>').html(`Using the word ${this.fixedPt(word)} to fill in the slot has ${this.fixedPt(pt)} mapping to the ciphertext ${this.fixedCt100(ct)} 
                 we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
                 Since it is the the start of the range ${slot * 25 + 1} we know that it is the keyword letter ${this.fixedCt(kwslotchar)}.
                 This gives us a mapping for that letter as:`));
                 } else {
-                    result.append($('<p/>').html(`Using the word ${word} to fill in the slot has ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                    result.append($('<p/>').html(`Using the word ${this.fixedPt(word)} to fill in the slot has ${this.fixedPt(pt)} mapping to the ciphertext ${this.fixedCt100(ct)} 
                 we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
-                Counting backward in the alphabet from ${this.fixedCt(ct)} to the start of the range ${slot * 25 + 1} we find that the keyword letter is ${this.fixedCt(kwslotchar)}.
+                Counting backward in the alphabet from ${this.fixedCt(ct)} to the start of the range ${slot * 25 + 1} we find that the keyword letter is ${this.fixedPt(kwslotchar)}.
                 This gives us a mapping for that letter as:`));
                 }
                 this.updateSolvingMap(localData, slot, kwIndex);
@@ -1320,7 +1337,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         this.showStep(result, "Step 1: Place the crib and determine the known letters of the key");
 
-        result.append($('<p/>').text(`Using the crib information, fill in the known plain text letters.
+        result.append($('<p/>').text(`Using the crib information, fill in the known plaintext letters.
             At the same time, we also can note which letter in the keyword corresponds to each ciphertext value (1-25 is the first letter, 26-50 is the second, etc.). 
             As we determine a plaintext letter, we can also determine the corresponding key letter and fill in all the matching entries.`));
         result.append(this.showHomophonicDecodeStatus(solvingData));
@@ -1379,8 +1396,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             }
             if (bestCandidate !== undefined) {
                 this.showStep(result, "Step 2b: See if we see any obvious missing letters we can fill in the plaintext");
-                result.append($('<p/>').html(`We see a potential word with ${bestCandidate.pattern.replaceAll('.', '?')} which matches ${bestCandidate.candidates.length} words: [${bestCandidate.candidates.join(", ")}].
+                if (bestCandidate.candidates.length === 1) {
+                    result.append($('<p/>').html(`We see a potential word with ${this.fixedPt(bestCandidate.pattern.replaceAll('.', '?'))} which matches one word: ${this.fixedPtList(bestCandidate.candidates)} which we will try to see if it works out`))
+                } else {
+                    result.append($('<p/>').html(`We see a potential word with ${this.fixedPt(bestCandidate.pattern.replaceAll('.', '?'))} which matches ${bestCandidate.candidates.length} words: [${this.fixedPtList(bestCandidate.candidates)}].
                  We will try them one at a time to see which works out the best`))
+                }
                 let successful = false
                 tried.push(bestCandidate.position)
                 for (const word of bestCandidate.candidates) {
@@ -1407,10 +1428,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const inComplete = solvingData.keyword.some(s => s === ' ');
 
         if (inComplete) {
-            this.showStep(result, `Incomplete: We haven't found all of the letters of the keyword, but have a partial ideathat it is "${solvingData.keyword.join('')}"`);
+            this.showStep(result, $('<span>').html(`Incomplete: We haven't found all of the letters of the keyword, but have a partial idea that it is ${this.fixedKt(solvingData.keyword.join(''))}`));
             result.append($('<p/>').html(`We will have to find some other strategy to determine the remaining letters`))
         } else {
-            this.showStep(result, `Success: We have found all of the letters of the keyword to see that it is ${solvingData.keyword.join('')}`);
+            this.showStep(result, $('<span>').html(`Success: We have found all of the letters of the keyword to see that it is ${this.fixedKt(solvingData.keyword.join(''))}`));
             result.append($('<p/>').html(`We can us this to decode any remaining letters`))
         }
 
@@ -1430,14 +1451,14 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 // We have a letter in a slot we haven't filled in yet, let's fill it in based on what we were told
                 const kwIndex = this.getKeywordIndex(ct, pt);
                 if (parseInt(ct) === (slot * 25) + 1) {
-                    result.append($('<p/>').html(`Based on the crib character ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                    result.append($('<p/>').html(`Based on the crib character ${this.fixedPt(pt)} mapping to the ciphertext ${this.fixedCt100(ct)} 
                 we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
-                Since ${this.fixedCt(ct)} is the start of the range ${slot * 25 + 1} it is the keyword letter ${this.fixedCt(solvingData.charset[kwIndex])}
+                Since ${this.fixedCt(ct)} is the start of the range ${slot * 25 + 1} it is the keyword letter ${this.fixedKt(solvingData.charset[kwIndex])}
                 This gives us a mapping for that letter as:`));
                 } else {
-                    result.append($('<p/>').html(`Based on the crib character ${this.fixedCt(pt)} mapping to the cipher text ${this.fixedCt(ct)} 
+                    result.append($('<p/>').html(`Based on the crib character ${this.fixedPt(pt)} mapping to the ciphertext ${this.fixedCt100(ct)} 
                 we know that it is in the ${this.getPositionText(slot + 1)} position because it is in the range ${slot * 25 + 1}-${(slot + 1) * 25}.
-                Counting backward in the alphabet from ${this.fixedCt(ct)} to the start of the range ${slot * 25 + 1} we find that the keyword letter is ${this.fixedCt(solvingData.charset[kwIndex])}
+                Counting backward in the alphabet from ${this.fixedCt(ct)} to the start of the range ${slot * 25 + 1} we find that the keyword letter is ${this.fixedKt(solvingData.charset[kwIndex])}
                 This gives us a mapping for that letter as:`));
                 }
 
@@ -1493,25 +1514,25 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         for (let i = 0; i < cipherline.length; i++) {
             const c = cipherline[i];
-            let aclass = 'e v';
+            let aclass = 'e';
             let a = ' ';
             if (answerline !== undefined) {
                 a = answerline[i];
-                aclass = 'a v';
+                aclass = 'a';
             }
             if (overline !== undefined) {
-                if (this.isValidChar(c)) {
+                if (this.isValidChar(a)) {
                     rowover.add({
-                        settings: { class: 'o v' },
+                        settings: { class: 'o' },
                         content: overline[i],
                     });
                 } else {
                     rowover.add(overline[i]);
                 }
             }
-            if (this.isValidChar(c)) {
+            if (this.isValidChar(a)) {
                 rowcipher.add({
-                    settings: { class: 'q v' },
+                    settings: { class: 'q' },
                     content: c,
                 });
                 rowanswer.add({
@@ -1579,7 +1600,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     keyline.push(' ');
                     solution.push(' ');
                 }
-                ctline.push(c)
+                if (c === '100') {
+                    ctline.push('00')
+                }
+                else {
+                    ctline.push(c)
+                }
             }
             this.addAnnotatedCipherTableRows(table, keyline, ctline, solution);
             if (sufficient) {
@@ -1642,7 +1668,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             return result;
         }
         result.append($('<p/>').text(`The Homophonic cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
-        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the cipher text, then use the Homophonic cipher table to decode each letter based on the corresponding letter in the key.`));
+        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the ciphertext, then use the Homophonic cipher table to decode each letter based on the corresponding letter in the key.`));
 
         this.setMappedKeyword(solvingData, this.state.keyword, this.state.keyword)
 
@@ -1654,7 +1680,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         result.append(this.showShortTable(firstletter))
 
-        result.append($('<p/>').text(`We can use this table to decode all the letters in the cipher text that have ${firstletter} as the corresponding letter in the key. This gives us a partial solution:`));
+        result.append($('<p/>').text(`We can use this table to decode all the letters in the ciphertext that have ${firstletter} as the corresponding letter in the key. This gives us a partial solution:`));
         if (this.state.cipherType === ICipherType.Homophonic) {
             result.append($('<p/>').text(`Remember for the Homophonic cipher, if the letter you are looking up is between A and M, you look at the top of the table and pick the letter from the corresponding column.  
                 if the letter you are looking up is between N and Z, you look for it in the row of the table and pick the letter from the top of the column.`))
@@ -1743,6 +1769,9 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             let row = table.addBodyRow();
             let blankrow = table.addBodyRow();
             for (let ent of strset[source]) {
+                if (this.state.operation !== 'encode' && ent === '100') {
+                    ent = '00'
+                }
                 row.add(ent);
                 blankrow.add("\u00A0");
             }

@@ -32,6 +32,7 @@ import { CipherTestBuild } from './ciphertestbuild';
 import { CipherQuoteManager } from './cipherquotemanager';
 import { CipherAristocratEncoder } from './cipheraristocratencoder';
 import { CipherKnightsTemplarEncoder } from './cipherknightstemplar';
+import { CloudLogin } from './cloudlogin';
 import { CipherTestSlicer } from './ciphertestslicer';
 import { CipherCheckerboardEncoder } from './ciphercheckerboardencoder';
 import { CipherHomophonicEncoder } from './cipherhomophonicencoder';
@@ -117,6 +118,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.KnightsTemplar,
         cipherClass: CipherKnightsTemplarEncoder,
         canPrint: true,
+    },
+    Login: {
+        cipherType: ICipherType.None,
+        cipherClass: CloudLogin,
+        canPrint: false,
     },
     Morbit: {
         cipherType: ICipherType.Morbit,

@@ -1245,8 +1245,7 @@ export class CipherHandler {
         return baseUrl + '/realtime/' + namespace + '/' + domain;
     }
     /**
-     * Request cloud sign-in or sign-out.  The Codebusters bootstrap listens for
-     * these events and runs Google OAuth inline (no dedicated login page).
+     * Request cloud sign-in or sign-out. 
      * @param shouldPerformSignout When true, sign out instead of signing in.
      * @param href Page to return to after sign-in (defaults to the current URL).
      */
@@ -1257,7 +1256,7 @@ export class CipherHandler {
         if (shouldPerformSignout) {
             $(document).trigger('cb-cloud-signout');
         } else {
-            $(document).trigger('cb-cloud-signin', [href]);
+            window.location.assign('Login.html?return=' + encodeURIComponent(href));
         }
     }
 
@@ -3819,6 +3818,8 @@ export class CipherHandler {
         }
         const userid = this.getConfigString(CipherHandler.KEY_USER_ID, '');
         container.empty();
+        // When signed out nothing is shown here - the Sign In button lives
+        // only on the dedicated Login page (COPPA).
         if (userid !== '') {
             const name = this.getConfigString(CipherHandler.KEY_FIRST_NAME, userid);
             container.append(
@@ -3826,10 +3827,6 @@ export class CipherHandler {
             );
             container.append(
                 $('<a/>', { class: 'login-signout button', type: 'button' }).text('Sign Out')
-            );
-        } else {
-            container.append(
-                $('<a/>', { class: 'login-signin button', type: 'button' }).text('Sign In')
             );
         }
     }
@@ -4023,11 +4020,6 @@ export class CipherHandler {
      */
     public attachHandlers(): void {
         this.updateLoginInfo();
-        $('.login-signin')
-            .off('click')
-            .on('click', () => {
-                this.goToAuthenticationPage();
-            });
         $('.login-signout')
             .off('click')
             .on('click', () => {

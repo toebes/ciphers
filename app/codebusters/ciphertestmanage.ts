@@ -91,6 +91,53 @@ export class CipherTestManage extends CipherTest {
         return result;
     }
     /**
+     * Add the hidden Sign In entry point for coaches.  The button is only
+     * visible while the reveal key (Ctrl, or Option on a Mac) is held.
+     */
+    public updateLoginInfo(): void {
+        super.updateLoginInfo();
+        if (
+            !isCloudAvailable() ||
+            this.getConfigString(CipherHandler.KEY_USER_ID, '') !== ''
+        ) {
+            return;
+        }
+        const container = $('.login-info');
+        if (container.length === 0) {
+            return;
+        }
+        container.append(
+            $('<a/>', {
+                class: 'login-reveal login-signin button',
+                type: 'button',
+                style: 'display: none;',
+            }).text('Sign In')
+        );
+        $('.login-reveal')
+            .off('click')
+            .on('click', () => {
+                this.goToAuthenticationPage();
+            });
+        const isMac = window.navigator.userAgent.indexOf('Mac') !== -1;
+        $(document)
+            .off('keydown.loginreveal keyup.loginreveal')
+            .on('keydown.loginreveal', (e) => {
+                if (isMac ? e.altKey : e.ctrlKey) {
+                    $('.login-reveal').show();
+                }
+            })
+            .on('keyup.loginreveal', (e) => {
+                if (!(isMac ? e.altKey : e.ctrlKey)) {
+                    $('.login-reveal').hide();
+                }
+            });
+        $(window)
+            .off('blur.loginreveal')
+            .on('blur.loginreveal', () => {
+                $('.login-reveal').hide();
+            });
+    }
+    /**
      *
      */
     public genTestList(): JQuery<HTMLElement> {

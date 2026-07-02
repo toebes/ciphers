@@ -81,6 +81,33 @@
 .abset {
     margin: 2px;
 }
+.abblock {
+    width: max-content;
+    max-width: 100%;
+}
+.abmaprow {
+    margin-top: 15px;
+}
+.abcustom .input-group {
+    margin-bottom: 0;
+}
+.abcustom .input-group-field {
+    width: 10em;
+    flex: 0 0 auto;
+}
+.aboffrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+.aboffrow div {
+    margin: 0 10px;
+}
+.aboffrow .button {
+    margin: 0;
+}
 #misspellopts em {
     color: #1779ba; /* $anchor-color; */
 }

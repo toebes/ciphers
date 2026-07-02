@@ -133,6 +133,7 @@ export function JTFLabeledInputApply(
             $('<input/>', {
                 class: 'button round',
                 id: applyid,
+                type: 'button',
                 value: applyTitle,
             })
         )

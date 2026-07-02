@@ -3,7 +3,6 @@ import {
     cloneObject,
     NumberMap,
     padToMatch,
-    setCharAt,
     setDisabled,
     StringMap,
 } from '../common/ciphercommon';
@@ -18,7 +17,7 @@ import { fiveletterwords } from '../common/fiveletterwords';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
-import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTFLabeledInput, JTFLabeledInputApply } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
@@ -95,6 +94,10 @@ interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the B value */
     textb: string;
     abMapping: string;
+    /** The repeating A/B pattern that abMapping was built from (if known) */
+    abPattern?: string;
+    /** How far into the repeating pattern the mapping starts */
+    abOffset?: number;
     /** How wide a line can be before wrapping */
     linewidth: number;
     /** Zoom factor (100=normal size) for Baconian characters */
@@ -298,21 +301,57 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return changed;
     }
     /**
-     * Switches the mapping character of a letter in the character set
-     * @param c Which character in the character set to change the value of
+     * Fill the A/B mapping by repeating a custom pattern across the alphabet
+     * @param pattern String of A/B characters to repeat
      */
-    public toggleAB(c: string): void {
-        const charset = this.getCharset();
-        const idx = charset.indexOf(c);
-        if (idx >= 0) {
-            let val = this.state.abMapping.charAt(idx);
-            if (val !== 'A') {
-                val = 'A';
-            } else {
-                val = 'B';
-            }
-            this.state.abMapping = setCharAt(this.state.abMapping, idx, val);
+    public setCustomPattern(pattern: string): void {
+        const cleaned = (pattern === undefined ? '' : pattern).toUpperCase().replace(/[^AB]/g, '');
+        if (cleaned === '') {
+            this.setErrorMsg('The custom pattern must contain at least one A or B character.', 'abpat');
+            return;
         }
+        this.state.abPattern = cleaned;
+        this.state.abOffset = 0;
+        this.applyABPattern();
+        this.updateOutput();
+    }
+    /**
+     * Rebuild the A/B mapping by sliding a window over the endless repetition
+     * of the remembered pattern, starting at the current offset
+     */
+    public applyABPattern(): void {
+        const pattern = this.state.abPattern;
+        const patLen = pattern.length;
+        const offset = ((this.state.abOffset % patLen) + patLen) % patLen;
+        let newMap = '';
+        for (let i = 0; i < this.state.abMapping.length; i++) {
+            newMap += pattern.charAt((i + offset) % patLen);
+        }
+        this.state.abMapping = newMap;
+    }
+    /**
+     * Shift the A/B mapping pattern one position to the left or right.  When we
+     * know the pattern the mapping was built from, the shift slides along the
+     * repeating pattern so the wrapped characters continue it correctly.
+     * @param dir Direction to shift the pattern (negative = left, positive = right)
+     */
+    public shiftABPattern(dir: number): void {
+        if (this.state.abPattern !== undefined && this.state.abPattern.length > 0) {
+            const offset = this.state.abOffset === undefined ? 0 : this.state.abOffset;
+            this.state.abOffset = offset + (dir < 0 ? 1 : -1);
+            this.applyABPattern();
+        } else {
+            // No pattern was remembered (an older saved question), so just rotate
+            const map = this.state.abMapping;
+            if (map.length > 1) {
+                if (dir < 0) {
+                    this.state.abMapping = map.slice(1) + map.charAt(0);
+                } else {
+                    this.state.abMapping = map.charAt(map.length - 1) + map.slice(0, map.length - 1);
+                }
+            }
+        }
+        this.updateOutput();
     }
     /**
      * Update the pattern table to a sequence defined
@@ -320,16 +359,24 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public updateABTable(s: string): void {
         let f = s.slice(1)
-        let newMap = this.state.abMapping
         if (f === "t") {
             // Toggle them all
-            newMap = ""
+            let newMap = ""
             for (let i = 0; i < this.state.abMapping.length; i++) {
                 if (this.state.abMapping.charAt(i) === 'A') {
                     newMap += 'B'
                 } else {
                     newMap += 'A'
                 }
+            }
+            this.state.abMapping = newMap;
+            // Keep the remembered pattern in sync so shifting still continues it
+            if (this.state.abPattern !== undefined) {
+                let newPattern = ''
+                for (const c of this.state.abPattern) {
+                    newPattern += c === 'A' ? 'B' : 'A'
+                }
+                this.state.abPattern = newPattern
             }
         }
         else {
@@ -338,13 +385,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
             if (isNaN(patLen) || patLen < 1) {
                 patLen = 1;
             }
-            newMap = ""
-            while (newMap.length < this.state.abMapping.length) {
-                newMap += this.repeatStr("A", patLen) + this.repeatStr("B", patLen)
-            }
-            newMap = newMap.slice(0, this.state.abMapping.length)
+            this.state.abPattern = this.repeatStr("A", patLen) + this.repeatStr("B", patLen)
+            this.state.abOffset = 0
+            this.applyABPattern()
         }
-        this.state.abMapping = newMap;
         this.updateOutput()
     }
     /**
@@ -1201,36 +1245,26 @@ export class CipherBaconianEncoder extends CipherEncoder {
             )
         );
 
-        const ABDiv = $("<div/>", { class: "grid-x opfield words" })
-        result.append(ABDiv)
-        const tableDiv = $("<div/>", { class: "cell shrink" })
-        ABDiv.append(tableDiv)
-        // Build a table so that they can click on letters to make A or B
-        const table = new JTTable({
-            class: 'cell shrink tfreq',
-        });
-        const hrow = table.addHeaderRow();
-        const brow = table.addBodyRow();
-        for (const c of this.getCharset()) {
-            hrow.add({
-                settings: { class: 'abclick', id: 'a' + c },
-                content: c,
-            });
-            brow.add({
-                settings: { class: 'abclick', id: 'l' + c },
-                content: 'A',
-            });
-        }
-        tableDiv.append(table.generate());
-        // Give them buttons to set the pattern easily
+        result.append(
+            $('<p/>', { class: 'opfield words' }).text(
+                'Click one of the options below to use a set of default options or manually enter a custom pattern.'
+            )
+        );
+        // Group the pattern options and the mapping table so the table can be
+        // centered relative to the options above it
+        const abBlock = $('<div/>', { class: 'abblock opfield words' })
+        result.append(abBlock)
+        // Give them buttons to set the pattern easily along with a custom pattern option
+        const patternDiv = $("<div/>", { class: "grid-x opfield words" })
+        abBlock.append(patternDiv)
         const buttonDiv = $('<div/>', { class: "cell shrink abbuttons" })
-        ABDiv.append(buttonDiv)
+        patternDiv.append(buttonDiv)
         buttonDiv.append(
             $('<button/>', {
                 id: 'bt',
                 type: 'button',
                 class: 'button primary tiny rounded abset',
-            }).text("Toggle"))
+            }).text("Toggle B/A"))
         for (let i = 1; i < 10; i++) {
             buttonDiv.append(
                 $('<button/>', {
@@ -1245,6 +1279,55 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 type: 'button',
                 class: 'button primary tiny rounded abset',
             }).text("13"))
+        patternDiv.append($('<div/>', { class: 'cell shrink abbuttons' }).text('or'))
+        const customInput = JTFLabeledInputApply(
+            'Custom A/B pattern',
+            'text',
+            'abpattern',
+            '',
+            'shrink abbuttons abcustom',
+            'abgenerate',
+            'Generate'
+        );
+        customInput.find('#abpattern').attr('placeholder', 'AABBAB');
+        patternDiv.append(customInput)
+        // Build a table to show the current A/B mapping of the letters
+        const ABDiv = $("<div/>", { class: "grid-x align-center abmaprow opfield words" })
+        abBlock.append(ABDiv)
+        const tableDiv = $("<div/>", { class: "cell shrink" })
+        ABDiv.append(tableDiv)
+        const table = new JTTable({
+            class: 'cell shrink tfreq',
+        });
+        const hrow = table.addHeaderRow();
+        const brow = table.addBodyRow();
+        for (const c of this.getCharset()) {
+            hrow.add({
+                settings: { id: 'a' + c },
+                content: c,
+            });
+            brow.add({
+                settings: { id: 'l' + c },
+                content: 'A',
+            });
+        }
+        tableDiv.append(table.generate());
+        // Arrows to shift the pattern left or right, centered under the table
+        const offsetDiv = $('<div/>', { class: 'aboffrow' })
+        tableDiv.append(offsetDiv)
+        offsetDiv.append(
+            $('<button/>', {
+                id: 'aboffl',
+                type: 'button',
+                class: 'aboff button primary tiny rounded',
+            }).html('&#8592;'))
+        offsetDiv.append($('<div/>').text('Optional Pattern Offset'))
+        offsetDiv.append(
+            $('<button/>', {
+                id: 'aboffr',
+                type: 'button',
+                class: 'aboff button primary tiny rounded',
+            }).html('&#8594;'))
         const div = $('<div/>', { class: 'grid-x opfield words' });
         div.append(this.genShiftButtonGroup('left'));
         for (let slot = 0; slot < 5; slot++) {
@@ -2121,14 +2204,18 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     }
                 }
             });
-        $('.abclick')
+        $('#abgenerate')
+            .off('click')
+            .on('click', () => {
+                this.markUndo(null);
+                this.setCustomPattern($('#abpattern').val() as string);
+            });
+        $('.aboff')
             .off('click')
             .on('click', (e) => {
                 const id = $(e.target).attr('id') as string;
-                const c = id.charAt(1);
                 this.markUndo(null);
-                this.toggleAB(c);
-                this.updateOutput();
+                this.shiftABPattern(id === 'aboffl' ? -1 : 1);
             });
         $('#linewidth')
             .off('input')

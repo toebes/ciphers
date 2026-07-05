@@ -901,6 +901,7 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
     str = str.replace(new RegExp("\u2019", "g"), "'"); //’
     // Lastly get rid of all white space
     str = str.replace(new RegExp("[\r\n ]+", "g"), "");
+    str = str.replace(/[√∛]([A-Za-z']+)=/g, "$1^");
     // Now tokenize the string so we can parse it
     let tokens = str.toUpperCase().split(/([;=+ \^\/\*\.\-])/g);
     let state: buildState = buildState.Initial;
@@ -1269,7 +1270,7 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                             } else if (rootLen === 3) {
                                 cryptarithmType =
                                     CryptarithmType.CubeRoot;
-                            } else {
+                            } else if (rootLen !== 1) {
                                 console.log(
                                     "Bad quote location at " + rootLen
                                 );
@@ -1292,17 +1293,19 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                         }
                         rootLen = 0;
                     } else {
-                        if (c.toLocaleLowerCase !== c.toUpperCase) {
+                        if (c.toLocaleLowerCase() !== c.toUpperCase()) {
                             result.usedletters[c] = true;
                         }
                         content += c;
                         rootLen++;
                     }
                 }
-                // The first digit of the content can't be a zero
-                if (content.length > 0) {
+                // The first digit of a multi-digit number can't be a zero.
+                // A single letter line (such as the final remainder of an exact
+                // division) is allowed to be zero.
+                if (content.length > 1) {
                     let c = content.substring(0, 1);
-                    if (c.toLocaleLowerCase !== c.toUpperCase) {
+                    if (c.toLocaleLowerCase() !== c.toUpperCase()) {
                         result.nonzeros[c] = true;
                     }
                 }
@@ -1334,6 +1337,35 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                                 new RegExp(" ", "g"),
                                 ""
                             );
+                            if (numwidth < 2) {
+                                // The radicand was entered without quote grouping
+                                // (e.g. "OZEN gives root DD") so group it into
+                                // pairs from the right exactly as the quoted
+                                // syntax ("OZ'EN gives root DD") would have.
+                                numwidth = 2;
+                                indent = Math.ceil(rootbase.length / numwidth) - 1;
+                                let temp = " " + rootbase;
+                                let grouped = "";
+                                for (
+                                    let i = temp.length - numwidth;
+                                    i >= 0;
+                                    i -= numwidth
+                                ) {
+                                    let toadd = temp.substr(i, numwidth);
+                                    if (grouped !== "") {
+                                        grouped = toadd + " " + grouped;
+                                    } else {
+                                        grouped = toadd;
+                                    }
+                                }
+                                item.content = grouped;
+                                item.prefix = "2";
+                                item.class = "ovl";
+                                item.indent = indent * numwidth;
+                                result.lineitems[
+                                    result.lineitems.length - 1
+                                ].indent = indent * numwidth;
+                            }
                             let digits = rootbase.length % numwidth;
                             if (digits === 0) {
                                 digits = numwidth;
@@ -1357,8 +1389,8 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                                         item.formula +
                                         ")*100+" +
                                         rootbase.substr(
-                                            rootbase.length - indent * 2,
-                                            2
+                                            rootbase.length - indent * numwidth,
+                                            numwidth
                                         );
                                     indent--;
                                 }
@@ -1420,8 +1452,8 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                                         item.formula +
                                         ")*1000+" +
                                         rootbase.substr(
-                                            rootbase.length - indent * 2,
-                                            2
+                                            rootbase.length - indent * numwidth,
+                                            numwidth
                                         );
                                     indent--;
                                 }
@@ -1525,6 +1557,33 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                 break;
         }
     }
+    // Handle the simple single-equation forms where no work lines were given.
+    //   A/B=C  generates no formula at all, so make it  B*C = A  (exact division)
+    //   A*B=C  with a multi-digit multiplier gets parsed as if C were the first
+    //          partial product (A*<last digit of B>).  Since nothing followed
+    //          it, C is really the full product, so make it  A*B = C
+    if (result.lineitems.length > 0) {
+        const formulaItems = result.lineitems.filter((item) => item.formula !== "");
+        const lastitem = result.lineitems[result.lineitems.length - 1];
+        if (
+            cryptarithmType === CryptarithmType.Division &&
+            formulaItems.length === 0 &&
+            divisor !== "" &&
+            quotient !== ""
+        ) {
+            lastitem.formula = divisor + "*" + quotient;
+            lastitem.expected = dividend;
+        } else if (
+            cryptarithmType === CryptarithmType.Multiplication &&
+            multiplier.length > 1 &&
+            formulaItems.length === 1 &&
+            formulaItems[0] === lastitem &&
+            lastitem.formula ===
+            multiplicand + "*" + multiplier.substr(multiplier.length - 1, 1)
+        ) {
+            lastitem.formula = multiplicand + "*" + multiplier;
+        }
+    }
     const tbase = Object.keys(result.usedletters).length;
     if (base === 0 || tbase > base) {
         base = tbase;
@@ -1533,7 +1592,649 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
 }
 
 /**
- * 
+ * Tracking structure for the recursive general cryptarithm search
+ */
+export interface cryptarithmSearchTracker {
+    backtracks: number;         // Number of assignments tried so far
+    maxBacktracks: number;      // Limit of assignments before aborting (Infinity for no limit)
+    aborted: boolean;           // Set when the limit was exceeded
+    mapping: NumberMap;         // Mapping for the first solution found
+}
+
+export interface cryptarithmSolveResult {
+    count: number;              // Number of solutions found (search stops after 2)
+    mapping: NumberMap;         // Mapping for the first solution found
+    backtracks: number;         // Number of assignments tried
+    aborted: boolean;           // True if the search hit the backtrack limit
+}
+
+/**
+ * Build the ordered set of formulas (and the order in which letters get bound)
+ * for the general constraint solver.
+ * @param parsed Parsed cryptarithm
+ * @returns The formula set plus the order to assign letters in
+ */
+export function buildFormulaSet(parsed: cryptarithmParsed): { formulaSet: cryptarithmForumlaItem[]; letterOrder: string[] } {
+    const allletters: BoolMap = {};
+    const letterOrder: string[] = [];
+    const formulaSet: cryptarithmForumlaItem[] = [];
+
+    for (const item of parsed.lineitems) {
+        if (item.formula !== "") {
+            const formulaItem: cryptarithmForumlaItem = {
+                formula: item.formula,
+                expected: item.expected,
+                totalFormula: 0,
+                totalExpected: 0,
+                usedFormula: {},
+                newFormula: {},
+                usedExpected: {},
+                newExpected: {}
+            }
+            for (const c of item.formula) {
+                if (parsed.usedletters[c]) {
+                    formulaItem.usedFormula[c] = true;
+                    if (!allletters[c]) {
+                        allletters[c] = true;
+                        letterOrder.push(c);
+                        formulaItem.newFormula[c] = true;
+                    }
+                }
+            }
+            formulaItem.totalFormula = letterOrder.length;
+            for (const c of item.expected) {
+                if (parsed.usedletters[c]) {
+                    formulaItem.usedExpected[c] = true;
+                    if (!allletters[c]) {
+                        allletters[c] = true;
+                        letterOrder.push(c);
+                        formulaItem.newExpected[c] = true;
+                    }
+                }
+            }
+            formulaItem.totalExpected = letterOrder.length;
+            formulaSet.push(formulaItem);
+        }
+    }
+    // It is possible that some of the letters used don't actually appear in a
+    // formula (for example the remainder of a division).  We just need to add
+    // them to the list of letters
+    for (const c in parsed.usedletters) {
+        if (!allletters[c]) {
+            letterOrder.push(c);
+            allletters[c] = true;
+        }
+    }
+    return { formulaSet: formulaSet, letterOrder: letterOrder };
+}
+
+/**
+ * Safe version of eval to compute a generated formula
+ * @param str Formula string (all values already numeric)
+ * @param base Number base to render the result in
+ */
+export function computeFormula(str: string, base: number = 10): string {
+    try {
+        const val = Function('"use strict";return (' + str + ")")();
+        return basedStr(val, base);
+    } catch (e) {
+        return str;
+    }
+}
+
+/**
+ * Substitutes all the current single-valued mappings in a formula string and
+ * converts the result to base 10 so it can be evaluated
+ * @param str String to substitute
+ * @param legal Current mappings (only single-entry values are substituted)
+ * @param base Number base of the formula
+ */
+export function subFormula(str: string, legal: legalMap, base: number = 10): string {
+    let result = "";
+    for (const c of str) {
+        if (legal[c] !== undefined) {
+            result += legal[c][0];
+        } else {
+            result += c;
+        }
+    }
+    // Now we need to convert everything to base 10 so we can
+    // properly evaluate it
+    let gathered = "";
+    const intermediate = result;
+    result = "";
+    for (const c of intermediate) {
+        if (!isNaN(parseInt(c, base))) {
+            // Throw away leading zeros so that it will parse
+            if (gathered === "0") {
+                gathered = c;
+            } else {
+                gathered += c;
+            }
+        } else if (gathered !== "") {
+            result += parseInt(gathered, base) + c;
+            gathered = "";
+        } else {
+            result += c;
+        }
+    }
+    if (gathered !== "") {
+        result += parseInt(gathered, base);
+    }
+    return result;
+}
+
+/**
+ * Check a computed result against the expected letter string, ensuring that
+ * every digit is consistent with (and doesn't conflict with) the current
+ * assignments
+ * @param computed Computed value string (in the target base)
+ * @param expected Expected letter string
+ * @param used Which values are already assigned to other letters
+ * @param legal Current candidate values for each letter
+ * @param base Number base of the problem
+ */
+export function checkFormulaResult(computed: string, expected: string, used: Boolean[], legal: legalMap, base: number = 10): boolean {
+    const len = computed.length;
+    if (len !== expected.length) {
+        return false;
+    }
+
+    const subUsed = [...used]
+    const subLegal: legalMap = {}
+    for (const c in legal) {
+        subLegal[c] = legal[c]
+    }
+
+    for (let i = 0; i < len; i++) {
+        const cv = parseInt(computed.substring(i, i + 1), base);
+        const ec = expected.substring(i, i + 1)
+        if (subLegal[ec] === undefined) {
+            return false;
+        }
+        if (subLegal[ec].length === 1) {
+            if (subLegal[ec][0] !== cv) {
+                return false;
+            }
+        } else {
+            if (subUsed[cv] || !subLegal[ec].includes(cv)) {
+                return false;
+            }
+            subUsed[cv] = true;
+            subLegal[ec] = [cv]
+        }
+    }
+    return true;
+}
+
+/**
+ * Filter an array of values to identify only the legal ones that can still be used
+ * @param vals array of values to filter
+ * @param used Indicator of values that have already been used
+ * @returns Filtered array
+ */
+export function filterLegal(vals: number[], used: Boolean[]): number[] {
+    const result: number[] = [];
+    for (const v of vals) {
+        if (!used[v]) {
+            result.push(v)
+        }
+    }
+    return result;
+}
+
+/**
+ * Evaluate everything at a level checking for a match.  This recursively
+ * assigns values to letters (in letterOrder order), evaluating each formula
+ * as soon as all of its letters are bound.  The search stops as soon as a
+ * second solution is found (proving non-uniqueness) or the tracker's
+ * backtrack limit is exceeded.
+ * @param level How far down in the letter set we are
+ * @param formulaSet The set of formulas to match against
+ * @param legal The possible legal values to match against
+ * @param letterOrder The order of letters to be substituting for
+ * @param used Which values are already used
+ * @param found How many matches we have found so far
+ * @param base Number base of the problem
+ * @param tracker Search tracker for backtrack counting/aborting and capturing the solution
+ * @returns Number of matches found so far
+ */
+export function tryFormulaLevel(level: number, formulaSet: cryptarithmForumlaItem[], legal: legalMap, letterOrder: string[], used: Boolean[], found: number, base: number, tracker: cryptarithmSearchTracker): number {
+    let formulapos = 0
+    let formulaItem = formulaSet[formulapos];
+
+    const subUsed = [...used]
+    const subLegal: legalMap = {}
+    for (const c of letterOrder) {
+        subLegal[c] = legal[c]
+    }
+
+    // See if we have enough letters to satisfy a formula without having to map any new letters.
+    while (formulaItem !== undefined && level >= formulaItem.totalFormula) {
+        // We have enough to substitute for the formula.
+        const formula = subFormula(formulaItem.formula, subLegal, base)
+        const result = computeFormula(formula, base);
+        if (!checkFormulaResult(result, formulaItem.expected, subUsed, subLegal, base)) {
+            // It doesn't match, so there is no reason to try anything else.
+            return found;
+        }
+        // Ok it checks out, now we need to fill in the legal values because there are more formulas to go
+        if (formulaItem.totalExpected > level) {
+            for (let i = 0; i < result.length; i++) {
+                const cv = parseInt(result.substring(i, i + 1), base);
+                const ec = formulaItem.expected.substring(i, i + 1)
+                subLegal[ec] = [cv]
+                subUsed[cv] = true
+            }
+            level = formulaItem.totalExpected;
+        }
+        formulapos++
+        if (formulapos == formulaSet.length) {
+            // Success!!!!
+            if (found == 0) {
+                // We need to save the mappings
+                tracker.mapping = {}
+                for (const c in subLegal) {
+                    if (subLegal[c].length === 1) {
+                        tracker.mapping[c] = subLegal[c][0];
+                    } else {
+                        const filtered = filterLegal(subLegal[c], subUsed)
+                        if (filtered.length === 1) {
+                            const v = filtered[0]
+                            subUsed[v] = true
+                            tracker.mapping[c] = v
+                        }
+                    }
+                }
+            }
+            return found + 1;
+        }
+        // We know there is at least one more formula available to us
+        formulaItem = formulaSet[formulapos]
+    }
+
+    // If there are no more formulas, then we have solved the problem
+    // Note that this does mean that not all the letters are known
+    if (formulapos >= formulaSet.length) {
+        // We need to save the mappings
+        tracker.mapping = {}
+        for (const c in subLegal) {
+            if (subLegal[c].length === 1) {
+                tracker.mapping[c] = subLegal[c][0];
+            }
+        }
+        return 1;
+    }
+    // We don't have enough known letters to try out the formula, so try an extra one and recurse to see if it is enough
+    const l = letterOrder[level];
+    const subset = [...subLegal[l]]
+    for (const v of subset) {
+        if (!subUsed[v]) {
+            tracker.backtracks++;
+            if (tracker.backtracks > tracker.maxBacktracks) {
+                tracker.aborted = true;
+                return found;
+            }
+            subUsed[v] = true
+            subLegal[l] = [v]
+            // We need to filter out all the values that aren't legal for the remaining letters
+            for (let i = level + 1; i < base; i++) {
+                const sc = letterOrder[i]
+                if (sc !== undefined) {
+                    subLegal[sc] = filterLegal(legal[sc], subUsed)
+                }
+            }
+            // Now we need to try a lower level to check the result
+            found = tryFormulaLevel(level + 1, formulaSet.slice(formulapos), subLegal, letterOrder, subUsed, found, base, tracker);
+            // If we have more than one match (or we gave up), exit quickly
+            if (found > 1 || tracker.aborted) {
+                return found;
+            }
+            subUsed[v] = false
+        }
+    }
+    return found;
+}
+
+/**
+ * Synchronously solve a parsed cryptarithm with the general constraint
+ * solver, counting solutions (up to 2) to determine whether the problem has a
+ * unique solution.
+ * @param parsed Parsed cryptarithm
+ * @param base Number base of the problem
+ * @param maxBacktracks Backtrack budget before giving up (aborted is set in the result)
+ */
+export function solveCryptarithm(parsed: cryptarithmParsed, base: number = 10, maxBacktracks: number = 1000000): cryptarithmSolveResult {
+    const { formulaSet, letterOrder } = buildFormulaSet(parsed);
+    if (formulaSet.length === 0 || letterOrder.length === 0) {
+        return { count: 0, mapping: {}, backtracks: 0, aborted: false };
+    }
+    const tracker: cryptarithmSearchTracker = {
+        backtracks: 0,
+        maxBacktracks: maxBacktracks,
+        aborted: false,
+        mapping: {}
+    };
+    const legal = buildLegal(parsed, base);
+    const used = makeFilledArray(base, false) as Boolean[];
+    const count = tryFormulaLevel(0, formulaSet, legal, letterOrder, used, 0, base, tracker);
+    return { count: count, mapping: tracker.mapping, backtracks: tracker.backtracks, aborted: tracker.aborted };
+}
+
+export interface cryptarithmProductSolution {
+    mapping: NumberMap;   // letter -> digit for all letters involved
+    quotient?: number;    // For free-quotient searches, the numeric quotient found
+}
+export interface cryptarithmProductResult {
+    count: number;
+    solutions: cryptarithmProductSolution[];
+    backtracks: number;
+    aborted: boolean;
+}
+
+/**
+ * Search for digit assignments where factorA * factorB = product (as letter
+ * patterns with a bijective letter/digit mapping and no leading zeros).
+ * This is the engine behind generating division problems (divisor * quotient
+ * = dividend) and square root problems (root * root = radicand, pass the same
+ * word for both factors).
+ *
+ * When factorB is null/empty the multiplier is a free numeric quotient
+ * instead of a letter pattern ("A/B=?" style): every quotient value whose
+ * product has the right number of digits is tried against the product
+ * pattern, and the matching quotient is returned with each solution.
+ *
+ * @param factorA First factor word
+ * @param factorB Second factor word (or null for a free numeric quotient)
+ * @param product Product word
+ * @param base Number base to work in
+ * @param maxBacktracks Limit on assignments/values tried before aborting
+ * @param maxSolutions Stop collecting after this many solutions
+ */
+export function cryptarithmProductSearch(factorA: string, factorB: string, product: string, base: number = 10, maxBacktracks: number = 2000000, maxSolutions: number = 10): cryptarithmProductResult {
+    const result: cryptarithmProductResult = { count: 0, solutions: [], backtracks: 0, aborted: false };
+    const isFree = factorB === null || factorB === undefined || factorB === "";
+    // Quick length feasibility check
+    if (!isFree) {
+        const lenlow = factorA.length + factorB.length - 1;
+        if (product.length < lenlow || product.length > lenlow + 1) {
+            return result;
+        }
+    } else if (product.length <= factorA.length) {
+        return result;
+    }
+    // Gather the distinct letters to assign (factorA first so we can prune on
+    // its value as soon as it is complete)
+    const letters: string[] = [];
+    for (const c of factorA + (isFree ? "" : factorB)) {
+        if (letters.indexOf(c) < 0) {
+            letters.push(c);
+        }
+    }
+    let nA = 0;
+    for (const c of factorA) {
+        const idx = letters.indexOf(c);
+        if (idx >= nA) {
+            nA = idx + 1;
+        }
+    }
+    const nonzero: BoolMap = {};
+    nonzero[factorA.substring(0, 1)] = true;
+    if (!isFree) {
+        nonzero[factorB.substring(0, 1)] = true;
+    }
+    nonzero[product.substring(0, 1)] = true;
+
+    const assign: NumberMap = {};
+    const used: boolean[] = makeFilledArray(base, false) as boolean[];
+
+    const wordVal = (word: string): number => {
+        let v = 0;
+        for (const c of word) {
+            v = v * base + assign[c];
+        }
+        return v;
+    };
+    // Match a computed product value against the product letter pattern,
+    // extending the current assignment.  Returns the extra assignments or
+    // undefined if it doesn't fit.
+    const matchProduct = (val: number): NumberMap => {
+        const str = basedStr(val, base);
+        if (str.length !== product.length) {
+            return undefined;
+        }
+        const local: NumberMap = {};
+        const lused = [...used];
+        for (let i = 0; i < str.length; i++) {
+            const dv = parseInt(str.substring(i, i + 1), base);
+            const c = product.substring(i, i + 1);
+            let cur = assign[c];
+            if (cur === undefined) {
+                cur = local[c];
+            }
+            if (cur !== undefined) {
+                if (cur !== dv) {
+                    return undefined;
+                }
+            } else {
+                if (lused[dv] || (dv === 0 && nonzero[c])) {
+                    return undefined;
+                }
+                local[c] = dv;
+                lused[dv] = true;
+            }
+        }
+        return local;
+    };
+
+    const dfs = (idx: number): void => {
+        if (result.aborted || result.solutions.length >= maxSolutions) {
+            return;
+        }
+        if (!isFree && idx === nA && idx < letters.length) {
+            // factorA is fully assigned - prune if no factorB value can
+            // produce a product of the right length
+            const valA = wordVal(factorA);
+            const minB = Math.pow(base, factorB.length - 1);
+            const maxB = Math.pow(base, factorB.length) - 1;
+            const minP = Math.pow(base, product.length - 1);
+            const maxP = Math.pow(base, product.length) - 1;
+            if (valA * maxB < minP || valA * minB > maxP) {
+                return;
+            }
+        }
+        if (idx === letters.length) {
+            const valA = wordVal(factorA);
+            if (isFree) {
+                // Try every quotient which gives a product of the right length
+                const lo = Math.ceil(Math.pow(base, product.length - 1) / valA);
+                const hi = Math.floor((Math.pow(base, product.length) - 1) / valA);
+                for (let q = lo; q <= hi; q++) {
+                    result.backtracks++;
+                    if (result.backtracks > maxBacktracks) {
+                        result.aborted = true;
+                        return;
+                    }
+                    const local = matchProduct(valA * q);
+                    if (local !== undefined) {
+                        result.solutions.push({ mapping: Object.assign({}, assign, local), quotient: q });
+                        if (result.solutions.length >= maxSolutions) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                const local = matchProduct(valA * wordVal(factorB));
+                if (local !== undefined) {
+                    result.solutions.push({ mapping: Object.assign({}, assign, local) });
+                }
+            }
+            return;
+        }
+        const c = letters[idx];
+        for (let v = nonzero[c] ? 1 : 0; v < base; v++) {
+            if (!used[v]) {
+                result.backtracks++;
+                if (result.backtracks > maxBacktracks) {
+                    result.aborted = true;
+                    return;
+                }
+                assign[c] = v;
+                used[v] = true;
+                dfs(idx + 1);
+                delete assign[c];
+                used[v] = false;
+                if (result.aborted || result.solutions.length >= maxSolutions) {
+                    return;
+                }
+            }
+        }
+    };
+    dfs(0);
+    result.count = result.solutions.length;
+    return result;
+}
+
+/**
+ * Build the long division cryptarithm string (A/B=Q-P1=R1-P2...) for an exact
+ * division dividend = divisor * quotient.
+ * @param dividend Dividend value
+ * @param divisor Divisor value
+ * @param quotient Quotient value
+ * @param digitToLetter String where the letter at index N is the letter for digit N
+ * @param base Number base to work in
+ * @returns The problem string, or undefined if the numbers don't produce a
+ *          clean canonical long division layout
+ */
+export function buildDivisionProblemString(dividend: number, divisor: number, quotient: number, digitToLetter: string, base: number = 10): string {
+    if (divisor * quotient !== dividend || quotient < base) {
+        return undefined;
+    }
+    const L = (val: number): string => {
+        let out = "";
+        for (const ch of basedStr(val, base)) {
+            out += digitToLetter.substring(parseInt(ch, base), parseInt(ch, base) + 1);
+        }
+        return out;
+    };
+    const dstr = basedStr(dividend, base);
+    const qstr = basedStr(quotient, base);
+    const firstlen = dstr.length - (qstr.length - 1);
+    if (firstlen < 1) {
+        return undefined;
+    }
+    let result = L(dividend) + "/" + L(divisor) + "=" + L(quotient);
+    let rem = parseInt(dstr.substring(0, firstlen), base);
+    for (let i = 0; i < qstr.length; i++) {
+        const qd = parseInt(qstr.substring(i, i + 1), base);
+        if (qd === 0) {
+            // A zero quotient digit needs the skip-a-column layout, so pass on it
+            return undefined;
+        }
+        const prod = qd * divisor;
+        if (prod > rem) {
+            return undefined;
+        }
+        result += "-" + L(prod);
+        rem -= prod;
+        if (rem >= divisor) {
+            // Not a canonical long division step
+            return undefined;
+        }
+        if (i < qstr.length - 1) {
+            // Bring down the next digit of the dividend
+            rem = rem * base + parseInt(dstr.substring(firstlen + i, firstlen + i + 1), base);
+            result += "=" + L(rem);
+        }
+    }
+    if (rem !== 0) {
+        return undefined;
+    }
+    return result;
+}
+
+/**
+ * Build the square root cryptarithm string (√RA'DI'CA'ND=RT-...)
+ * for an exact square radicand = root * root.
+ * @param radicand Radicand value (a perfect square)
+ * @param root Square root value
+ * @param digitToLetter String where the letter at index N is the letter for digit N
+ * @param base Number base to work in
+ * @returns The problem string, or undefined if the numbers don't produce a
+ *          clean layout
+ */
+export function buildSquareRootProblemString(radicand: number, root: number, digitToLetter: string, base: number = 10): string {
+    if (root * root !== radicand || root < base) {
+        return undefined;
+    }
+    const L = (val: number): string => {
+        let out = "";
+        for (const ch of basedStr(val, base)) {
+            out += digitToLetter.substring(parseInt(ch, base), parseInt(ch, base) + 1);
+        }
+        return out;
+    };
+    const rstr = basedStr(radicand, base);
+    const rootstr = basedStr(root, base);
+    // Split the radicand into pairs of digits from the right
+    const groups: string[] = [];
+    let pos = rstr.length;
+    while (pos > 0) {
+        const start = Math.max(0, pos - 2);
+        groups.unshift(rstr.substring(start, pos));
+        pos = start;
+    }
+    if (groups.length !== rootstr.length) {
+        return undefined;
+    }
+    // Emit the radicand with quote grouping between the pairs
+    let quoted = "";
+    for (const g of groups) {
+        let gl = "";
+        for (const ch of g) {
+            gl += digitToLetter.substring(parseInt(ch, base), parseInt(ch, base) + 1);
+        }
+        if (quoted === "") {
+            quoted = gl;
+        } else {
+            quoted += "'" + gl;
+        }
+    }
+    let result = "√" + quoted + "=" + L(root);
+    let acc = parseInt(groups[0], base);
+    let found = 0;
+    for (let i = 0; i < rootstr.length; i++) {
+        const rd = parseInt(rootstr.substring(i, i + 1), base);
+        if (rd === 0) {
+            // A zero root digit needs the skip-a-column layout, so pass on it
+            return undefined;
+        }
+        const sub = i === 0 ? rd * rd : ((found * 2 * base) + rd) * rd;
+        if (sub > acc) {
+            return undefined;
+        }
+        result += "-" + L(sub);
+        acc -= sub;
+        found = found * base + rd;
+        if (i < rootstr.length - 1) {
+            const pairval = parseInt(groups[i + 1], base);
+            if (acc === 0 && pairval < base) {
+                // The next working value would be written with a leading zero
+                // dropped, which misaligns the layout
+                return undefined;
+            }
+            acc = acc * base * base + pairval;
+            result += "=" + L(acc);
+        }
+    }
+    if (acc !== 0) {
+        return undefined;
+    }
+    return result;
+}
+
+/**
+ *
  * @param formula Parsed Cryptarithm to generate output for
  * @returns HTML representation of output
  */

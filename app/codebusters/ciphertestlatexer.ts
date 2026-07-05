@@ -14,6 +14,7 @@
 
 import { IState, ITest, ITestType } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
+import { cryptarithmParsed, parseCryptarithm } from '../common/cryptarithm';
 import { sourceTestData } from './ciphertest';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1550,6 +1551,50 @@ function buildColumnarLatex(s: IState): QuestionData {
 }
 
 // ─── Cryptarithm ──────────────────────────────────────────────────────────────
+function renderCryptarithmWork(parsed: cryptarithmParsed): string {
+    const items = parsed.lineitems;
+    let width = 0;
+    let isRoot = false;
+    for (const item of items) {
+        width = Math.max(width, item.content.length);
+        if (item.prefix === '2' || item.prefix === '3') {
+            isRoot = true;
+        }
+    }
+    // Roots put a 'v' gutter in front of the radicand; division embeds the
+    // divisor in the dividend line ("IN)CLOCKS") so it needs no gutter
+    const gutter = isRoot ? 2 : 0;
+    const lines: string[] = [];
+    let prev = '';
+    for (const item of items) {
+        const padded = ' '.repeat(width - item.content.length) + item.content;
+        if (item.class === 'ovl') {
+            if (isRoot) {
+                lines.push(' '.repeat(gutter) + '-'.repeat(width));
+            } else {
+                // Dash the extent of the subtrahend on the previous line
+                const start = prev.length - prev.trimStart().length;
+                const len = prev.trimEnd().length - start;
+                lines.push(' '.repeat(gutter + start) + '-'.repeat(Math.max(len, 1)));
+            }
+        } else {
+            const paren = item.content.indexOf(')');
+            if (paren >= 0) {
+                // Division bar between the quotient and the dividend line
+                lines.push(' '.repeat(gutter + paren + 1) + '-'.repeat(item.content.length - paren - 1));
+            }
+        }
+        let line: string;
+        if (item.prefix === '2' || item.prefix === '3') {
+            line = 'v ' + padded;
+        } else {
+            line = ' '.repeat(gutter) + padded;
+        }
+        lines.push(line.replace(/\s+$/, ''));
+        prev = padded;
+    }
+    return lines.join('\n');
+}
 
 /**
  * Format a cryptarithm equation string into the multi-line verbatim display used in test.tex.
@@ -1561,79 +1606,25 @@ function buildColumnarLatex(s: IState): QuestionData {
  *   ---------
  *      LINEAR
  *
- * For division (DIVIDEND/DIVISOR=QUOTIENT), produces the basic long-division header
- * (quotient, underbar, divisor)dividend). Full intermediate steps require digit values.
- * Returns the header block; intermediate steps are appended from the mapping if available.
+ * Division (with or without the -product=remainder worked steps) and square/
+ * cube roots are parsed with parseCryptarithm and rendered from its lineitems.
  */
 function formatCryptarithmEquation(eq: string, mapping: Record<string, number>): string {
+    // Normalize the legacy ACA square root wording so the parser sees it
+    const raw = eq.replace(/gives\s*root/gi, ' gives root ');
     const upper = eq.toUpperCase().replace(/\s/g, '');
 
     // Detect primary operation
-    const hasDiv = upper.includes('/');
+    const hasDiv = raw.includes('/') || raw.includes('\xf7');
+    const hasRoot = /[√∛]|gives root/.test(raw);
     const hasMul = upper.includes('*');
 
-    if (hasDiv) {
-        // Division: DIVIDEND/DIVISOR=QUOTIENT
-        const eqSign = upper.indexOf('=');
-        const divSign = upper.indexOf('/');
-        if (divSign < 0 || eqSign < 0) return upper;
-        const dividend = upper.slice(0, divSign);
-        const divisor = upper.slice(divSign + 1, eqSign);
-        const quotient = upper.slice(eqSign + 1);
-
-        // Compute digit values if mapping is available
-        const toDigits = (word: string): string =>
-            word.split('').map((c) => (mapping[c] !== undefined ? String(mapping[c]) : c)).join('');
-
-        // Build long-division display using digit values for intermediate steps
-        const dDividend = toDigits(dividend);
-        const dDivisor = toDigits(divisor);
-        const dQuotient = toDigits(quotient);
-
-        // Width calculations for the display
-        const divLineWidth = divisor.length + 3 + dividend.length; // "STARS ) BRIGHTER"
-        const quotIndent = divisor.length + 3; // spaces before quotient digits
-
-        const lines: string[] = [];
-        // Quotient row (right-aligned over dividend area)
-        lines.push(' '.repeat(quotIndent) + quotient);
-        // Division bar (underscores)
-        lines.push(' '.repeat(quotIndent - 2) + '_'.repeat(dividend.length + 2));
-        // Divisor ) Dividend
-        lines.push(divisor + ' ) ' + dividend);
-
-        // If we have complete digit mapping, add the intermediate division work
-        if (Object.keys(mapping).length > 0) {
-            let rem = parseInt(dDividend, 10);
-            const divisorNum = parseInt(dDivisor, 10);
-            const quotientDigits = dQuotient.split('');
-            let digitPos = 0;
-            let currentGroup = dDividend.slice(0, 0);
-            let bringDown = dDividend;
-            let stepRem = 0;
-
-            // Reconstruct intermediate steps from the quotient digits
-            for (let qi = 0; qi < quotientDigits.length; qi++) {
-                const qDigit = parseInt(quotientDigits[qi], 10);
-                const partial = qDigit * divisorNum;
-                // Find the letter word for this partial product by reverse-mapping digits to letters
-                const reverseMap: Record<string, string> = {};
-                for (const [letter, digit] of Object.entries(mapping)) {
-                    reverseMap[String(digit)] = letter;
-                }
-                const digitToLetters = (num: number, len: number): string => {
-                    const s = String(num).padStart(len, '0');
-                    return s.split('').map((d) => reverseMap[d] ?? d).join('');
-                };
-
-                // Partial product and remainder as letter words
-                const partialWord = digitToLetters(partial, divisor.length);
-                lines.push(' '.repeat(quotIndent + qi) + partialWord);
-                lines.push(' '.repeat(quotIndent + qi - 1) + '-'.repeat(partialWord.length + 1));
-            }
+    if (hasDiv || hasRoot) {
+        const parsed = parseCryptarithm(raw, 10);
+        if (parsed.lineitems.length > 1) {
+            return renderCryptarithmWork(parsed);
         }
-
-        return lines.join('\n');
+        return upper;
     }
 
     if (hasMul) {
@@ -1726,7 +1717,9 @@ function buildCryptarithmLatex(s: IState): QuestionData {
     // Determine operation label for the verbatim header
     const upper = problemText.toUpperCase();
     let opLabel = 'Addition';
-    if (upper.includes('/')) opLabel = 'Division';
+    if (upper.includes('∛')) opLabel = 'Cube Root'; //∛
+    else if (upper.includes('√') || upper.includes('GIVESROOT')) opLabel = 'Square Root'; //√
+    else if (upper.includes('/') || upper.includes('\xf7')) opLabel = 'Division'; //÷
     else if (upper.includes('*')) opLabel = 'Multiplication';
 
     // Format the multi-line equation display

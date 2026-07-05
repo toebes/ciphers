@@ -7,7 +7,21 @@ import {
     IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmResult, cryptarithmSumandSearch, legalMap, parseCryptarithm } from '../common/cryptarithm';
+import {
+    buildFormulaSet,
+    buildLegal,
+    cryptarithmForumlaItem,
+    cryptarithmParsed,
+    cryptarithmResult,
+    cryptarithmSearchTracker,
+    cryptarithmSumandSearch,
+    difficulty_conv,
+    filterLegal,
+    legalMap,
+    parseCryptarithm,
+    solveCryptarithm,
+    tryFormulaLevel,
+} from '../common/cryptarithm';
 import { JTButtonItem, JTButtonGroup } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
@@ -163,6 +177,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public generatemode = false;
     public doingSearch = false;
     private searchTimer: NodeJS.Timeout = undefined;
+    /** Tracker for the general solution search (backtrack count and solution mapping) */
+    private searchTracker: cryptarithmSearchTracker = undefined;
     public generateButton: JTButtonItem = {
         title: 'Generate Problems',
         id: 'generate',
@@ -1266,7 +1282,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                         let found = false
                         // See if any of the existing templates already use this set.
                         for (let i = 0; i < templates.length; i++) {
-                            if (this.isSame(templates[i].uses, use)) {
+                            if (this.isSame(templates[i].uses, use) &&
+                                templates[i].type === parsed.type) {
                                 // We found one, so we add our formula to the list
                                 templates[i].formulas.push(formula)
                                 found = true
@@ -1561,25 +1578,36 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 // This pattern (such as A+B=C and C-A=B) so output them
                 for (let formula of template.formulas) {
                     let outset = this.formatTemplateProblem(solutions.mapping, formula, sumsearch, sum, template.replaces)
-                    const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': outset[0], 'data-sol': replacements, 'data-dif': solutions.difficulty }).text('Use')
-                    // Add a class so we can hid/show it
-                    let difflevel = String(Math.min(6, solutions.difficulty))
-                    let sclass = "CD" + difflevel
-                    const x = $('<div/>', { class: sclass }).text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
-                        .prepend(usebutton)
-                    $("#findout").append(x)
-                    if (!$('#d' + difflevel).is(':checked')) {
-                        x.hide()
-                    }
-                    $(usebutton)
-                        .off('click')
-                        .on('click', (e) => {
-                            this.setProblem(e.target)
-                        })
+                    this.addFoundEntry(outset[0], outset[1], replacements, solutions.difficulty)
                 }
             }
         }
         return found
+    }
+    /**
+     * Add a found problem to the list of potential cryptarithms with a Use
+     * button and difficulty based show/hide filtering
+     * @param problemText The problem string (what gets put in the Problem field)
+     * @param valueText The problem with the numeric values substituted in
+     * @param replacements Replacement string where the letter at index N maps to digit N
+     * @param difficulty Difficulty rating of the problem
+     */
+    public addFoundEntry(problemText: string, valueText: string, replacements: string, difficulty: number) {
+        const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': problemText, 'data-sol': replacements, 'data-dif': difficulty }).text('Use')
+        // Add a class so we can hide/show it
+        let difflevel = String(Math.min(6, difficulty))
+        let sclass = "CD" + difflevel
+        const x = $('<div/>', { class: sclass }).text(" " + problemText + " [" + valueText + "] Difficulty:" + String(difficulty))
+            .prepend(usebutton)
+        $("#findout").append(x)
+        if (!$('#d' + difflevel).is(':checked')) {
+            x.hide()
+        }
+        $(usebutton)
+            .off('click')
+            .on('click', (e) => {
+                this.setProblem(e.target)
+            })
     }
     /**
      * Convert a template to a problem
@@ -1645,24 +1673,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
     }
     /**
-     * Formats a number in the current base and returns a normalized version of it
-     */
-    public basedStr(val: number): string {
-        return val.toString(this.base).toUpperCase();
-    }
-    /**
-     * Safe version of eval to compute a generated formula
-     */
-    public compute(str: string): string {
-        try {
-            let val = Function('"use strict";return (' + str + ")")();
-            return this.basedStr(val);
-        } catch (e) {
-            return str;
-        }
-    }
-
-    /**
      * 
      */
     public updateMap() {
@@ -1712,55 +1722,25 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 return;
             }
         }
-        let allletters: BoolMap = {}
-        let letterOrder: string[] = [];
-        let formulaSet: cryptarithmForumlaItem[] = []
-
-        for (let item of parsed.lineitems) {
-            if (item.formula !== "") {
-                const formulaItem: cryptarithmForumlaItem = {
-                    formula: item.formula,
-                    expected: item.expected,
-                    totalFormula: 0,
-                    totalExpected: 0,
-                    usedFormula: {},
-                    newFormula: {},
-                    usedExpected: {},
-                    newExpected: {}
-                }
-
-                for (let c of item.formula) {
-                    if (parsed.usedletters[c]) {
-                        formulaItem.usedFormula[c] = true;
-                        if (!allletters[c]) {
-                            allletters[c] = true;
-                            letterOrder.push(c)
-                            formulaItem.newFormula[c] = true;
-                        }
-                    }
-                }
-                formulaItem.totalFormula = letterOrder.length
-                for (let c of item.expected) {
-                    if (parsed.usedletters[c]) {
-                        formulaItem.usedExpected[c] = true;
-                        if (!allletters[c]) {
-                            allletters[c] = true;
-                            letterOrder.push(c)
-                            formulaItem.newExpected[c] = true;
-                        }
-                    }
-                }
-                formulaItem.totalExpected = letterOrder.length
-                formulaSet.push(formulaItem)
-            }
+        const { formulaSet, letterOrder } = buildFormulaSet(parsed);
+        if (formulaSet.length === 0) {
+            // Nothing verifiable was generated (for example a division with no
+            // quotient).  Let them know instead of crashing the search.
+            this.state.validmapping = false;
+            $(".updnote").text('Invalid problem.  There is nothing verifiable to solve.  Enter a complete problem such as A+B=C, A/B=C or a full long division/square root layout.');
+            return;
         }
-        // It is possible that some of the letters used don't actually appear in a formula 
-        // For example with the remainder of a division.  We just need to add them to the list of letters
-        for (let c in parsed.usedletters) {
-            if (!allletters[c]) {
-                letterOrder.push(c);
-                allletters[c] = true;
+        this.searchTracker = { backtracks: 0, maxBacktracks: Infinity, aborted: false, mapping: {} };
+        if (letterOrder.length < 3) {
+            // Not enough distinct letters for the stepped three letter search,
+            // so just solve it synchronously (it will be fast)
+            const res = solveCryptarithm(parsed, this.base);
+            this.searchTracker.backtracks = res.backtracks;
+            if (res.count === 1) {
+                this.state.mapping = Object.assign({}, res.mapping);
             }
+            this.showSearchResult(res.count, 100.0);
+            return;
         }
         let legal = buildLegal(parsed, this.base);
         this.try(formulaSet, legal, letterOrder);
@@ -1774,200 +1754,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public try(formulaSet: cryptarithmForumlaItem[], legal: legalMap, letterOrder: string[]) {
         this.trystep(formulaSet, legal, letterOrder, -1, 0, 0, 0)
     }
-    /**
-     * Substitutes all the current mappings in a string and converts to base 10 to evaluate
-     * @param str String to sustitute
-     * @param legal Current mappings
-     * @returns 
-     */
-    public subFormula(str: string, legal: legalMap): string {
-        let result = ""
-        for (let c of str) {
-            if (legal[c] !== undefined) {
-                result += legal[c][0]
-            } else {
-                result += c;
-            }
-        }
-        // Now we need to convert everything to base 10 so we can
-        // properly evaluate it
-        let gathered = "";
-        let intermediate = result;
-        result = "";
-        for (let c of intermediate) {
-            if (!isNaN(parseInt(c, this.base))) {
-                // Throw away leading zeros so that it will parse
-                if (gathered === "0") {
-                    gathered = c;
-                } else {
-                    gathered += c;
-                }
-            } else if (gathered !== "") {
-                result += parseInt(gathered, this.base) + c;
-                gathered = "";
-            } else {
-                result += c;
-            }
-        }
-        if (gathered !== "") {
-            result += parseInt(gathered, this.base);
-        }
-        return result;
-    }
-    /**
-     * 
-     * @param str Result string to look at
-     * @param legal 
-     * @returns 
-     */
-    public checkResult(computed: string, expected: string, used: Boolean[], legal: legalMap): boolean {
-        let len = computed.length;
-        if (len !== expected.length) {
-            return false;
-        }
-
-        let subUsed = [...used]
-        const subLegal: legalMap = {}
-        for (let c in legal) {
-            subLegal[c] = legal[c]
-        }
-
-        for (let i = 0; i < len; i++) {
-            let cv = parseInt(computed.substring(i, i + 1), this.base);
-            let ec = expected.substring(i, i + 1)
-            if (subLegal[ec].length === 1) {
-                if (subLegal[ec][0] !== cv) {
-                    return false;
-                }
-            } else {
-                if (subUsed[cv] || !subLegal[ec].includes(cv)) {
-                    return false;
-                }
-                subUsed[cv] = true;
-                subLegal[ec] = [cv]
-            }
-        }
-        return true;
-    }
-    /**
-     * Evaluate everything at a level checking for a match
-     * @param level How far down in the letter set we are
-     * @param formulaSet The set of formulas to match against (we only look at the first one at this level)
-     * @param legal The possible legal values to match against
-     * @param letterOrder The order of letters to be substituting for
-     * @param used Which values are already used
-     * @param found How many matches we have found
-     * @returns Number of matches found added to found (i.e. found if none were found or found+1 if one is found)
-     */
-
-    public tryLevel(level: number, formulaSet: cryptarithmForumlaItem[], legal: legalMap, letterOrder: string[], used: Boolean[], found: number): number {
-        let formulapos = 0
-        let formulaItem = formulaSet[formulapos];
-
-        let subUsed = [...used]
-        const subLegal: legalMap = {}
-        for (let c of letterOrder) {
-            subLegal[c] = legal[c]
-        }
-
-        // See if we have enough letters to satisfy a formula without having to map any new letters.
-        while (level >= formulaItem.totalFormula) {
-            // We have enough to substitute for the formula.  
-            let formula = this.subFormula(formulaItem.formula, subLegal)
-            let result = this.compute(formula);
-            if (!this.checkResult(result, formulaItem.expected, subUsed, subLegal)) {
-                // It doesn't match, so there is no reason to try anything else.
-                return found;
-            }
-            // Ok it checks out, now we need to fill in the legal values because there are more formulas to go
-            if (formulaItem.totalExpected > level) {
-                for (let i = 0; i < result.length; i++) {
-                    let cv = parseInt(result.substring(i, i + 1), this.base);
-                    let ec = formulaItem.expected.substring(i, i + 1)
-                    subLegal[ec] = [cv]
-                    subUsed[cv] = true
-                }
-                level = formulaItem.totalExpected;
-            }
-            formulapos++
-            if (formulapos == formulaSet.length) {
-                // Success!!!!
-                if (found == 0) {
-                    // We need to save the mappings
-                    this.state.mapping = {}
-                    for (let c in subLegal) {
-                        if (subLegal[c].length === 1) {
-                            this.state.mapping[c] = subLegal[c][0];
-                        } else {
-                            let filtered = this.filterSet(subLegal[c], subUsed)
-                            if (filtered.length === 1) {
-                                const v = filtered[0]
-                                subUsed[v] = true
-                                this.state.mapping[c] = v
-                            }
-                        }
-                    }
-                }
-                return found + 1;
-            }
-            // We know there is at least one more formula available to us
-            formulaItem = formulaSet[formulapos]
-        }
-
-        // If there are no more formulas, then we have solved the problem
-        // Note that this does mean that not all the letters are known
-        if (formulapos >= formulaSet.length) {
-            console.log('****Incomplete Solution???')
-            // We need to save the mappings
-            this.state.mapping = {}
-            for (let c in subLegal) {
-                if (subLegal[c].length === 1) {
-                    this.state.mapping[c] = subLegal[c][0];
-                }
-            }
-            return 1;
-        }
-        // We don't have enough known letters to try out the formula, so try an extra one and recurse to see if it is enough            
-        let l = letterOrder[level];
-        let subset = [...subLegal[l]]
-        for (const v of subset) {
-            if (!subUsed[v]) {
-                subUsed[v] = true
-                subLegal[l] = [v]
-                // We need to filter out all the values that aren't legal for the remaining letters
-                for (let i = level + 1; i < this.base; i++) {
-                    const sc = letterOrder[i]
-                    if (sc !== undefined) {
-                        subLegal[sc] = this.filterSet(legal[sc], subUsed)
-                    }
-                }
-                // Now we need to try a lower level to check the result
-                found = this.tryLevel(level + 1, formulaSet.slice(formulapos), subLegal, letterOrder, subUsed, found);
-                // If we have more than one match, exit quickly
-                if (found > 1) {
-                    return found;
-                }
-                subUsed[v] = false
-            }
-        }
-        return found;
-    }
-    /**
-     * Filter an arry of values to identify only the legal ones that can still be used
-     * @param vals array of values to filter
-     * @param used Indicator of values that have already been used
-     * @returns Filtered array 
-     */
-    public filterSet(vals: number[], used: Boolean[]): number[] {
-        let result: number[] = [];
-        for (let v of vals) {
-            if (!used[v]) {
-                result.push(v)
-            }
-        }
-        return result;
-    }
-
     /**
      * Try one level of the numbers to see if a solution can be matched
      * Note that this routine breaks for the UI to get a chance to update because the lower level code may
@@ -2020,13 +1806,14 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 used[l3c] = true
                 for (let i = 3; i < letterOrder.length; i++) {
                     let c = letterOrder[i]
-                    subLegal[c] = this.filterSet(legal[c], used);
+                    subLegal[c] = filterLegal(legal[c], used);
                 }
                 // We have a working set.  Time to iterate over the entire formula.
-                const newfound = this.tryLevel(3, formulaSet, subLegal, letterOrder, used, found)
+                const newfound = tryFormulaLevel(3, formulaSet, subLegal, letterOrder, used, found, this.base, this.searchTracker)
                 if (newfound !== found) {
                     found = newfound
                     if (found === 1) {
+                        this.state.mapping = Object.assign({}, this.searchTracker.mapping);
                         this.showMapping(true);
                     } else {
                         // We have more than one solution so we are done
@@ -2052,6 +1839,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         if (found === 1) {
             this.state.validmapping = true;
+            if (this.searchTracker !== undefined) {
+                this.state.difficulty = difficulty_conv(this.searchTracker.backtracks);
+            }
             if (status === "") {
                 $(".updnote").text('One solution found.');
             } else {

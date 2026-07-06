@@ -683,7 +683,7 @@ export class CipherTest extends CipherEncoder {
             type: 'button',
             class: 'action-trigger button',
             'data-menu': menuKey,
-        }).text(label);
+        }).text(`${label} ▾`);
     }
     /**
      * Build the floating menu of actions revealed by an action trigger.  Each

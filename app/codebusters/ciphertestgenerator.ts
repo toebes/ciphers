@@ -330,6 +330,12 @@ export class CipherTestGenerator extends CipherTest {
         super.updateOutput();
         const test = this.getTestEntry(this.state.test);
         this.setMenuMode(menuMode.test);
+        // The command bar (and its Export pane) is built before the ?test=<n>
+        // URL parameter is restored, so retarget the pane at the current test.
+        $('.action-pane[data-menu="export"] [data-entry]').attr(
+            'data-entry',
+            String(this.state.test)
+        );
         if (test.useCustomHeader) {
             $('#show-custom-header').hide();
             $('#hide-custom-header').show();

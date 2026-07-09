@@ -1573,16 +1573,43 @@ button.rounded {
     display: block;
 }
 
-/* .button-group.round,
-.input-group-button .round {
-    border-radius: 0.625rem !important;
-  overflow: hidden;
-} */
+.stacked.button-group.rounded.shrink a:first-child {
+    border-radius: 0.625rem 0.625rem 0 0;
+}
+.stacked.button-group.rounded.shrink a:last-child {
+    border-radius: 0 0 0.625rem 0.625rem ;
+}
 
-.button-group.round.shrink a:first-child {
+.stacked.button-group {
+    margin-bottom: 0;
+}
+
+.action-pane  {
+    position: absolute;
+    z-index: 1000;
+    display: none; 
+    padding: 0.5rem; 
+    background: #fefefe;
+    border: 1px solid #cacaca; 
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.action-pane .button-group.stacked {
+    display: inline-block;
+}
+
+.action-pane .button-group.stacked .button {
+    display: block;
+    width: 100%;
+    margin: 0;
+    margin-bottom: .2rem; 
+}
+
+.button-group.rounded.shrink a:first-child {
     border-radius: 0.625rem 0 0 0.625rem;
 }
-.button-group.round.shrink a:last-child {
+.button-group.rounded.shrink a:last-child {
     border-radius: 0 0.625rem 0.625rem 0rem;
 }
 

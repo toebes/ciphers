@@ -133,7 +133,7 @@ export class CipherACAProblems extends CipherTest {
             };
         }
         let buttonset = $("<div/>", {
-            class: "button-group round shrink",
+            class: "button-group rounded shrink",
         });
         for (let btninfo of buttons) {
             let title = btninfo.title

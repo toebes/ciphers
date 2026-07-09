@@ -1495,7 +1495,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         for (let i = 0; i < keyword.length; i++) {
             let keyc = keyword[i]
-            let solvec = solved[i] ?? '?'
+            let solvec = solved.includes(keyc) ? keyc : '?'
             solvingdata.keyword.push(keyc)
             solvingdata.known.push(keyc === solvec)
         }
@@ -1524,7 +1524,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let remaining = this.undupeString(this.state.keyword).split('')
         let firstletter = remaining.shift()
         let discovered = firstletter
-        result.append($('<h4/>').text(`We start with the first letter of the keyword: ${firstletter} and use that to find the corresponding row of the ${this.cipherName} table.  Here's the subset of that table`));
+
+        this.showSolvingNote(result, `We start with the first letter of the keyword: ${firstletter} and use that to find the corresponding row of the ${this.cipherName} table.  Here's the subset of that table`);
 
         result.append(this.showShortTable(firstletter))
 

@@ -692,10 +692,24 @@ export class CipherTestManage extends CipherTest {
             .on('click', (e) => {
                 this.gotoEditCopyTest(Number($(e.target).attr('data-entry')));
             });
+        // Deleting a test takes two clicks: the first arms the button and
+        // changes it to 'Confirm Delete?', the second actually deletes.
+        // Arming one delete button disarms any other, and moving the mouse
+        // off an armed button disarms it.
         $('.testdel')
             .off('click')
             .on('click', (e) => {
-                this.deleteTest(Number($(e.target).attr('data-entry')));
+                const button = $(e.target);
+                if (button.hasClass('confirmdel')) {
+                    this.deleteTest(Number(button.attr('data-entry')));
+                } else {
+                    $('.testdel.confirmdel').removeClass('confirmdel').text('Delete');
+                    button.addClass('confirmdel').text('Confirm Delete?');
+                }
+            })
+            .off('mouseleave')
+            .on('mouseleave', (e) => {
+                $(e.target).removeClass('confirmdel').text('Delete');
             });
         // The Print menu opens the print page and its browser print preview.
         $('.testprt')

@@ -192,7 +192,7 @@ export class CipherACAManage extends CipherTest {
             row = table.addBodyRow();
             const test = this.getTestEntry(entry);
             let questioncount = test.count;
-            const buttons = $('<div/>', { class: 'button-group round shrink' });
+            const buttons = $('<div/>', { class: 'button-group rounded shrink' });
             buttons.append(
                 $('<a/>', {
                     'data-entry': entry,

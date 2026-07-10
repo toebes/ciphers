@@ -1232,10 +1232,10 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Show a highlighted note as to how we solved the cipher
      * @param result Place to output the note
-     * @param text Note to output
+     * @param content Note to output
      */
-    public showSolvingNote(result: JQuery<HTMLElement>, text: string, noteClass: calloutTypes = 'primary') {
-        result.append($('<div/>', { class: `callout ${noteClass} small` }).append(text)
+    public showSolvingNote(result: JQuery<HTMLElement>, content: string | JQuery<HTMLElement>, noteClass: calloutTypes = 'primary') {
+        result.append($('<div/>', { class: `callout ${noteClass} small` }).append(content)
         );
     }
 

@@ -2109,7 +2109,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         type: "button",
                         class: "button keyset abbuttons",
                     }).html('Use B/A');
-                    const buttonGroup = $("<div/>", { class: "cell shrink button-group round shrink cmds" })
+                    const buttonGroup = $("<div/>", { class: "cell shrink button-group rounded shrink cmds" })
                     buttonGroup.append(useButtonab)
                     buttonGroup.append(useButtonba)
                     div.append(buttonGroup)

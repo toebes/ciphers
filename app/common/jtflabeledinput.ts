@@ -131,7 +131,7 @@ export function JTFLabeledInputApply(
     inputgroup.append(
         $('<div/>', { class: 'input-group-button' }).append(
             $('<input/>', {
-                class: 'button round',
+                class: 'button rounded',
                 id: applyid,
                 type: 'button',
                 value: applyTitle,

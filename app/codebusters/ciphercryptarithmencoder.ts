@@ -912,7 +912,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let result = $('<div/>', { class: 'cell small-6 medium-9 large-9' })
         result.append($('<div/>', { class: 'toptitle' }).text('Problem Style'))
         result.append(
-            $('<div/>', { class: 'expanded button-group round shrink' })
+            $('<div/>', { class: 'expanded button-group rounded shrink' })
                 .append($('<a/>', { class: 'tall button' }).text('All'))
                 .append($('<a/>', { class: 'tnone button' }).text('None'))
                 .append($('<a/>', { class: 'taddsub button' }).text('+/-'))

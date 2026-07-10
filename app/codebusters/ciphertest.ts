@@ -702,12 +702,8 @@ export class CipherTest extends CipherEncoder {
         const pane = $('<div/>', {
             class: 'action-pane',
             'data-menu': menuKey,
-            style:
-                'position: absolute; z-index: 1000; display: none; ' +
-                'padding: 0.5rem; background: #fefefe; border: 1px solid #cacaca; ' +
-                'border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);',
         });
-        const paneButtons = $('<div/>', { class: 'stacked button-group' });
+        const paneButtons = $('<div/>', { class: 'stacked button-group rounded shrink' });
         for (const item of items) {
             paneButtons.append(
                 $('<a/>', {
@@ -719,6 +715,10 @@ export class CipherTest extends CipherEncoder {
         }
         pane.append(paneButtons);
         return pane;
+    }
+
+    public hideActionPopup() {
+        $('.action-pane').hide();
     }
 
     public setTestEntry(entry: number, state: ITest): number {
@@ -1714,7 +1714,7 @@ export class CipherTest extends CipherEncoder {
                 }
             }
             const buttonset = $('<div/>', {
-                class: 'button-group round shrink',
+                class: 'button-group rounded shrink',
             });
             for (const btninfo of buttons) {
                 const button = $('<button/>', {
@@ -2562,7 +2562,13 @@ export class CipherTest extends CipherEncoder {
         $(document)
             .off('click.actionmenu')
             .on('click.actionmenu', () => {
-                $('.action-pane').hide();
+                this.hideActionPopup();
             });
+        // Showing the main menu also hides the popup
+        $(document)
+            .on('show.zf.dropdownMenu', () => {
+                this.hideActionPopup();
+            });
+
     }
 }

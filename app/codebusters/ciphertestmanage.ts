@@ -166,7 +166,7 @@ export class CipherTestManage extends CipherTest {
             if (test.timed !== undefined && test.timed >= 0) {
                 questioncount++;
             }
-            const buttons = $('<div/>', { class: 'button-group round shrink' });
+            const buttons = $('<div/>', { class: 'button-group rounded shrink' });
             buttons.append(
                 $('<a/>', {
                     'data-entry': entry,
@@ -316,7 +316,7 @@ export class CipherTestManage extends CipherTest {
 
                 for (const test of tests) {
                     row = table.addBodyRow();
-                    const buttons = $('<div/>', { class: 'button-group round shrink' });
+                    const buttons = $('<div/>', { class: 'button-group rounded shrink' });
                     buttons.append(
                         $('<a/>', {
                             'data-ext': test.extId,

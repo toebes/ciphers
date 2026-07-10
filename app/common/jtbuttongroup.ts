@@ -29,7 +29,7 @@ interface JQbtnOptions {
  * Creates a submenu from a menuitem array
  */
 export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
-    const buttons = $('<div/>', { class: 'button-group round shrink cmds' });
+    const buttons = $('<div/>', { class: 'button-group rounded shrink cmds' });
     for (const item of submenu) {
         const options: JQbtnOptions = {
             type: 'button',

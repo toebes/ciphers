@@ -215,7 +215,7 @@ export class CipherQuoteManager extends CipherTest {
         this.getEntriesWithRanges(lang, filter).then((res) => {
             res.forEach((val) => {
                 let row = table.addBodyRow()
-                let btnGroup = $('<div/>', { class: 'button-group small round shrink' })
+                let btnGroup = $('<div/>', { class: 'button-group small rounded shrink' })
                 const buttonEdit = $('<button/>', {
                     'data-entry': val.id,
                     type: 'button',

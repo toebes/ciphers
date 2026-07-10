@@ -690,6 +690,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             // Make sure that this is a valid character to map from
             if (bacontext !== undefined) {
                 result.plainanswer.push(t);
+                result.baconword.push(bacontext);
                 sourceline += '  ' + t + '  ';
                 baconline += bacontext;
                 for (const ab of bacontext) {
@@ -719,6 +720,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         // Words - this code never gets executed
                     }
                 }
+                result.cipherword.push(encodeline.slice(encodeline.length - 5).join(''));
             }
             /**
              * See if we have to split out the line
@@ -775,9 +777,14 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // we attempt to measure the bitmap characters
         await this.ensureAltFontReady()
         this.clearErrors();
-        const res = this.build();
+        let res = this.build();
         $('#answer')
             .empty()
+            .append(res);
+        res = this.genSolution(ITestType.None);
+        $('#sol')
+            .empty()
+            .append('<hr/>')
             .append(res);
 
         // Check the table to see if it is wider than we expect
@@ -882,6 +889,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         this.setErrorMsg(msg, 'widthmult');
+
 
 
         // We need to attach handlers for any newly created input fields
@@ -1908,7 +1916,71 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 row.add({ settings: { class: 'v' }, content: c });
             }
             result.append(table.generate());
-        } else {
+        } else if (this.state.operation === 'let4let') {
+            result.append(
+                $('<p/>').text(`Since this Baconian doesn't seem to have a visibly repeating pattern, 
+                    it is most likely encoded using the letter-for-letter method, 
+                    so we will start by counting occurrences of each unique character in the first line.\n`
+                )
+            );
+            let line = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth()).lines[0].ciphertext;
+            let charCtMap = new Map<string, number>();
+            // console.log(this.cleanString(line));
+            for (let i = 0; i < line.length; i++) {
+                charCtMap.set(line[i],
+                    charCtMap.get(line[i]) != null ? 1 + charCtMap.get(line[i]) : 0);
+                // console.log(`${line.charAt(i)} \n ${charCtMap.get(line.charAt(i))}\n`);
+
+            }
+            let arr = [...charCtMap].sort((a, b) => b[1] - a[1]);
+            result.append(`The line ${line.join('')} contains
+                ${this.fixedAnyList(arr.map((a) => `${a[0]} ${a[1]} times`), (str) => str)}.`
+            );// TODO account for indistinguishable case, and incorrect case, and different number of letters for a/b
+            result.append(
+                $('<p/>').text(`Since they occur significantly more often, this indicates that the characters 
+                    ${this.fixedAnyList(this.removeHtml(this.state.texta).split(''), (str) => str)} 
+                    correspond to A, while the characters 
+                    ${this.fixedAnyList(this.removeHtml(this.state.textb).split(''), (str) => str)} 
+                    correspond to B.`
+                )
+            );
+            result.append(
+                $('<p/>').text(`To solve, we will split the ciphertext into 5-character blocks and decode them one at a time.`
+                )
+            );
+            const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+            // TODO account for U/V and I/J
+            result.append(
+                `Our first block is ${encoded.cipherword[0]}. Since we said the characters 
+                ${this.fixedAnyList(this.removeHtml(this.state.texta).split(''), (str) => str)} 
+                    correspond to A, while the characters
+                    ${this.fixedAnyList(this.removeHtml(this.state.textb).split(''), (str) => str)} 
+                    correspond to B, this block corresponds to the baconian ${encoded.baconword[0]}.`
+            );
+            result.append(
+                $('<p/>').text(`${encoded.baconword[0]} in baconian corresponds to the letter ${encoded.plainanswer[0]}, 
+                    so the first letter is ${encoded.plainanswer[0]}.`
+                )
+            );
+            result.append(
+                `Repeat this for the second letter: ${encoded.cipherword[1]} translates to ${encoded.baconword[1]}, 
+                which corresponds to the letter ${encoded.plainanswer[1]}, so the second letter is ${encoded.plainanswer[1]}.`
+            );
+            result.append($('<p/>').text(''));
+            result.append(
+                `Continuing this process, the next three blocks ${encoded.cipherword.slice(2, 5).join(' ')} translate to ${encoded.baconword.slice(2, 5).join(' ')}, 
+                corresponding to ${encoded.plainanswer.slice(2, 5).join(' ')}.`
+            );
+            result.append($('<p/>').text(''));
+            result.append(
+                `We now know that the first five letters of the plaintext are ${this.fixedPt(encoded.plainanswer.slice(0, 5).join(' '))}. 
+                Continuing this process will allow us to decode the rest of the cipher.`
+            );
+            // TODO add rest of cipher, plus a I/J and U/V decision section
+            // result.append(this.genQuestion(this.state.testtype));
+
+        }
+        else {
             result.append(
                 $('<p/>').text(
                     "The A letters are represented by '" +
@@ -1919,6 +1991,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 )
             );
         }
+
         return result;
     }
     /**

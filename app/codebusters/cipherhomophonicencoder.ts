@@ -368,49 +368,25 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const pta = strings[0][this.ptIndex]
         const cta = strings[0][this.ctIndex]
 
-        const plaintext = this.minimizeString(pta.join(''));
-        const cribpos = plaintext.indexOf(crib);
-
-        let backuppos = -1;
-        let backuppti = -1;
-        let cribi = 0;
-        let cribstart = -1;
-        let cribend = -1;
-        let pti = 0;
-        for (let i = 0; i <= pta.length - crib.length; i++) {
-            if (pta[i] !== cta[i]) {
-
-                if (pta[i] === crib[cribi]) {
-                    if (cribi === 0) {
-                        cribstart = i;
-                    } else if (pta[i] === crib[0] && backuppos === -1) {
-                        backuppos = i;
-                        backuppti = pti;
-                    }
-                    cribi++;
-                    if (cribi >= crib.length) {
-                        cribend = i + 1;
-                        break;
-                    }
-                } else {
-                    // We didn't match, so we have to backup to the last character which matched the first character if any
-                    cribi = 0;
-                    cribstart = -1;
-                    if (backuppos !== -1) {
-                        i = backuppos - 1;
-                        pti = backuppti;
-                    }
-                }
-                pti++;
+        // The arrays include the block separator spaces, so filter down to just the
+        // encoded characters, keeping the plaintext and ciphertext in parallel
+        const charset = this.getSourceCharset();
+        const plainChars: string[] = [];
+        const cipherChars: string[] = [];
+        for (let i = 0; i < pta.length; i++) {
+            if (charset.indexOf(pta[i]) >= 0) {
+                plainChars.push(pta[i]);
+                cipherChars.push(cta[i]);
             }
         }
-
-        if (cribstart < 0) {
+        const plaintext = plainChars.join('');
+        const cribpos = plaintext.indexOf(crib);
+        if (cribpos < 0) {
             return undefined;
         }
         return {
-            plaintext: pta.slice(cribstart, cribend).join(''), //plaintext.substring(cribpos, cribpos + crib.length),
-            ciphertext: cta.slice(cribstart, cribend).join(' '), // strings[0][this.ctIndex].slice(cribpos, cribpos + crib.length).join(' '),
+            plaintext: plaintext.substring(cribpos, cribpos + crib.length),
+            ciphertext: cipherChars.slice(cribpos, cribpos + crib.length).join(' '),
             position: cribpos,
             criblen: crib.length,
             cipherlen: plaintext.length,

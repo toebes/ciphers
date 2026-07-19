@@ -1582,6 +1582,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
                         let sol = solvingData.reverseHomophonicTable[c] ?? '';
+                        if (isKnown && sol === '') {
+                            sol = this.decodeHomophonic(c);
+                        }
+
                         solution.push(sol ?? ' ');
                     } else {
                         solution.push(' ');

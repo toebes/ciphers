@@ -1244,8 +1244,19 @@ export class CipherEncoder extends CipherHandler {
      * @param target Place to output the step
      * @param text Text of the step number
      */
-    public showStep(target: JQuery<HTMLElement>, content: string | JQuery<HTMLElement>): void {
-        target.append(makeCallout(content, 'secondary'))
+    public showStep(
+        target: JQuery<HTMLElement>,
+        content: string | JQuery<JQuery.Node>,
+    ): void {
+        const callout = makeCallout('', 'secondary');
+
+        callout.append(
+            typeof content === 'string'
+                ? ($.parseHTML(content) ?? [])
+                : content
+        );
+
+        target.append(callout);
     }
     /**
      * Show the current step as a callout

@@ -12,7 +12,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
-import { JTTable } from '../common/jttable';
+import { JTRow, JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface ISolverWord {
@@ -718,6 +718,16 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         return this.fixedCt(val);
     }
     /**
+     * @param val Homophonic ciphertext value
+     * @returns Visual representation of ciphertext value (100 is shown as 00)
+     */
+    public plainCt100(val: string): string {
+        if (val === '100') {
+            return '00'
+        }
+        return val;
+    }
+    /**
      * This function builds the homophonic replacements for a given message based on the current settings.
      * Passing in a value of 9999 for the max encode width will ensure that it doesn't split the message into multiple lines for encoding.
      * @param msg The message to encode
@@ -813,10 +823,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             const rowblank = table.addBodyRow();
             for (let i = 0; i < stringset[0].length; i++) {
                 const pt = stringset[dest][i];
-                let ct = stringset[source][i];
-                if (ct === '100') {
-                    ct = '00'
-                }
+                const ct = this.plainCt100(stringset[source][i]);
                 rowpt.add(pt);
 
                 rowct.add({
@@ -913,10 +920,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             const rowpt = table.addBodyRow();
             const rowblank = table.addBodyRow();
             for (let i = 0; i < strset[dest].length; i++) {
-                let ct = strset[dest][i];
-                if (ct === '100') {
-                    ct = '00'
-                }
+                let ct = this.plainCt100(strset[dest][i]);
                 const pt = strset[source][i];
                 rowct.add({
                     settings: { class: 'q' },
@@ -1030,10 +1034,10 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     * keyword letter. The result is sorted so the easiest/most useful words are
     * checked first.
     *
-    * @param solvingdata Current solving state
+    * @param solvingData Current solving state
     * @returns Array of unfinished words ordered by likelihood of helping solve the cipher
     */
-    public findUnfinishedWords(solvingdata: ISolverData): ISolverWord[] {
+    public findUnfinishedWords(solvingData: ISolverData): ISolverWord[] {
         const unfinishedWords: ISolverWord[] = [];
         const wordlengths: number[] = []
 
@@ -1070,7 +1074,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             curWord = undefined;
         };
 
-        for (const sets of solvingdata.replacements) {
+        for (const sets of solvingData.replacements) {
             const ctData = sets[this.ctIndex];
             const ptData = sets[this.ptIndex];
 
@@ -1109,7 +1113,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
                 // Count letters whose keyword slot has not been solved yet.
                 if (keywordPos >= 0 && keywordPos < curWord.keywordCount.length) {
-                    if (solvingdata.keyword[keywordPos] === ' ') {
+                    if (solvingData.keyword[keywordPos] === ' ') {
                         curWord.missing++;
                         curWord.keywordCount[keywordPos]++;
                         if (curWord.keywordCount[keywordPos] === 1) {
@@ -1246,7 +1250,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     /**
      * 
      * @param result Location to put any output
-     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @param solvingData Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @param bestCandidate 
      * @param word 
      * @returns Successful match
@@ -1323,6 +1327,15 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             result.append($('<p/>').text(`With that new information, we can fill in all the corresponding entries for those keyword positions giving us:`));
             result.append(this.showHomophonicDecodeStatus(solvingData));
         }
+        return await this.genAnalysisStep2(solvingData, result);
+    }
+    /**
+     * 
+     * @param solvingData Structure containing the current state of the solution including known letters and keyword deductions based on the crib placement.  This is used to show the current state of the solution based on the crib placement and key deduction steps.
+     * @param result Location to put any output
+     * @returns HTML content
+     */
+    public async genAnalysisStep2(solvingData: ISolverData, result: JQuery<HTMLElement>) {
         let maxMatches = 1
         let tryFindKeywords = true
         let tryUnfinishedWords = true
@@ -1494,6 +1507,9 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             let a = ' ';
             if (answerline !== undefined) {
                 a = answerline[i];
+                if (a.length > 1) {
+                    a = a.split('').join('<br/>');
+                }
                 aclass = 'a';
             }
             if (overline !== undefined) {
@@ -1513,14 +1529,19 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 });
                 rowanswer.add({
                     settings: { class: aclass },
-                    content: a,
+                    content: $($.parseHTML(a)),
                 });
             } else {
                 if (answerline === undefined) {
                     a = c;
                 }
                 rowcipher.add(c);
-                rowanswer.add(a);
+                rowanswer.add({
+                    settings: { class: aclass },
+                    content: $($.parseHTML(a)),
+                });
+
+
             }
             rowblank.add('');
         }
@@ -1530,19 +1551,19 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     /**
      * This function generates a table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out. 
      * This is used for showing the partial solution as you solve each letter of the key for the cipher.
-     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @param solvingData Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @returns Formatted table showing the current decode status of the cipher with the solved letters filled in and the unsolved letters blanked out.
      */
-    public showHomophonicDecodeStatus(solvingdata: ISolverData): JQuery<HTMLElement> {
-        solvingdata.valid = true;
-        const extra = solvingdata.extraclass ? ` ${solvingdata.extraclass.trim()}` : '';
+    public showHomophonicDecodeStatus(solvingData: ISolverData): JQuery<HTMLElement> {
+        solvingData.valid = true;
+        const extra = solvingData.extraclass ? ` ${solvingData.extraclass.trim()}` : '';
         const table = new JTTable({ class: `ansblock shrink cell unstriped${extra}` });
         const source = this.state.operation === 'encode' ? this.ptIndex : this.ctIndex;
 
         let cipherpos = 0;
         let sufficient = false
         // Make sure we have something in the keyword to avoid errors, we'll just show blanks in the table if we don't have a key
-        for (const strset of solvingdata.replacements) {
+        for (const strset of solvingData.replacements) {
             const src = strset[source] ?? [];
             let keyline = []
             let solution = [];
@@ -1554,20 +1575,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
                 if (this.isValidChar(pt)) {
                     const keyc = this.getKeywordPos(ct);
-                    const isKnown = (solvingdata.known[cipherpos] || (solvingdata.reverseHomophonicTable[ct] !== undefined)) ?? false;
+                    const isKnown = (solvingData.known[cipherpos] || (solvingData.reverseHomophonicTable[ct] !== undefined)) ?? false;
 
                     cipherpos++
                     keyline.push(keyc + 1);
                     // We can't actually use the computed solution because we may be testing a bad key
                     if (isKnown) {
-                        let sol = this.decodeHomophonic(c);
+                        let sol = solvingData.reverseHomophonicTable[c] ?? '';
                         solution.push(sol ?? ' ');
                     } else {
                         solution.push(' ');
                     }
-                    if (solvingdata.limitUpdates[keyc] > 0) {
-                        solvingdata.limitUpdates[keyc]--;
-                        if (solvingdata.limitUpdates[keyc] === 0) {
+                    if (solvingData.limitUpdates[keyc] > 0) {
+                        solvingData.limitUpdates[keyc]--;
+                        if (solvingData.limitUpdates[keyc] === 0) {
                             sufficient = true;
                             break;
                         }
@@ -1576,12 +1597,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     keyline.push(' ');
                     solution.push(' ');
                 }
-                if (c === '100') {
-                    ctline.push('00')
-                }
-                else {
-                    ctline.push(c)
-                }
+                ctline.push(this.plainCt100(c))
             }
             this.addAnnotatedCipherTableRows(table, keyline, ctline, solution);
             if (sufficient) {
@@ -1608,76 +1624,147 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     }
     /**
      * Generate a keyword for mapping the solved letters to show the current decode status of the cipher with the solved letters filled in and the unsolved letters replaced with a question mark.
-     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @param solvingData Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @param keyword Known keyword
      * @param solved Solved letters
      */
-    public setMappedKeyword(solvingdata: ISolverData, keyword: string, solved: string): void {
-        solvingdata.keyword = [];
-        solvingdata.known = [];
+    public updateMappedKeyletters(solvingData: ISolverData): void {
 
-        const source = this.state.operation === 'encode' ? 1 : 0;
-        const solvedSet = new Set(solved.split(''));
-        let keypos = 0;
-        for (const strset of solvingdata.replacements) {
-            const src = strset[source] ?? '';
-            for (const c of src) {
-                if (this.isValidChar(c)) {
-                    const keyc = keyword[keypos % keyword.length];
-                    solvingdata.keyword.push(keyc);
-                    solvingdata.known.push(solvedSet.has(keyc));
-                    keypos++;
+        let keywordOffsets = [[], [], [], []];
+        const charset = this.getSourceCharset();
+        for (let i = 0; i < 4; i++) {
+            let keyword = solvingData.keyword[i].toUpperCase();
+            for (let k of keyword) {
+                if (k === 'J') {
+                    k = 'I';
+                }
+                const offset = (charset.length - charset.indexOf(k)) % charset.length;
+                keywordOffsets[i].push(offset >= 0 ? offset : 0);
+            }
+        }
+        // Now build the homophonic table based on the keyword offsets
+        solvingData.reverseHomophonicTable = {};
+        for (const c of charset) {
+            // For each character, we have 4 possible homophones based on the keyword offsets
+            this.homophonicTable[c] = [];
+            for (let i = 0; i < 4; i++) {
+                for (let offset of keywordOffsets[i]) {
+                    const encodedVal = 1 + ((i * charset.length) + (offset + charset.indexOf(c)) % charset.length);
+                    solvingData.reverseHomophonicTable[String(encodedVal)] = (solvingData.reverseHomophonicTable[String(encodedVal)] ?? '') + c;
                 }
             }
         }
     }
+
+    public checkPossibleKeywordPosition(solvingData: ISolverData, position: number, offset: number): number {
+        const source = this.state.operation === 'encode' ? this.ptIndex : this.ctIndex;
+
+        let strFound = ''
+        // let weight = 0;
+        // let count = 0;
+        for (const strset of solvingData.replacements) {
+            const src = strset[source] ?? [];
+            for (let cpos = 0; cpos < src.length; cpos++) {
+                const c = src[cpos];
+                const pt = strset[this.ptIndex][cpos] ?? '';
+                const ct = strset[this.ctIndex][cpos] ?? '';
+
+                if (this.isValidChar(pt)) {
+                    const keyc = this.getKeywordPos(ct);
+                    if (keyc === position) {
+                        let sol = solvingData.reverseHomophonicTable[c] ?? '';
+                        if (offset < sol.length) {
+                            let ptchar = sol[offset];
+                            strFound += ptchar;
+                            // count++;
+                            // const thisweight = this.langfreq[this.state.curlang][ptchar] ?? 0;
+                            // weight += thisweight * thisweight;
+                        }
+                    }
+                }
+            }
+        }
+        //        return 100 * weight / count;
+        return this.CalculateChiSquare(strFound)
+    }
+
     /**
      * 
-     * @param solvingdata Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
+     * @param solvingData Data structure containing the current state of the solver including the keyword and solved letters. This is used for showing the partial solution in the table as you solve each letter of the key for the cipher.
      * @param result Location to put any output
      * @returns 
      */
     public async genDecodeSolution(solvingData: ISolverData, result: JQuery<HTMLElement>) {
-
+        let kwsets = ['(1-25)', '(26-50)', '(51-75)', '(76-00)']
+        let hint = this.minimizeString(this.state.hint)
         if (this.state.keyword === '') {
             result.append($('<h3/>').text('You must select a keyword.'));
             return result;
         }
-        result.append($('<p/>').text(`The Homophonic cipher is a reciprocal cipher, so the same steps for encoding can be used for decoding.`));
-        result.append($('<p/>').text(`To solve, write the keyword ${this.state.keyword} repeatedly under the ciphertext, then use the Homophonic cipher table to decode each letter based on the corresponding letter in the key.`));
-
-        this.setMappedKeyword(solvingData, this.state.keyword, this.state.keyword)
-
-        result.append(this.showHomophonicDecodeStatus(solvingData));
-        let remaining = this.undupeString(this.state.keyword).split('')
-        let firstletter = remaining.shift()
-        let discovered = firstletter
-        result.append($('<h4/>').text(`We start with the first letter of the keyword: ${firstletter} and use that to find the corresponding row of the decode table.  Here's the subset of that table`));
-
-        result.append(this.showShortTable(firstletter))
-
-        result.append($('<p/>').text(`We can use this table to decode all the letters in the ciphertext that have ${firstletter} as the corresponding letter in the key. This gives us a partial solution:`));
-        if (this.state.cipherType === ICipherType.Homophonic) {
-            result.append($('<p/>').text(`Remember for the Homophonic cipher, if the letter you are looking up is between A and M, you look at the top of the table and pick the letter from the corresponding column.  
-                if the letter you are looking up is between N and Z, you look for it in the row of the table and pick the letter from the top of the column.`))
+        if (this.state.hint.length < 2) {
+            result.append($('<h3/>').text('You must select a hint with at least 2 characters.'));
+            return result;
         }
-        this.setMappedKeyword(solvingData, this.state.keyword, discovered)
-        result.append(this.showHomophonicDecodeStatus(solvingData));
 
-        result.append($('<p/>').text(`You can repeat this process for each letter in the keyword until you have the full solution.`));
+        if (this.state.hint.includes('?')) {
+            // We have a hint with the position of the letters known.
+            result.append($('<h4/>').text(`We have a hint for the keyword: ${hint} which tells us the position of the letters in the keyword.`));
+            // We can't handle that right now, so just return.
+            return result;
+        } else {
+            this.showStep(result, "Step 1: Figure out which letters go in which position of the keyword");
+            this.showSolvingNote(result, `Based on the hint provided, we know that the keyword contains the letters ${this.fixedKtList(hint.split(''))}.`);
+            result.append($('<p/>').text(`Since we don't know what position they are, we fill the letters under our table and follow by the remainder of the alphabet.
+                Our goal is to figure out which position each letter in the hint corresponds to in the keyword.
+                We can do this by trying all of them in each position and note which ones produce the best results (or are clearly incorrect).
+                We start out by picking a position (such as the first letter of the keyword which maps to 1-25) and then filling out the letter choices for
+                all of the ciphertext characters that are in the range for that keyword letter mapping.
+                We then look at the resulting plaintext and see if it makes sense.
+                If it does, we will assume it's correct and assign it to that position and continue on with the remaining letters.
+                If it doesn't, we can assume that keyword letter goes in a different position (which we will discover when we try the other positions).
+                Note that it doesn't matter which position we start with, if you see that there are a lot entries in the 76-100 range, then you might want to start with the last letter of the keyword instead of the first.
+                However for this autosolver, we will always start with the first one and proceed to the last one.`));
+        }
+        result.append(this.genHelpTable(hint));
+        solvingData.keyword = ['', '', '', '']
 
-        while (remaining.length > 0) {
-            const letter = remaining.shift()
-            const prefix = remaining.length > 0 ? "Next, " : "Finally, "
-            result.append($('<h4/>').text(`${prefix}we take the letter ${letter} from the keyword and look at the corresponding row in the Homophonic table:`))
-            discovered += letter
-            result.append(this.showShortTable(letter))
-            result.append($('<p/>').text(`This allows us to decode all the letters in the cipher text that have ${letter} as the corresponding letter in the key, giving us a more complete solution:`));
-            this.setMappedKeyword(solvingData, this.state.keyword, discovered)
+        let kwslot = 0;
+        while (hint.length > 0 && kwslot < 4) {
+            solvingData.keyword[kwslot] = hint;
+            this.updateMappedKeyletters(solvingData)
+            let letters = hint.length > 1 ? `${hint.length} letters ${this.fixedKtList(hint.split(''))}` : `the letter ${this.fixedKt(hint)}`;
+            this.showStep(result, `Step 1${"abcd"[kwslot]}: Try the ${this.getPositionText(kwslot + 1)} position for the keyword ${kwsets[kwslot]} of the keyword and try to fill in the ${letters} for the ciphertext and see if it makes sense.`)
+            result.append($('<p/>').text(`We just have to go through the ciphertext and fill in the corresponding plaintext letters for any of the ${kwsets[kwslot]} ciphertext values.`));
             result.append(this.showHomophonicDecodeStatus(solvingData));
+            let thiskeychar = '';
+            let nexthint = '';
+            for (let pos = 0; pos < hint.length; pos++) {
+                let chi2 = this.checkPossibleKeywordPosition(solvingData, kwslot, pos);
+                if (hint[pos] === this.state.keyword[kwslot]) {
+                    result.append($('<p/>').html(`${chi2}: We see that the letter ${this.fixedKt(hint[pos])} seems to fit in the ${this.getPositionText(kwslot + 1)} position of the keyword ${kwsets[kwslot]} since it produces a lot of reasonable letters.`));
+                    thiskeychar = hint[pos];
+                } else {
+                    nexthint += hint[pos];
+                    if (chi2 > 50.0) {
+                        result.append($('<p/>').html(`${chi2}: Our attempt with the letter ${this.fixedKt(hint[pos])} in the ${this.getPositionText(kwslot + 1)} position ${kwsets[kwslot]} seems to produce a lot of nonsense letters so we can skip it.`));
+                    } else {
+                        result.append($('<p/>').html(`${chi2}: Looking at the letter ${this.fixedKt(hint[pos])} in the ${this.getPositionText(kwslot + 1)} position of the keyword ${kwsets[kwslot]} produces some logical letters but not enough for us to use it there.`));
+                    }
+                }
+            }
+
+            if (await this.restartCheck()) { return }
+            hint = nexthint;
+            solvingData.keyword[kwslot] = thiskeychar;
+            kwslot++;
         }
-        result.append($('<p/>').text(`After repeating this process for each letter in the keyword, we will have the full decoded solution.`));
-        return result
+
+        for (let i = 0; i < solvingData.keyword.length; i++) {
+            if (solvingData.keyword[i] === '') {
+                solvingData.keyword[i] = ' ';
+            }
+        }
+        return await this.genAnalysisStep2(solvingData, result);
     }
     /**
      * Generate the HTML to display the solution for the cipher.
@@ -1745,15 +1832,71 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             let row = table.addBodyRow();
             let blankrow = table.addBodyRow();
             for (let ent of strset[source]) {
-                if (this.state.operation !== 'encode' && ent === '100') {
-                    ent = '00'
+                if (this.state.operation !== 'encode') {
+                    ent = this.plainCt100(ent);
                 }
                 row.add(ent);
                 blankrow.add("\u00A0");
             }
         }
         result.append(table.generate());
+
+        // Generate the help table
+        result.append(this.genHelpTable());
         return result;
+    }
+    public genHelpTable(keyword: string = ''): JQuery<HTMLElement> {
+        const table = new JTTable({ class: 'ansblock shrink cell unstriped' });
+        if (this.state.operation !== 'crypt') {
+            let row: JTRow = undefined;
+            for (let i = 1; i <= 100; i++) {
+                if ((i - 1) % 25 === 0) {
+                    row = table.addHeaderRow();
+                }
+                const ct = this.plainCt100(String(i));
+                row.add({ settings: { class: "v t" }, content: ct });
+            }
+        } else {
+            const row = table.addHeaderRow();
+            for (const c of this.getSourceCharset()) {
+                if (c === 'I') {
+                    row.add('I/J');
+                } else {
+                    row.add(c);
+                }
+            }
+        }
+        const charset = this.getSourceCharset()
+        for (let rownum = 0; rownum < 4; rownum++) {
+            let kwchar = keyword[rownum] ?? '?';
+            let kwindex = charset.indexOf(kwchar);
+            if (keyword !== '' && rownum >= keyword.length) {
+                break
+            }
+            if (kwchar === '' || kwindex === -1) {
+                const row = table.addBodyRow();
+                for (let colnum = 0; colnum < 25; colnum++) {
+                    row.add({ settings: { class: "v t" }, content: '' });
+                }
+            }
+            else {
+                const row = table.addBodyRow();
+                for (let colnum = 0; colnum < 25; colnum++) {
+                    let keyc = charset[(colnum + kwindex) % charset.length];
+                    if (keyc === 'I') {
+                        keyc = 'I/J';
+                    }
+                    if (colnum === 0) {
+                        row.add({ settings: { class: "v k" }, content: keyc });
+                    }
+                    else {
+                        row.add({ settings: { class: "v t" }, content: keyc });
+                    }
+                }
+
+            }
+        }
+        return table.generate();
     }
     /**
      * Generate the HTML to display the interactive form of the cipher.

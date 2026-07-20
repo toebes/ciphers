@@ -88,7 +88,45 @@ export class CipherTestManage extends CipherTest {
     public createMainMenu(): JQuery<HTMLElement> {
         const result = super.createMainMenu();
         result.append(this.createShareDlg());
+        result.append(this.createDeleteTestDlg());
         return result;
+    }
+    /**
+     * Create the hidden dialog used to confirm deleting a test
+     */
+    private createDeleteTestDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>', {
+            class: 'callout alert',
+        })
+            .append($('<div/>').append($('<strong/>', { id: 'deltestq' }).text('This will delete the test.')))
+            .append(
+                'This operation cannot be undone. ' +
+                'Please make sure you have saved a copy in case you need it. ' +
+                '  Are you sure you want to do this?'
+            );
+        return JTFDialog(
+            'deltestdlg',
+            'Delete Test',
+            dlgContents,
+            'okdeltest',
+            'Yes, Delete it!'
+        );
+    }
+    /**
+     * Prompt the user to confirm deleting a test and delete it when confirmed
+     * @param entry Test entry to delete
+     */
+    public gotoDeleteTest(entry: number): void {
+        const test = this.getTestEntry(entry);
+        $('#okdeltest')
+            .off('click')
+            .on('click', (e) => {
+                this.deleteTest(entry);
+                $('#deltestdlg').foundation('close');
+            });
+        $('#deltestq').text('This will delete the test "' + test.title + '".');
+        $('#okdeltest').removeAttr('disabled');
+        $('#deltestdlg').foundation('open');
     }
     /**
      * Add the hidden Sign In entry point for coaches.  The button is only
@@ -692,24 +730,12 @@ export class CipherTestManage extends CipherTest {
             .on('click', (e) => {
                 this.gotoEditCopyTest(Number($(e.target).attr('data-entry')));
             });
-        // Deleting a test takes two clicks: the first arms the button and
-        // changes it to 'Confirm Delete?', the second actually deletes.
-        // Arming one delete button disarms any other, and moving the mouse
-        // off an armed button disarms it.
+        // Deleting a test brings up a confirmation dialog just like the
+        // other delete operations do.
         $('.testdel')
             .off('click')
             .on('click', (e) => {
-                const button = $(e.target);
-                if (button.hasClass('confirmdel')) {
-                    this.deleteTest(Number(button.attr('data-entry')));
-                } else {
-                    $('.testdel.confirmdel').removeClass('confirmdel').text('Delete');
-                    button.addClass('confirmdel').text('Confirm Delete?');
-                }
-            })
-            .off('mouseleave')
-            .on('mouseleave', (e) => {
-                $(e.target).removeClass('confirmdel').text('Delete');
+                this.gotoDeleteTest(Number($(e.target).attr('data-entry')));
             });
         // The Print menu opens the print page and its browser print preview.
         $('.testprt')

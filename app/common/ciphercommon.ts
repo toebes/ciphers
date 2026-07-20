@@ -2,7 +2,7 @@
 export type StringKeyMap<T> = Record<string, T>;
 
 export type StringMap = StringKeyMap<string>;
-export type BoolMap = StringKeyMap<boolean>;
+export type BoolMap<K extends PropertyKey = string> = Partial<Record<K, boolean>>;
 export type NumberMap = StringKeyMap<number>;
 export type StringArrayMap = StringKeyMap<string[]>;
 

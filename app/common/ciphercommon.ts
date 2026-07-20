@@ -399,27 +399,26 @@ export type calloutTypes = 'secondary' | 'primary' | 'success' | 'warning' | 'al
  * @returns HTML Dom for callout
  */
 export function makeCallout(
-    content: string | JQuery<HTMLElement>,
-    type?: calloutTypes,
-    closable?: boolean,
+    content: string | JQuery<JQuery.Node>,
+    type: calloutTypes = 'alert',
+    closable = false,
 ): JQuery<HTMLElement> {
-    if (type === undefined) {
-        type = 'alert';
-    }
     const callout = $('<div/>', {
-        class: 'callout ' + type,
+        class: `callout ${type}`,
     });
+
     if (closable) {
-        callout.attr('data-closable', "");
+        callout.attr('data-closable', '');
     }
-    if (jQuery.type(content) === 'string') {
-        callout.text(content as string);
+
+    if (typeof content === 'string') {
+        callout.text(content);
     } else {
         callout.append(content);
     }
+
     return callout;
 }
-
 /**
  * Determines if a sequence contains all digits.  If naturalNumbers is true, determines if numbers
  * "1 - sequence.length" are contained in sequence (order does not matter).

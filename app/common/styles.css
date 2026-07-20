@@ -1957,6 +1957,16 @@ div.vsolv {
     font-weight: bold;
 }
 
+.ansblock .v.t {
+    height: 1rem;
+    padding: 2px 7px;
+    text-align: -webkit-center;
+}
+
+.ansblock tbody .v.t {
+    height: 1.5rem;
+}
+
 .ansblock .v {
     border: 1px solid black;
 }

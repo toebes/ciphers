@@ -104,6 +104,7 @@ export class CipherEncoder extends CipherHandler {
     // String to hold search text for suggested questions
     private questionSearchText = '';
 
+    private plainQuestionOptions: string[] = [];
     public setFileEntry(entry: number, state: IState): number {
         const result = super.setFileEntry(entry, state);
         pushForQuestion(this, result);
@@ -1973,7 +1974,7 @@ export class CipherEncoder extends CipherHandler {
             return false;
         }
 
-        questionTemplates = [
+        const plainTemplates = [
             'A quote${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2} for you to decode.${hinttext}${operationtext}',
             'Solve this quote${this.genAuthor()}${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
             'Decrypt the following cipher text${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
@@ -1981,6 +1982,16 @@ export class CipherEncoder extends CipherHandler {
             'A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
             'A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} Cipher has been received.${hinttext}${operationtext}',
             'The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
+        ];
+        for (questionTemplate of plainTemplates) {
+            if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
+                const question = this.fillTemplate(questionTemplate, values);
+                qOptions.push(question);
+                this.plainQuestionOptions.push(question);
+            }
+        }
+
+        questionTemplates = [
             'Someone passed you a piece of paper with this ${fixedName} encoded quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}',
             'While scrolling through an old floppy disk labeled "TOP SECRET", you discovered this quote${this.genAuthor()}${langtext} hidden as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
             'Your robot vacuum just projected this message onto the ceiling. It\'s a quote${this.genAuthor()}${langtext} encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
@@ -2146,6 +2157,7 @@ export class CipherEncoder extends CipherHandler {
 
         const picked: BoolMap = {}
         let qOptions: string[] = [];
+        this.plainQuestionOptions = [];
 
         const hint = this.genSampleHint();
 
@@ -2184,6 +2196,7 @@ export class CipherEncoder extends CipherHandler {
             qOptions.push(`Encode this quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
             qOptions.push(`Encode this famous quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
             qOptions.push(`Encrypt this common phrase${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
+            this.plainQuestionOptions.push(...qOptions);
         }
         else {
             // adds questions 
@@ -2206,6 +2219,17 @@ export class CipherEncoder extends CipherHandler {
                     if (action(found, question, warnlevel)) {
                         found++;
                     }
+                }
+            }
+        }
+
+        // Lead off with a plain question so that the first suggestion never has a story around it
+        if (found < qcount && this.plainQuestionOptions.length > 0) {
+            const question = this.plainQuestionOptions[Math.floor(Math.random() * this.plainQuestionOptions.length)];
+            if (picked[question] !== true) {
+                picked[question] = true;
+                if (action(found, question, warnlevel)) {
+                    found++;
                 }
             }
         }

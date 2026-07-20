@@ -1,4 +1,4 @@
-import { cloneObject, makeCallout, NumberMap, StringMap } from '../common/ciphercommon';
+import { BoolMap, cloneObject, makeCallout, NumberMap, StringMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -210,6 +210,8 @@ export type KeyRangeMap = Record<string, IDBKeyRange>;
  * Base support for all the test generation handlers
  */
 export class CipherTest extends CipherEncoder {
+
+    public requiredSpecialBonusCipher: ICipherType = ICipherType.Homophonic
 
     public readonly cipherSubTypes = [
         'Aristocrat',
@@ -2148,7 +2150,7 @@ export class CipherTest extends CipherEncoder {
         link.attr('href', url);
     }
 
-    public checkTestLimits(errors: string[], test: ITest, SpanishCount: number, SpecialBonusCount: number) {
+    public checkTestLimits(errors: string[], test: ITest, SpanishCount: number, SpecialBonusCount: number, specialBonusTypes: BoolMap<ICipherType>) {
 
         type Bounds = Readonly<{ min: number; max: number }>;
 
@@ -2170,6 +2172,16 @@ export class CipherTest extends CipherEncoder {
             [ITestType.bstate]: { min: 1, max: 2 },
             [ITestType.aregional]: { min: 0, max: 0 },
             [ITestType.astate]: { min: 0, max: 0 },
+        } as const;
+
+        const SpecialBonusCountLimits: Readonly<Record<ITestType, number>> = {
+            [ITestType.None]: 999,
+            [ITestType.cregional]: 3,
+            [ITestType.cstate]: 3,
+            [ITestType.bregional]: 3,
+            [ITestType.bstate]: 3,
+            [ITestType.aregional]: 0,
+            [ITestType.astate]: 0,
         } as const;
 
         // Check to see if we have a reasonable number of questions
@@ -2204,9 +2216,21 @@ export class CipherTest extends CipherEncoder {
         } else {
             $('.xenocryptfreq').hide();
         }
-        if (SpecialBonusCount > 3) {
-            errors.push('No more than three special bonus questions allowed on ' + this.getTestTypeName(test.testtype))
+
+        const maxSpecial = SpecialBonusCountLimits[test.testtype];
+        if (SpecialBonusCount > maxSpecial) {
+            if (maxSpecial === 0) {
+                errors.push(`Special bonus questions are not allowed on ${this.getTestTypeName(test.testtype)}`)
+            } else {
+                errors.push(`No more than three special bonus questions allowed on ${this.getTestTypeName(test.testtype)}`)
+            }
         }
+        if (maxSpecial > 0 && test.testtype !== ITestType.None) {
+            if (!specialBonusTypes[this.requiredSpecialBonusCipher]) {
+                errors.push(`At least one of the special bonus questions should be a ${getCipherTitle(this.requiredSpecialBonusCipher)} cipher`)
+            }
+        }
+
         const duplicates = this.findDuplicateKeys(this.state.test);
         if (Object.keys(duplicates).length > 0) {
             for (const [key, entries] of Object.entries(duplicates)) {

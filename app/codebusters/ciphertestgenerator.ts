@@ -100,7 +100,7 @@ export class CipherTestGenerator extends CipherTest {
         let SpecialBonusCount = 0;
         let errorcount = 0;
         let hasNon5Scores = false;
-        let specialBonusTypes: BoolMap = {}
+        let specialBonusTypes: BoolMap<ICipherType> = {}
         if (testcount === 0) {
             result.append($('<h3>').text('No Tests Created Yet'));
             return result;
@@ -251,7 +251,7 @@ export class CipherTestGenerator extends CipherTest {
                 errors.push(`${errorcount} issues were found when generating the questions.`)
             }
         }
-        this.checkTestLimits(errors, test, SpanishCount, SpecialBonusCount);
+        this.checkTestLimits(errors, test, SpanishCount, SpecialBonusCount, specialBonusTypes);
 
         const $table = table.generate();
         this.groupQuestionRows($table);

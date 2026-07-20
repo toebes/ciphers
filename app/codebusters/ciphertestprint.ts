@@ -1,6 +1,6 @@
-import { cloneObject, makeCallout } from '../common/ciphercommon';
+import { BoolMap, cloneObject, makeCallout } from '../common/ciphercommon';
 import { ITestType, menuMode, toolMode } from '../common/cipherhandler';
-import { ICipherType } from '../common/ciphertypes';
+import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
@@ -106,6 +106,8 @@ export class CipherTestPrint extends CipherTest {
         let usesStandardGalacticAlphabetTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
+        let specialBonusTypes: BoolMap<ICipherType> = {}
+
         elem.empty();
         $('.testerrors').empty();
         if (testcount === 0) {
@@ -241,6 +243,11 @@ export class CipherTestPrint extends CipherTest {
             qcount = 99;
             if (cipherhandler.state.specialbonus) {
                 SpecialBonusCount++;
+                if (specialBonusTypes[cipherhandler.state.cipherType]) {
+                    errors.push(`More than one special bonus question is the same ${getCipherTitle(cipherhandler.state.cipherType)} type cipher.`)
+                }
+                specialBonusTypes[cipherhandler.state.cipherType] = true;
+
             }
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
@@ -347,7 +354,7 @@ export class CipherTestPrint extends CipherTest {
                 );
             }
         }
-        this.checkTestLimits(errors, test, SpanishCount, SpecialBonusCount);
+        this.checkTestLimits(errors, test, SpanishCount, SpecialBonusCount, specialBonusTypes);
 
         /**
          * See if we need to show/hide the Morse Code Table

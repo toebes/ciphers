@@ -981,6 +981,7 @@ export class CipherTestBuild extends CipherTest {
             cipherType === ICipherType.Affine ||
             cipherType === ICipherType.Atbash ||
             cipherType === ICipherType.Caesar ||
+            cipherType === ICipherType.Homophonic ||
             cipherType === ICipherType.NihilistSubstitution ||
             cipherType === ICipherType.Checkerboard ||
             cipherType === ICipherType.RunningKey ||
@@ -1253,6 +1254,7 @@ export class CipherTestBuild extends CipherTest {
     public mapExtendedCipherSubType = new Map<ICipherType, string>([
         [ICipherType.Patristocrat, 'Patristocrat'],
         [ICipherType.Checkerboard, 'Checkerboard'],
+        [ICipherType.Homophonic, 'Homophonic'],
         [ICipherType.Porta, 'Porta'],
         [ICipherType.Hill, 'Hill'],
         [ICipherType.NihilistSubstitution, 'Nihilist'],
@@ -1268,6 +1270,7 @@ export class CipherTestBuild extends CipherTest {
         'Xenocrypt',
         'Baconian',
         'Checkerboard',
+        'Homophonic',
         'Nihilist',
         'Porta',
         'Atbash',
@@ -1643,15 +1646,15 @@ export class CipherTestBuild extends CipherTest {
             // For the 2025-2026 season we want to ensure that one of them is a Checkerboard
             const specialChoices = pickRandom(Object.keys(specialCandidates), 3);
             // If we didn't pick a checkerboard, and there is one available, then force it to be one of the three
-            if (specialChoices.findIndex((val) => val === ICipherType.Checkerboard) < 0 &&
-                specialCandidates[ICipherType.Checkerboard] !== undefined) {
-                specialChoices[2] = ICipherType.Checkerboard;
+            if (specialChoices.findIndex((val) => val === this.requiredSpecialBonusCipher) < 0 &&
+                specialCandidates[this.requiredSpecialBonusCipher] !== undefined) {
+                specialChoices[2] = this.requiredSpecialBonusCipher;
             }
             specialChoices.map((cipherType) => {
                 // Then for each of the ones we picked, choose one of the ciphers of that type
                 // and go down the list until we find it to mark it as special              
                 let choice = Math.trunc(Math.random() * specialCandidates[cipherType]);
-                let needCryptanalysis = (cipherType === ICipherType.Checkerboard && (testtype === ITestType.bstate || testtype === ITestType.cstate))
+                let needCryptanalysis = (cipherType === this.requiredSpecialBonusCipher && (testtype === ITestType.bstate || testtype === ITestType.cstate))
                 if (needCryptanalysis) {
                     choice = 0; // We want to pick the first one that has a cryptanalysis component
                 }

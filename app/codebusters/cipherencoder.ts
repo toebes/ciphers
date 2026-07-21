@@ -1810,6 +1810,14 @@ export class CipherEncoder extends CipherHandler {
      * @param words List of words to format
      * @returns HTML formatted list of words
      */
+    public fixedCtList(words: string[]): string {
+        return (this.fixedAnyList(words, this.fixedCt))
+    }
+    /**
+     * Format a list of plaintext words, separathing them with ',' and ' and ' as appropriate using the formatter for each word
+     * @param words List of words to format
+     * @returns HTML formatted list of words
+     */
     public fixedPtList(words: string[]): string {
         return (this.fixedAnyList(words, this.fixedPt))
     }

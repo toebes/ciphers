@@ -584,9 +584,10 @@ export class CipherTableEncoder extends CipherEncoder {
         let charset = this.getCharset();
         result.append($('<h3/>').text('How to solve'));
 
+        const cipherString = this.state.cipherString.trim().toUpperCase()
         const strings = this.makeReplacement(
-            this.state.cipherString,
-            this.state.cipherString.length
+            cipherString,
+            cipherString.length
         );
         const words = this.findWords(strings[0][0]);
         const realkey = this.ciphermap.decodeKey(
@@ -614,16 +615,11 @@ export class CipherTableEncoder extends CipherEncoder {
                     )
                 );
                 for (const key of this.getCharset()) {
-                    const p = $('<p/>').text('Using the ' + key + ' row to decode ' + todecode);
-                    p.append(", it comes out as '" + this.decodeCaesar(longword, key) + "'");
+                    const p = $('<p/>').html(`Using the ${this.fixedKt(key)} row to decode ${todecode}, it comes out as ${this.fixedPt(this.decodeCaesar(longword, key))}`);
                     result.append(p);
                     if (key === realkey) {
                         result.append(
-                            $('<p/>').text(
-                                'Based on this, we believe that the key row is ' +
-                                key +
-                                ' which we can use to decode the remaining letters'
-                            )
+                            $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedKt(key)} which we can use to decode the remaining letters`)
                         );
                         break;
                     }
@@ -756,35 +752,33 @@ export class CipherTableEncoder extends CipherEncoder {
             'UM',
         ];
 
-        let ptext = `Since there are no single letter words we look for the double letter words and find `
-        let extra = '';
         const possible: BoolMap = {};
-        for (const word of words) {
-            ptext += extra + this.fixedCt(extra + word);
-            extra = ' and ';
-        }
-        ptext += '.';
-        result.append($('<p/>').html(ptext));
-        result.append($('<p/>').html(
-            `We can use a simple trick to test them quickly which only requires looking up 8 characters:
-             six letters mapping the beginning (A B I M O U) and two letters at the end (O E).`
-        ));
 
-        result.append($('<p/>').html(`The starting letters match against
+        result.append($('<p/>').html(`Since there are no single letter words we look for the double letter words and find ${this.fixedCtList(words)}.`));
+        result.append($('<p/>').html(
+            `The most common 2-letter words are: ${this.fixedPt('as')}/${this.fixedPt('at')}/${this.fixedPt('an')}/${this.fixedPt('am')},
+            ${this.fixedPt('be')}/${this.fixedPt('by')},
+            ${this.fixedPt('in')}/${this.fixedPt('it')}/${this.fixedPt('is')}/${this.fixedPt('if')},
+            ${this.fixedPt('me')}/${this.fixedPt('my')},
+            ${this.fixedPt('of')}/${this.fixedPt('or')}/${this.fixedPt('on')},
+            ${this.fixedPt('up')}/${this.fixedPt('us')}, ${this.fixedPt('do')}/${this.fixedPt('go')}/${this.fixedPt('no')}/${this.fixedPt('so')}/${this.fixedPt('to')}
+            and ${this.fixedPt('he')}/${this.fixedPt('we')}. 
+            They can be easily grouped and tested: the first group encompasses all the words beginning with ${this.fixedPt('A')}/${this.fixedPt('I')}${this.fixedPt('O')}/${this.fixedPt('U')},
+            and the second group encompasses all words ending with ${this.fixedPt('O')}/${this.fixedPt('Y')}/${this.fixedPt('E')}.
+            The starting letters match against
         ${this.fixedPt('As')}/${this.fixedPt('At')}/${this.fixedPt('An')}/${this.fixedPt('Am')},
-        ${this.fixedPt('Be')}/${this.fixedPt('By')},
         ${this.fixedPt('In')}/${this.fixedPt('It')}/${this.fixedPt('Is')}/${this.fixedPt('If')},
-        ${this.fixedPt('Me')}/${this.fixedPt('My')},
         ${this.fixedPt('Of')}/${this.fixedPt('Or')}/${this.fixedPt('On')},
         and ${this.fixedPt('Up')}/${this.fixedPt('Us')}.
         The ending letters match against 
-        ${this.fixedPt('dO')}/${this.fixedPt('gO')}/${this.fixedPt('nO')}/${this.fixedPt('sO')}/${this.fixedPt('tO')}
-        and ${this.fixedPt('hE')}/${this.fixedPt('wE')}.`));
+        ${this.fixedPt('dO')}/${this.fixedPt('gO')}/${this.fixedPt('nO')}/${this.fixedPt('sO')}/${this.fixedPt('tO')},
+        ${this.fixedPt('bY')}/${this.fixedPt('mY')},
+        and ${this.fixedPt('bE')}/${this.fixedPt('hE')}/${this.fixedPt('mE')}/${this.fixedPt('wE')}.`));
 
         const ul = $('<ul/>');
-        for (const c of ['A', 'B', 'I', 'M', 'O', 'U']) {
-            ptext = `Using the beginning letter ${this.fixedPt(c)} gives `;
-            extra = '';
+        for (const c of ['A', 'I', 'O', 'U']) {
+            let ptext = `Using the beginning letter ${this.fixedPt(c)} gives `;
+            let extra = '';
             for (const word of words) {
                 const key = this.ciphermap.decodeKey(word, c);
                 const decoded = this.decodeCaesar(word, key);
@@ -797,14 +791,14 @@ export class CipherTableEncoder extends CipherEncoder {
                 } else {
                     possible[key] = false;
                 }
-                ptext += `${extra}${this.fixedPt(decoded)} with a key of ${this.fixedCt(key)}`;
+                ptext += `${extra}${this.fixedPt(decoded)} with a key of ${this.fixedKt(key)}`;
                 extra = ' and ';
             }
             ul.append($('<li/>').html(ptext));
         }
-        for (const c of ['O', 'E']) {
-            ptext = `Using the ending letter ${this.fixedPt(c)} gives `;
-            extra = '';
+        for (const c of ['O', 'E', 'Y']) {
+            let ptext = `Using the ending letter ${this.fixedPt(c)} gives `;
+            let extra = '';
             for (const word of words) {
                 const key = this.ciphermap.decodeKey(word[1], c);
                 const decoded = this.decodeCaesar(word, key);
@@ -817,7 +811,7 @@ export class CipherTableEncoder extends CipherEncoder {
                 } else {
                     possible[key] = false;
                 }
-                ptext += `${extra}'${this.fixedPt(decoded)}' with a key of ${this.fixedCt(key)}`;
+                ptext += `${extra} ${this.fixedPt(decoded)} with a key of ${this.fixedKt(key)}`;
                 extra = ' and ';
             }
             ul.append($('<li/>').html(ptext));
@@ -835,12 +829,13 @@ export class CipherTableEncoder extends CipherEncoder {
             result.append($('<p/>').text("We didn't find any matches"));
         } else if (goodkeys.length === 1) {
             result.append(
-                $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedCt(goodkeys[0])} which we can use to decode the remaining letters`)
+                $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedKt(goodkeys[0])} which we can use to decode the remaining letters`)
             );
-            ptext = `We can confirm it by using the ${this.fixedCt(goodkeys[0])} row to decode ${todecode},
+            let ptext = `We can confirm it by using the ${this.fixedKt(goodkeys[0])} row to decode ${todecode},
              we see it comes out as ${this.fixedPt(this.decodeCaesar(longword, goodkeys[0]))}`
             if (goodkeys[0] === realkey) {
                 ptext += ` which confirms our guess and we can use it to decode the remainder of the letters.`
+                foundAnswer = true;
             }
             result.append($('<p/>').html(ptext));
         } else {
@@ -849,12 +844,12 @@ export class CipherTableEncoder extends CipherEncoder {
             );
             const ul = $('<ul/>');
             for (const key of goodkeys) {
-                ul.append($('<li/>').html(`Using the ${this.fixedCt(key)} row to decode ${todecode} it comes out as '${this.decodeCaesar(longword, key)}'`));
+                ul.append($('<li/>').html(`Using the ${this.fixedKt(key)} row to decode ${todecode} it comes out as ${this.fixedPt(this.decodeCaesar(longword, key))}`));
             }
             result.append(ul);
             if (goodkeys.indexOf(realkey) !== -1) {
                 result.append(
-                    $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedCt(realkey)} which we can use to decode the remaining letters`
+                    $('<p/>').html(`Based on this, we believe that the key row is ${this.fixedKt(realkey)} which we can use to decode the remaining letters`
                     )
                 );
                 foundAnswer = true;
@@ -890,7 +885,7 @@ export class CipherTableEncoder extends CipherEncoder {
         }
         if (!skipA) {
             result.append($('<p/>').html(`With ${let1CT}=${this.fixedPt('A')} we look in the decoding table for a ${let1CT} in the ${this.fixedPt('A')} column
-             and see that it is the ${this.fixedPt(akey)} row`));
+             and see that it is the ${this.fixedKt(akey)} row`));
             if (akey === realkey) {
                 foundAnswer = true;
             }
@@ -913,12 +908,12 @@ export class CipherTableEncoder extends CipherEncoder {
 
                 result.append($('<p/>').html(
                     `With ${let1CT}=${this.fixedPt('I')} we look in the decoding table for a ${let1CT} in the ${this.fixedCt('I')} column
-                and see that it is the ${this.fixedCt(ikey)} row`));
+                and see that it is the ${this.fixedKt(ikey)} row`));
                 if (ikey === realkey) {
                     foundAnswer = true;
                 }
                 const notgood = foundAnswer ? '' : ` which doesn't seem reasonable`;
-                result.append($('<p/>').html(`Using the ${this.fixedCt(ikey)} row to decode ${todecode} we get ${this.fixedPt(this.decodeCaesar(longword, ikey))}${notgood}`));
+                result.append($('<p/>').html(`Using the ${this.fixedKt(ikey)} row to decode ${todecode} we get ${this.fixedPt(this.decodeCaesar(longword, ikey))}${notgood}`));
             }
         }
         if (foundAnswer) {
@@ -951,11 +946,11 @@ export class CipherTableEncoder extends CipherEncoder {
             bodyRow.add(charset[charcount - 1 - i]);
         }
         result.append($('<div/>', { class: "grid-x" }).append(table.generate()));
-        result.append($('<p/>').text(`For each letter in the cipher, find it in the top row and then write down the corresponding letter from the bottom row.
+        result.append($('<p/>').html(`For each letter in the cipher, find it in the top row and then write down the corresponding letter from the bottom row.
            Note that the AtBash cipher is its own inverse, so you can look at the bottom row and write down the corresponding letter from the top row and get the same result.
            It can also be faster to fill in all the letters that match what you look up.  Also paying attention to the fact that the alphabet is simply reversed, you can 
-           also fill in the opposite letter for each letter you look up.  For example, if you look up the letter 'A' and find that it corresponds to 'Z', 
-           then you can also fill in 'Z' with 'A'.`));
+           also fill in the opposite letter for each letter you look up.  For example, if you look up the letter ${this.fixedCt('A')} and find that it corresponds to ${this.fixedPt('Z')}, 
+           then you can also fill in ${this.fixedCt('Z')} with ${this.fixedPt('A')}.`));
 
         return result;
     }

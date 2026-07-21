@@ -409,6 +409,41 @@ body.txt {
     color: black;
 }
 
+
+th.divareg,
+th.divbreg,
+th.divbnat,
+th.divcreg,
+th.divcnat {
+    border : 1px solid black;
+    text-align: center;
+}
+
+th.divareg,
+td.divareg {
+    background-color:  #ffc400;;
+}
+
+th.divbreg,
+td.divbreg {
+    background-color: #D66677;
+}
+
+th.divbnat,
+td.divbnat {
+    background-color: #d30d2b;
+}
+
+th.divcreg,
+td.divcreg {
+    background-color: #54B9FC;
+}
+
+th.divcnat,
+td.divcnat {
+    background-color: #0a7eca;
+}
+
 .divall,
 .quseall::after {
     background-color: #90be3f;

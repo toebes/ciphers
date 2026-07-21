@@ -1,19 +1,31 @@
-import { cloneObject } from '../common/ciphercommon';
-import { CipherHandler, IState, toolMode } from '../common/cipherhandler';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
+import { CipherHandler, IState, ITestType, menuMode, QuoteRecord, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import * as XLSX from "xlsx";
 import { AnyMap } from './cipherquotemanager';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { CipherTest, QuestionType } from './ciphertest';
+import { htmlToElement } from '../common/htmldom';
+import { CipherPrintFactory } from './cipherfactory';
 
 export interface ITestState extends IState {
     /** A URL to to import test date from on load */
     importURL?: string;
 }
+const AllTestTypes = [
+    ITestType.cregional,
+    ITestType.cstate,
+    ITestType.bregional,
+    ITestType.bstate,
+    ITestType.aregional,
+    ITestType.astate,
+] as const;
 /**
  * Quote Analyzer
  */
-export class CipherQuoteAnalyze extends CipherHandler {
+export class CipherQuoteAnalyze extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
         cipherString: '',
@@ -53,22 +65,237 @@ export class CipherQuoteAnalyze extends CipherHandler {
         }
     }
     /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    public updateOutput(): void {
+        super.updateOutput();
+        this.setMenuMode(menuMode.test);
+    }
+    /**
+     * Get question choices that are valid for a test type
+     */
+    public getValidTestTypes(entry: QuestionType): ITestType[] {
+        const possibilities: ITestType[] = [];
+
+        const cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
+        cipherhandler.setCipherType(entry.cipherType);
+        if (entry.encodeType !== undefined) {
+            cipherhandler.state.encodeType = entry.encodeType;
+        }
+        if (entry.operation !== undefined) {
+            cipherhandler.state.operation = entry.operation;
+        }
+        if (entry.keyword !== undefined) {
+            cipherhandler.state.keyword = entry.keyword;
+        }
+        if (entry.misspelled !== undefined) {
+            cipherhandler.state.misspelled = entry.misspelled;
+        }
+
+        return AllTestTypes.filter((testType) => {
+            if (entry.testtype !== undefined && !entry.testtype.includes(testType)) {
+                return false;
+            }
+
+            return cipherhandler.CheckAppropriate(testType, false) === '';
+        });
+    }
+
+    public isWithinRange(value: number, range: readonly number[] | undefined, required = false): boolean {
+        if (range === undefined) {
+            return !required;
+        }
+
+        return value >= range[0] && value <= range[1];
+    }
+
+    /**
+     * Updates the stored state cipher string
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        if (this.state.cipherString === cipherString) {
+            return false;
+        }
+
+        this.state.cipherString = cipherString;
+
+        void this.loadLanguageDictionary(this.state.curlang).then(() => {
+            const stats = this.analyzeQuote(cipherString);
+            const result = $('.usage').empty();
+
+            $('.difficulty')
+                .text(`Length=${stats.len} Unique Letters=${stats.unique} χ²=${stats.chi2.toFixed(2)} Estimated Grade Level=${stats.grade}`)
+                .addClass('callout secondary small');
+
+            const table = new JTTable({
+                class: 'qdist shrink cell',
+            });
+
+            const topRow = table.addHeaderRow();
+
+            topRow.add({
+                celltype: 'th',
+                settings: { rowspan: 2 },
+                content: 'Cipher Type',
+            });
+
+            topRow.add({
+                celltype: 'th',
+                settings: {
+                    rowspan: 2,
+                    class: 'divareg',
+                },
+                content: 'Division A',
+            });
+
+            topRow.add({
+                celltype: 'th',
+                settings: {
+                    colspan: 2,
+                    class: 'divbreg',
+                },
+                content: 'Division B',
+            });
+
+            topRow.add({
+                celltype: 'th',
+                settings: {
+                    colspan: 2,
+                    class: 'divcreg',
+                },
+                content: 'Division C',
+            });
+
+            const secondRow = table.addHeaderRow();
+
+            const subheaders = [
+                { className: 'divbreg', label: 'Regional' },
+                { className: 'divbnat', label: 'State/Nat' },
+                { className: 'divcreg', label: 'Regional' },
+                { className: 'divcnat', label: 'State/Nat' },
+            ];
+
+            for (const subheader of subheaders) {
+                secondRow.add({
+                    celltype: 'th',
+                    settings: { class: subheader.className },
+                    content: subheader.label,
+                });
+            }
+
+            const testColumns = [
+                { testType: ITestType.aregional, className: 'divareg', },
+                { testType: ITestType.bregional, className: 'divbreg', },
+                { testType: ITestType.bstate, className: 'divbnat', },
+                { testType: ITestType.cregional, className: 'divcreg', },
+                { testType: ITestType.cstate, className: 'divcnat', },
+            ] as const;
+
+            const checkedTitles = new Set<string>();
+            let foundChoice = false;
+
+            for (const choice of this.questionChoices) {
+                if (checkedTitles.has(choice.title)) {
+                    continue;
+                }
+
+                checkedTitles.add(choice.title);
+
+                if (!this.isWithinRange(stats.len, choice.len, true) ||
+                    !this.isWithinRange(stats.chi2, choice.chi2) ||
+                    !this.isWithinRange(stats.unique, choice.unique)
+                ) {
+                    continue;
+                }
+                const validTests = this.getValidTestTypes(choice);
+
+                if (validTests.length === 0) {
+                    continue;
+                }
+
+                foundChoice = true;
+
+                const row = table.addBodyRow();
+                row.add(choice.title);
+
+                for (const column of testColumns) {
+                    if (validTests.includes(column.testType)) {
+                        row.add({
+                            celltype: 'td',
+                            settings: { class: column.className },
+                            content: '✔',
+                        });
+                    } else {
+                        row.add('')
+                    }
+                }
+            }
+
+            if (foundChoice) {
+                result.append(table.generate());
+            } else {
+                result.append(
+                    $('<h4/>').text(
+                        'No ciphers found appropriate for this quote'
+                    )
+                );
+            }
+        });
+
+        return true;
+    }
+    /**
+     * Using the currently selected replacement set, encodes a string
+     * This breaks it up into lines of maxEncodeWidth characters or less so that
+     * it can be easily pasted into the text.  This returns the result
+     * as the HTML to be displayed
+     */
+    public build(): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        return result;
+    }
+    /**
      * Set up the UI elements for the result fields
      */
     public genPostCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
+
+        this.setMenuMode(menuMode.test);
         this.genLangDropdown(result);
-        result.append($('<div/>', { class: 'analysis', id: 'quotes' }));
-        result.append(
-            $('<div/>', {
-                class: 'callout primary',
-            }).append(
-                $('<a/>', {
-                    href: 'HowTo.html#QuoteAnalyzeFormat',
-                    target: 'new',
-                }).text('Quote Analyzer File Documentation')
+
+        const singlediv = $('<div/>', { class: 'callout primary' });
+        singlediv.append(this.makeStepCallout('Single Quote Analysis',
+            htmlToElement(
+                `<p>Enter a single quote to determine all ciphers it is appropriate for.</p>`
+            )))
+
+
+        singlediv.append(
+            JTFLabeledInput(
+                'Plain Text',
+                'textarea',
+                'toencode',
+                this.state.cipherString,
+                'small-12 medium-12 large-12 encbox'
             )
         );
+        singlediv.append($('<div/>', { class: 'difficulty' }));
+        singlediv.append($('<div/>', { class: 'usage' }));
+        result.append(singlediv);
+
+        const batchdiv = $('<div/>', { class: 'callout primary' });
+        batchdiv.append(this.makeStepCallout('Batch Quote Analysis',
+            htmlToElement(
+                `<p>Process a list of quotes to generate analysis for offline use. Documentation can be found 
+                <a href='HowTo.html#QuoteAnalyzeFormat' target= 'new'>Here</a>.
+                </p>`
+            )))
+
+
+        batchdiv.append($('<div/>', { class: 'analysis', id: 'quotes' }));
+        result.append(batchdiv);
 
         return result;
     }

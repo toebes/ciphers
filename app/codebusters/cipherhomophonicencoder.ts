@@ -746,7 +746,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
         for (let i = 0; i < msgLength; i++) {
             const messageChar = encoded[i].toUpperCase();
-            const m = charset.indexOf(messageChar);
+            let pt = messageChar
+            if (pt === 'J') {
+                pt = 'I'
+            }
+            const m = charset.indexOf(pt);
             if (m >= 0) {
                 message.push(messageChar);
                 let randomSlot = this.state.randomSlot[ptindex]

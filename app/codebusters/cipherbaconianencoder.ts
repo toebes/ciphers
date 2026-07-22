@@ -1106,7 +1106,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 range += 10;
             }
         }
-        min = suggested - range
+        min = Math.max(suggested - range, 125)
         max = suggested + range
         suggested += Math.round(range * Math.random() - (range / 2))
 

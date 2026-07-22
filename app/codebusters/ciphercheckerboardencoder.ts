@@ -7,7 +7,6 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { deleteRowAndColumn } from '../common/mathsupport';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface ICheckerboardState extends IEncoderState {
@@ -124,10 +123,9 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public restore(data: IState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as ICheckerboardState;
         this.copyState(this.state, data);
-        if (suppressOutput) {
-            this.setCipherType(this.state.cipherType);
-        } else {
-            this.setUIDefaults();
+        this.setCipherType(this.state.cipherType);
+        this.setUIDefaults();
+        if (!suppressOutput) {
             this.updateOutput();
         }
     }
@@ -685,6 +683,9 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
+        this.setKeyword(this.state.keyword);
+        this.setKeyword2(this.state.keyword2);
+        this.setPolybiusKey(this.state.polybiusKey);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -1694,6 +1695,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         const result = $('<div/>', { class: 'grid-x' });
         const { width } = this.getTestWidth(testType);
 
+        this.polybiusMap = this.buildPolybiusMap();
+
         const strings = this.buildCheckerboardSequenceSets(this.state.cipherString, width);
 
         let source = 0;
@@ -1757,6 +1760,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 return;
             }
         }
+        this.polybiusMap = this.buildPolybiusMap();
+
         this.stopGenerating = false;
         this.isLoading = true
         this.loadLanguageDictionary(this.state.curlang).then(() => {
@@ -2007,8 +2012,6 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      */
     public async genDecodeSolution(testType: ITestType, target: JQuery<HTMLElement>) {
         let cleanPolybiusKey = this.cleanPolyKey
-
-        this.polybiusMap = this.buildPolybiusMap();
 
         const result = $('<div/>', { id: 'solution' });
         target.append(result);

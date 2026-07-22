@@ -88,6 +88,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // ITestType.aregional,
     ];
 
+    public ctindex = 0
+    public ptindex = 1
+
     public cipherName = 'Nihilist Substitution';
     public cleanKeyword = '';
     public cleanPolyKey = '';
@@ -128,10 +131,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public restore(data: IState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as INihilistState;
         this.copyState(this.state, data);
-        if (suppressOutput) {
-            this.setCipherType(this.state.cipherType);
-        } else {
-            this.setUIDefaults();
+        this.setCipherType(this.state.cipherType);
+        this.setUIDefaults();
+        if (!suppressOutput) {
             this.updateOutput();
         }
     }
@@ -208,10 +210,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public setKeyword(keyword: string): boolean {
         let changed = super.setKeyword(keyword);
-        if (changed) {
-            this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
-            this.setSolverKeyLength(this.cleanKeyword.length)
-        }
+        this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
+        this.setSolverKeyLength(this.cleanKeyword.length)
         return changed;
     }
 
@@ -774,6 +774,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append($('<h3/>').text('How to solve'));
 
         this.isLoading = false;
+        this.polybiusMap = this.buildPolybiusMap();
 
         this.genNihilistSolution(testType, result);
 
@@ -867,7 +868,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
-        this.setSolverKeyLength(this.state.solverKeyLength);
+        this.setKeyword(this.state.keyword);
+        this.setPolybiusKey(this.state.polybiusKey);
+        this.validateQuestion();
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -1042,6 +1045,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             this.state.polybiusKey = polybiusKey;
             changed = true;
         }
+        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey)).toUpperCase()
         return changed;
     }
 
@@ -1083,9 +1087,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         for (let i = 0; i < msgLength; i++) {
             //messagechar is the current character in the encoded string
-            const messageChar = encoded.substring(i, i + 1).toUpperCase();
-            if (messageChar == 'J') {
-                messageChar
+            let messageChar = encoded.substring(i, i + 1).toUpperCase();
+            if (messageChar === 'J') {
+                messageChar = 'I'
             }
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
@@ -2364,7 +2368,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             operationtext2 += ` with a keyword length of ${keyword.length}`;
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
-        
+
     }
     /**
      * See if any of the crib letters give us hints about the characters
@@ -2646,8 +2650,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public load(): void {
         const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
-        this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
-        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey)).toUpperCase()
         this.polybiusMap = this.buildPolybiusMap();
         this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
 
@@ -2717,16 +2719,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const result = $('<div/>', { class: 'grid-x' });
         const { width } = this.getTestWidth(testType);
 
+        this.polybiusMap = this.buildPolybiusMap();
+
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
             width
         );
 
-        let source = 0;
-        let dest = 1;
+        let source = this.ctindex;
+        let dest = this.ptindex;
         if (this.state.operation === 'encode') {
-            source = 1;
-            dest = 0;
+            source = this.ptindex;
+            dest = this.ctindex;
         }
 
         const table = $('<table/>', { class: 'ansblock shrink cell unstriped' });
@@ -2787,6 +2791,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 return;
             }
         }
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
+        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
+
         this.stopGenerating = false;
         this.isLoading = true
         if (this.state.operation === 'crypt') {
@@ -3405,9 +3412,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const table = new JTTable({ class: 'nihilist ansblock unstriped' + extraclass });
         // const blankrow = table.addBodyRow();
         // blankrow.add("\u00A0");
-        let source = 0;
+        let source = this.ctindex;
         if (this.state.operation === 'encode') {
-            source = 1;
+            source = this.ptindex;
         }
         for (const sequenceset of strings) {
             const rowcipher = table.addBodyRow();
@@ -3439,9 +3446,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             this.state.cipherString,
             width
         );
-        let source = 0;
+        let source = this.ctindex;
         if (this.state.operation === 'encode') {
-            source = 1;
+            source = this.ptindex;
         }
 
         let newStrings = [];

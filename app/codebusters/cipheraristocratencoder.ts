@@ -1526,7 +1526,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
             }
             output.append(div);
             return true
-        });
+        }, 6, 11);
 
         if (found === 0) {
             output.append($(`<p><b>WARNING:</b> Unable to find any keywords which work with the plain text of this cipher.</p>`))

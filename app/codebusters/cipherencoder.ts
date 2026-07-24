@@ -1638,85 +1638,158 @@ export class CipherEncoder extends CipherHandler {
      * @param action Callback function when a keyword is found
      * @returns Total number of keywords found
      */
-    public searchForKeywords(kwcount: number, action: (count: number, keyword: string) => boolean): number {
+    public searchForKeywords(kwcount: number, action: (count: number, keyword: string) => boolean, lower = 8, upper = 11): number {
         const lang = 'en';
 
-        const picked: BoolMap = {}
-        let testUsage = this.getTestUsage();
-        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
-        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        lower = Math.max(1, lower);
+        upper = Math.max(lower, upper);
 
-        // We use the 8, 9, 10 and 11 unique character strings as our potential keyword choices
-        let limit8 = 200
-        let limit9 = 50
-        let limit10 = 40
-        let limit11 = 33
-        let scaleb9 = 10
-        let scalec9 = 10
-        if (usedOnA) {
-            limit8 = 300
-            limit9 = 50
-            limit10 = 40
-            limit11 = 33
-        } else if (usedOnB) {
-            limit8 = 800 / scaleb9
-            limit9 = 125
-            limit10 = 100
-            limit11 = 66
-        } else {
-            limit8 = 1200 / scalec9
-            limit9 = 400
-            limit10 = 250
-            limit11 = 88
+        const picked: BoolMap = {};
+        const testUsage = this.getTestUsage();
+
+        const usedOnA =
+            testUsage.includes(ITestType.aregional) ||
+            testUsage.includes(ITestType.astate);
+
+        const usedOnB =
+            testUsage.includes(ITestType.bregional) ||
+            testUsage.includes(ITestType.bstate);
+
+        type Division = 'A' | 'B' | 'C';
+
+        interface KeywordChoice {
+            length: number;
+            /**
+             * Number of weighted slots assigned to this word length.
+             */
+            limits: Record<Division, number>;
+            /**
+             * Expands a weighted slot into a larger range of actual entries.
+             * This makes that word length less likely to be selected while
+             * still allowing access to more entries.
+             */
+            scales: Partial<Record<Division, number>>;
         }
 
-        let pat8 = this.makeUniquePattern("ABCDEFGH", 1);
-        let pat9 = this.makeUniquePattern("ABCDEFGHI", 1);
-        let pat10 = this.makeUniquePattern("ABCDEFGHIJ", 1);
-        let pat11 = this.makeUniquePattern("ABCDEFGHIJK", 1);
 
-        // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
-        let found = 0
+        // Len     Unique    Non Unique
+        //   6      6465 Unique    7272 Non-Unique
+        //   7      6188 Unique   12713 Non-Unique
+        //   8      4267 Unique   16793 Non-Unique
+        //   9      2255 Unique   17879 Non-Unique
+        //  10       941 Unique   15923 Non-Unique
+        //  11       267 Unique   11108 Non-Unique
+
+        const choices: KeywordChoice[] = [
+            {
+                length: 6,  // 6465 Unique 7272 Non-Unique
+                limits: { A: 300, B: 1200 / 10, C: 2000 / 10 },
+                scales: { A: 1, B: 10, C: 10 },
+            },
+            {
+                length: 7,  // 6188 Unique 12713 Non-Unique
+                limits: { A: 400, B: 1200 / 10, C: 2000 / 10 },
+                scales: { A: 1, B: 10, C: 10 },
+            },
+            {
+                length: 8, // 4267 Unique  16793 Non-Unique
+                limits: { A: 300, B: 1000 / 10, C: 1400 / 10 },
+                scales: { A: 1, B: 10, C: 10, },
+            },
+            {
+                length: 9, // 2255 Unique   17879 Non-Unique
+                limits: { A: 50, B: 275, C: 800, },
+                scales: { A: 1, B: 1, C: 1 },
+            },
+            {
+                length: 10, // 941 Unique   15923 Non-Unique
+                limits: { A: 40, B: 225, C: 400, },
+                scales: { A: 1, B: 1, C: 1 },
+            },
+            {
+                length: 11, // 267 Unique   11108 Non-Unique
+                limits: { A: 40, B: 90, C: 130, },
+                scales: { A: 1, B: 1, C: 1 },
+            },
+        ];
+
+        const division: Division = usedOnA ? 'A' : usedOnB ? 'B' : 'C';
+
+        const enabledChoices = choices
+            .filter(choice => choice.length >= lower && choice.length <= upper)
+            .map(choice => ({
+                ...choice,
+                limit: choice.limits[division],
+                scale: choice.scales[division],
+                pattern: this.makeUniquePattern(
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".substring(0, choice.length),
+                    1,
+                ),
+            }))
+            .filter(choice => choice.limit > 0);
+
+        const totalSlots = enabledChoices.reduce(
+            (total, choice) => total + choice.limit,
+            0,
+        );
+
+        // Keep track of how many entries we find to present so that
+        // we don't put more than kwcount on the dialog.
+        let found = 0;
 
         for (let tval = 0; found < kwcount && tval < 50; tval++) {
-            // Pick a random number from the set of choices
-            let slot = Math.round(Math.random() * (limit8 + limit9 + limit10 + limit11));
-            // And figure out which slot it is in as well as the pattern that gets us to the slot
-            let pat = pat8;
-            if (slot <= limit8) {
-                // For the 8 character slots, we want to make them less frequent for Division B/C so we need to scale
-                // it back up by the right amount and pick a number in that slot range
-                if (!usedOnA) {
-                    if (usedOnB) {
-                        slot = Math.trunc((slot * scaleb9) + (Math.random() * scaleb9))
-                    } else {
-                        slot = Math.trunc((slot * scalec9) + (Math.random() * scalec9))
-                    }
-                }
-            } else {
-                pat = pat9
-                slot -= limit8
-                if (slot > limit9) {
-                    slot -= limit9;
-                    pat = pat10;
-                    if (slot > limit10) {
-                        slot -= limit10;
-                        pat = pat11;
-                    }
-                }
-            }
-            let keyword = this.Frequent[lang][pat][slot][0];
+            /*
+             * Math.floor() gives a value from 0 through totalSlots - 1.
+             * This avoids the endpoint bias and possible out-of-range value
+             * produced by Math.round().
+             */
+            let slot = Math.floor(Math.random() * totalSlots);
 
-            if (picked[keyword] !== true) {
-                picked[keyword] = true;
-                // We have a keyword, so let them process it (if they can)
-                if (action(found, keyword)) {
-                    found++
+            let selectedChoice = enabledChoices[0];
+
+            for (const choice of enabledChoices) {
+                if (slot < choice.limit) {
+                    selectedChoice = choice;
+                    break;
                 }
+
+                slot -= choice.limit;
+            }
+
+            /*
+             * A scale greater than 1 maps the weighted slot to a randomly
+             * selected entry within the corresponding larger block.
+             */
+            if (selectedChoice.scale > 1) {
+                slot =
+                    slot * selectedChoice.scale +
+                    Math.floor(Math.random() * selectedChoice.scale);
+            }
+
+            const patternEntries =
+                this.Frequent[lang][selectedChoice.pattern];
+
+            if (patternEntries === undefined || slot >= patternEntries.length) {
+                continue;
+            }
+
+            const keyword = patternEntries[slot][0];
+
+            if (picked[keyword] === true) {
+                continue;
+            }
+
+            picked[keyword] = true;
+
+            // We have a keyword, so let the caller process it.
+            if (action(found, keyword)) {
+                found++;
             }
         }
-        this.attachHandlers()
-        return found
+
+        this.attachHandlers();
+
+        return found;
     }
     /**
      * Search for any other keyword patterns which match a given keyword

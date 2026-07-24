@@ -1601,11 +1601,11 @@ export class CipherEncoder extends CipherHandler {
         // Filter down the words to nominally the grade level.
         // This isn't a perfect match, but at least it reduces the chance of a word
         // being out of grade level
-        let rangeScale = 0.75
+        let rangeScale = 0.9
         if (usedOnA) {
-            rangeScale = 0.2
+            rangeScale = 0.3
         } else if (usedOnB) {
-            rangeScale = 0.4
+            rangeScale = 0.55
         }
 
         // Keep track of how many entries we find to present so that we don't put more than requested on the dialog

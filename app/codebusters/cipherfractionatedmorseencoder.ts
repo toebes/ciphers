@@ -3196,7 +3196,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             const useDiv = this.genUseKey(keyword, "kwset warning")
             cellRight.append(useDiv)
             return true;
-        })
+        }, false)
         this.attachHandlers()
     }
 

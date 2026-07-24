@@ -1501,7 +1501,7 @@ export class CipherEncoder extends CipherHandler {
      * @param lower Shortest word to generate
      * @param upper Longest word to generate
      */
-    public populateLenKeySuggestions(genbtnid: string = "genbtn", resultid: string = 'suggestKeyopts', kwcount: number, lower: number = 3, upper: number = 7,): void {
+    public populateLenKeySuggestions(genbtnid: string = "genbtn", resultid: string = 'suggestKeyopts', kwcount: number, lower: number = 3, upper: number = 7, allownonunique: boolean = false): void {
         this.uniquePattern = this.makeUniquePattern("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1)
 
         $(`#${genbtnid}`).text('Regenerate')
@@ -1519,10 +1519,11 @@ export class CipherEncoder extends CipherHandler {
         } else if (usedOnB) {
             range *= .5
         }
+        const cellimit = allownonunique ? 3 : 2
         result.empty()
         const divAll = $("<div/>", { class: 'grid-x' })
         const cells: JQuery<HTMLElement>[] = []
-        for (let cellCount = 0; cellCount < 2; cellCount++) {
+        for (let cellCount = 0; cellCount < cellimit; cellCount++) {
             const cell = $('<div/>', { class: 'cell auto' })
             cells.push(cell)
             divAll.append(cell)
@@ -1532,9 +1533,24 @@ export class CipherEncoder extends CipherHandler {
         this.searchForUniqueKeywords(kwcount, lower, upper,
             (found: number, keyword: string): boolean => {
                 const useDiv = this.genUseKey(keyword)
-                cells[found % cells.length].append(useDiv)
+                cells[found % 2].append(useDiv)
                 return true
             })
+
+        if (allownonunique) {
+            let found = 0
+            for (let keylen = lower; keylen <= upper; keylen++) {
+                const foundlimit = Math.round((kwcount / 2) * ((keylen + 1 - lower) / (upper + 1 - lower)))
+                found += this.searchForNonUniqueKeywords(foundlimit - found,
+                    (found: number, keyword: string): boolean => {
+                        const useDiv = this.genUseKey(keyword, "kwset warning")
+                        cells[2].append(useDiv)
+                        return true
+                    }, allownonunique, keylen, keylen)
+
+            }
+
+        }
         this.attachHandlers()
     }
     /**
@@ -1543,7 +1559,7 @@ export class CipherEncoder extends CipherHandler {
      * @param action Callback function when a keyword is found
      * @returns Total number of keywords found
      */
-    public searchForNonUniqueKeywords(kwcount: number, action: (count: number, keyword: string) => boolean, limitsingle: boolean = false): number {
+    public searchForNonUniqueKeywords(kwcount: number, action: (count: number, keyword: string) => boolean, limitsingle: boolean = false, lower: number = 8, upper: number = 14): number {
         const lang = 'en';
 
         const picked: BoolMap = {}
@@ -1552,7 +1568,7 @@ export class CipherEncoder extends CipherHandler {
         const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
 
         // We use everything from 8 to 14 characters except for the unique string ones as our potential keyword choices
-        let entries = Object.keys(this.Frequent['en']).filter((key) => key.length >= 8 && key.length <= 14)
+        let entries = Object.keys(this.Frequent['en']).filter((key) => key.length >= lower && key.length <= upper)
         let entriesCount = entries.length
 
         // Filter down the words to nominally the grade level.
@@ -1584,8 +1600,12 @@ export class CipherEncoder extends CipherHandler {
             if (pat == pat14.substring(0, patlen)) {
                 continue;
             }
-            if (limitsingle && (pat[patlen - 1] === pat14.substring(patlen - 2) ||
-                pat[patlen - 2] === pat14.substring(patlen - 2))) {
+            if (pat.includes("'")) {
+                continue;
+            }
+            if (limitsingle &&
+                pat[patlen - 1] !== pat14[patlen - 2] &&
+                pat[patlen - 2] !== pat14[patlen - 2]) {
                 continue;
             }
             // Now that we have that, pick a random entry from the range of the slot

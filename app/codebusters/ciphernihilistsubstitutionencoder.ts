@@ -3676,7 +3676,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         $('#suggestpkey')
             .off('click')
             .on('click', () => {
-                this.suggestKeyword()
+                this.suggestKeyword(true)
+            });
+        $('#keygenbtn')
+            .off('click')
+            .on('click', () => {
+                this.genKeywordSuggestions(true)
             });
         $('#suggestcrib')
             .off('click')

@@ -3152,7 +3152,12 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         $('#suggestpkey')
             .off('click')
             .on('click', () => {
-                this.suggestKeyword()
+                this.suggestKeyword(true)
+            });
+        $('#keygenbtn')
+            .off('click')
+            .on('click', () => {
+                this.genKeywordSuggestions(true)
             });
         $('#suggestkey')
             .off('click')

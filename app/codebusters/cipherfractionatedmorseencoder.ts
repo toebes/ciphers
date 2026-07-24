@@ -3179,14 +3179,14 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         divAll.append(cellLeft).append(cellMid).append(cellRight)
         output.empty().append(divAll)
         const cells = [cellLeft, cellMid]
-        // First we give them 8, 9, 10, and 11 unique letters
-        this.searchForKeywords(10, (found: number, keyword: string): boolean => {
+        // First the 6 and 7 letter words
+        this.searchForUniqueKeywords(12, 6, 7, (found: number, keyword: string): boolean => {
             const useDiv = this.genUseKey(keyword, "kwset")
             cells[found % 2].append(useDiv)
             return true;
         })
-        // Then 6 and 7 letter words
-        this.searchForUniqueKeywords(10, 6, 7, (found: number, keyword: string): boolean => {
+        // Then we give them 8, 9, 10, and 11 unique letters
+        this.searchForKeywords(8, (found: number, keyword: string): boolean => {
             const useDiv = this.genUseKey(keyword, "kwset")
             cells[found % 2].append(useDiv)
             return true;
@@ -3196,7 +3196,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             const useDiv = this.genUseKey(keyword, "kwset warning")
             cellRight.append(useDiv)
             return true;
-        }, false)
+        }, true, 6, 10)
         this.attachHandlers()
     }
 

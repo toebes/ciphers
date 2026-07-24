@@ -101,17 +101,15 @@ export class CipherSolver extends CipherHandler {
      */
     public setCipherString(cipherString: string): boolean {
         let changed = super.setCipherString(cipherString);
-        if (Object.keys(this.freq).length === 0 && cipherString !== "") {
-            this.freq = {};
-            this.totfreq = 0;
-            for (let c of this.getCharset().toUpperCase()) {
-                this.freq[c] = 0;
-            }
-            for (let c of this.state.cipherString.toUpperCase()) {
-                if (this.isValidChar(c)) {
-                    this.freq[c]++;
-                    this.totfreq++;
-                }
+        this.freq = {};
+        this.totfreq = 0;
+        for (let c of this.getCharset().toUpperCase()) {
+            this.freq[c] = 0;
+        }
+        for (let c of this.state.cipherString.toUpperCase()) {
+            if (this.isValidChar(c)) {
+                this.freq[c]++;
+                this.totfreq++;
             }
         }
         return changed;
@@ -1195,6 +1193,25 @@ export class CipherSolver extends CipherHandler {
 
         this.attachHandlers();
     }
+
+    /**
+     * Loads a language in response to a dropdown event
+     * @param lang Language to load (2 character abbreviation)
+     */
+    public loadLanguage(lang: string): void {
+        super.loadLanguage(lang);
+        // We need to set the character set and the source characterset
+        this.setCharset(this.acalangcharset[this.state.curlang])
+        this.setSourceCharset(this.encodingcharset[this.state.curlang])
+        this.setCipherString(this.state.cipherString);
+        this.state.replOrder = "";
+        console.log(`Curlang=${this.state.curlang} Source='${this.getSourceCharset()}' Dest='${this.getCharset()}'`)
+        this.UpdateFreqEditTable();
+        this.displayFreq();
+        this.attachHandlers();
+    }
+    ///
+    ///this.UpdateFreqEditTable()
     /**
      * Calculates the Chi Square value for a cipher string against the current
      * language character frequency

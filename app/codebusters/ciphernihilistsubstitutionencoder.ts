@@ -3479,7 +3479,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Populate the dialog with a set of keyword suggestions. 
      */
     public populateKeySuggestions(): void {
-        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 3, 7)
+        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 3, 7, true)
     }
     /**
      * Set the keyword from the suggested text

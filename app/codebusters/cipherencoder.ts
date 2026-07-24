@@ -1543,7 +1543,7 @@ export class CipherEncoder extends CipherHandler {
      * @param action Callback function when a keyword is found
      * @returns Total number of keywords found
      */
-    public searchForNonUniqueKeywords(kwcount: number, action: (count: number, keyword: string) => boolean): number {
+    public searchForNonUniqueKeywords(kwcount: number, action: (count: number, keyword: string) => boolean, limitsingle: boolean = false): number {
         const lang = 'en';
 
         const picked: BoolMap = {}
@@ -1574,23 +1574,30 @@ export class CipherEncoder extends CipherHandler {
             // Pick a random number from the set of choices
             let patSlot = Math.trunc(Math.random() * entriesCount);
             let pat = entries[patSlot]
+            const patlen = pat.length;
 
             // Make sure it is not one of the unique character patterns.
             // We do this check here instead of when we create the keys because it is pretty
             // rare that we actually hit one of them and we don't want to incur the cost when
             // generating the list in the first place.
-            if (pat !== pat14.substring(0, pat.length)) {
-                // Now that we have that, pick a random entry from the range of the slot
-                let slot = Math.trunc(Math.random() * this.Frequent[lang][pat].length * rangeScale)
-                let keyword = this.Frequent[lang][pat][slot][0];
 
-                // Make sure that the random number hadn't given us this sample before.
-                if (picked[keyword] !== true) {
-                    picked[keyword] = true;
-                    // We have a keyword, so let them process it (if they can)
-                    if (action(found, keyword)) {
-                        found++
-                    }
+            if (pat == pat14.substring(0, patlen)) {
+                continue;
+            }
+            if (limitsingle && (pat[patlen - 1] === pat14.substring(patlen - 2) ||
+                pat[patlen - 2] === pat14.substring(patlen - 2))) {
+                continue;
+            }
+            // Now that we have that, pick a random entry from the range of the slot
+            let slot = Math.trunc(Math.random() * this.Frequent[lang][pat].length * rangeScale)
+            let keyword = this.Frequent[lang][pat][slot][0];
+
+            // Make sure that the random number hadn't given us this sample before.
+            if (picked[keyword] !== true) {
+                picked[keyword] = true;
+                // We have a keyword, so let them process it (if they can)
+                if (action(found, keyword)) {
+                    found++
                 }
             }
         }
@@ -2274,7 +2281,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Update the GUI with a list of suggestions
     */
-    public genKeywordSuggestions() {
+    public genKeywordSuggestions(limitsingle: boolean = false) {
         let output = $("#keywordss");
         const divAll = $("<div/>", { class: 'grid-x' })
         const cellLeft = $('<div/>', { class: 'cell auto' })
@@ -2312,7 +2319,7 @@ export class CipherEncoder extends CipherHandler {
             div.append(keyword)
             cellRight.append(div)
             return true;
-        })
+        }, limitsingle)
         this.attachHandlers()
     }
     /**

@@ -865,6 +865,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
     public setUIDefaults(): void {
+        this.setQuestionText(this.state.cipherString);
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);

@@ -684,6 +684,14 @@ export class CipherEncoder extends CipherHandler {
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
     }
+    /**
+     * Return a cannonical form of a string in all alphabetical order
+     * @param s String to handle
+     * @returns String with all letters in alphabetical order
+     */
+    public canonicalForm(s: string): string {
+        return [...s].sort().join('');
+    }
 
     public genTestStrings(testType: ITestType): string[][] {
         this.genAlphabet();

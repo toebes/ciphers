@@ -1798,42 +1798,42 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         return $('<span/>', { class: 'fpt' }).text(val)
     }
 
-    public canonicalForm(s: string): string {
-        return s.split('').sort().join('')
-    }
-
-    public findAnagrams(val: string, len: number): string[] {
+    /**
+     * Find all anagrams for a given string
+     * @param val String to find anagrams for
+     * @param len Length of string to search for
+     * @param maxResults Maximun number of results to return
+     * @returns Array of all anagrams which match a string
+     */
+    public findAnagrams(val: string, len: number, maxResults = 12,): string[] {
         const target = this.canonicalForm(val);
-        const found: string[] = []
+        const useUniqueLetters = target.length !== len;
+        const found: string[] = [];
 
-        let entries = Object.keys(this.Frequent['en'])
-            .filter(key => key.length === len && !key.includes("'"));
-
-        if (target.length === len) {
-            outer: for (const pat of entries) {
-                for (const entry of this.Frequent['en'][pat]) {
-                    if (this.canonicalForm(entry[0]) === target) {
-                        found.push(entry[0])
-                        if (found.length > 12) {
-                            break outer;
-                        }
-                    }
-                }
+        for (const [pattern, entries] of Object.entries(this.Frequent['en'])) {
+            if (pattern.length !== len || pattern.includes("'")) {
+                continue;
             }
-        } else {
-            outer: for (const pat of entries) {
-                for (const entry of this.Frequent['en'][pat]) {
-                    if (this.canonicalForm(this.undupeString(entry[0])) === target) {
-                        found.push(entry[0])
-                        if (found.length > 12) {
-                            break outer;
-                        }
+
+            for (const entry of entries) {
+                const word = entry[0];
+                const comparison = useUniqueLetters
+                    ? this.undupeString(word)
+                    : word;
+
+                if (this.canonicalForm(comparison) === target) {
+                    found.push(word);
+
+                    if (found.length >= maxResults) {
+                        return found;
                     }
                 }
             }
         }
-        return found
+
+        return found;
     }
+
     public showHeaderOptions(headerLetters: string, headerType: string, result: JQuery<HTMLElement>): string[] {
         let headerPossible = this.findAnagrams(headerLetters, 5);
 

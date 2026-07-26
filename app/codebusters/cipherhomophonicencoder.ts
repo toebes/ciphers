@@ -1,4 +1,4 @@
-import { cloneObject, StringArrayMap, StringMap } from '../common/ciphercommon';
+import { cloneObject, NumberMap, StringArrayMap, StringMap } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -1939,6 +1939,90 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     public populateKeySuggestions(): void {
         this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 4, 4)
     }
+    /**
+     * Find all anagrams for a given string
+     * @param val String to find anagrams for
+     * @param len Length of string to search for
+     * @param maxResults Maximun number of results to return
+     * @returns Array of all anagrams which match a string
+     */
+    public findUniqueAnagrams(val: string, len: number, maxResults = 12,): string[] {
+        const charMap: NumberMap = {}
+        const found: string[] = [];
+        for (const c of this.minimizeString(val).toUpperCase()) {
+            charMap[c] = 1;
+        }
+
+        const pat = this.makeUniquePattern('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.substring(0, len), 1)
+        for (const entry of this.Frequent[this.state.curlang][pat]) {
+            let score = 0
+            for (const c of entry[0]) {
+                if (charMap[c]) {
+                    ++score;
+                }
+
+            }
+            if (score === val.length) {
+                found.push(entry[0])
+                if (found.length >= maxResults) {
+                    return found;
+                }
+            }
+        }
+        return found;
+    }
+    /**
+     * Calculate the difficulty of the row/column keyword.
+     * @param key 
+     * @returns 
+     */
+    public getKeywordDifficulty(key: string): [number, boolean, number, string[]] {
+        let result = 0;
+        let hasDuplicates = false;
+        let anagrams = this.findUniqueAnagrams(key, key.length);
+        result = result + 0.5 * (anagrams.length - 1);
+        let duplicateCheck = new Array<string>();
+        let duplicates = 0;
+        for (var i = 0; i < key.length; i++) {
+            if (duplicateCheck.includes(key[i])) {
+                duplicates = duplicates + 1;
+                hasDuplicates = true;
+            }
+            duplicateCheck.push(key[i]);
+        }
+        result = result + duplicates;
+
+        return [result, hasDuplicates, anagrams.length - 1, anagrams];
+    }
+    /**
+     * Generate the UI for choosing a keyword
+     * @param key Keyword to add
+     * @returns HTML containing a button to select the keyword and the keyword
+     */
+    public genUseKey(key: string, useclass = "keyset"): JQuery<HTMLElement> {
+        if (key === undefined) {
+            return $("<span/>")
+        }
+        let difficultyObj = this.getKeywordDifficulty(key);
+        let warnlevel = "";
+        if (difficultyObj[2] > 2) {
+            warnlevel = "warning";
+        }
+        if (difficultyObj[1] || difficultyObj[2] > 4) {
+            warnlevel = "alert";
+        }
+        let useButton = $("<a/>", {
+            'data-key': key,
+            type: "button",
+            class: `button rounded ${useclass} abbuttons ${warnlevel}`,
+            title: difficultyObj[3].join('\n')
+        }).html(`Use (${difficultyObj[2]})`);
+        let div = $("<div/>", { class: "kwchoice" })
+        div.append(useButton)
+        div.append(key)
+        return div
+    }
+
     /**
      * Set the keyword from the suggested text
      * @param elem Element clicked on to set the keyword from

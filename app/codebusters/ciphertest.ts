@@ -2617,11 +2617,11 @@ export class CipherTest extends CipherEncoder {
 
         const testTypeRangeMap: Readonly<Record<ITestType, Bounds>> = {
             [ITestType.None]: { min: 0, max: 999 },
-            [ITestType.bstate]: { min: 18, max: 28 },
-            [ITestType.cregional]: { min: 18, max: 26 },
-            [ITestType.cstate]: { min: 24, max: 33 },
-            [ITestType.bregional]: { min: 18, max: 26 },
-            [ITestType.aregional]: { min: 16, max: 22 },
+            [ITestType.bstate]: { min: 24, max: 35 },
+            [ITestType.cregional]: { min: 22, max: 33 },
+            [ITestType.cstate]: { min: 24, max: 35 },
+            [ITestType.bregional]: { min: 22, max: 33 },
+            [ITestType.aregional]: { min: 18, max: 26 },
             [ITestType.astate]: { min: 18, max: 26 },
         } as const;
 

@@ -74,6 +74,21 @@ export function repeatStr(c: string, count: number): string {
     }
     return res;
 }
+
+/**
+ * Make multiple copies of entries in an array up to a given length
+ * @param values Array of values to repeat
+ * @param length Number of entries to be in the final array
+ * @returns Array with replicated values
+ */
+export function repeatToLength<T>(values: T[], length: number): T[] {
+    if (values.length === 0) {
+        return [];
+    }
+
+    return Array.from({ length }, (_, i) => values[i % values.length]);
+}
+
 /**
  * Creates an array of a given size initialized with the defined values
  * @param size Number of elements in the array
@@ -93,6 +108,16 @@ export function makeFilledArray(size: number, value: any): any[] {
  */
 export function padToMatch(c: string, m: string): string {
     return c + repeatStr(' ', m.length - c.length);
+}
+/**
+ * Shuffle an array in a random order
+ * @param array Array of elements
+ */
+export function shuffle<T>(array: T[]): void {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 /**
  * Remove all whitespace from a string and convert it to all upper case.

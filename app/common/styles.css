@@ -133,6 +133,21 @@ table.sticky thead tr th {
     top: 0;
 }
 
+table.suggestcrib td,
+table.suggestcrib th,
+table.suggestcrib tr,
+table.suggestcrib thead,
+table.suggestcrib tbody {
+    text-align: center;
+    background-color: transparent;
+}
+
+
+table.suggestcrib tr {
+    /* background-color: transparent; */
+    border-bottom: 1px solid black;
+}
+
 div.attachline {
     display: inline-block;
 }

@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap, StringArrayMap, StringMap } from '../common/ciphercommon';
+import { cloneObject, NumberMap, repeatToLength, shuffle, StringArrayMap, StringMap } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -9,6 +9,7 @@ import {
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
@@ -72,6 +73,13 @@ interface ICribInfo {
     cipherlen: number;
 }
 
+type CribKeySet = {
+    set: number[];
+    keystr: string;
+    equiv: string[];
+};
+
+type CribKeySets = CribKeySet[][];
 /**
  *
  * Homophonic Encoder
@@ -608,6 +616,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const result = $('<div/>');
         this.genTestUsage(result);
         result.append(this.createSuggestKeyDlg('Suggest Key'))
+        result.append(this.createSuggestCribDlg('Suggest Crib'))
 
         const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -1931,7 +1940,9 @@ export class CipherHomophonicEncoder extends CipherEncoder {
      * Start the dialog for suggesting the keyword
      */
     public suggestKey(): void {
-        this.startSuggestKey();
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
+            this.startSuggestKey();
+        })
     }
     /**
      * Populate the dialog with a set of keyword suggestions. 
@@ -1966,6 +1977,27 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 found.push(entry[0])
                 if (found.length >= maxResults) {
                     return found;
+                }
+            }
+        }
+        return found;
+    }
+    /**
+     * Find all of the strings of a given length which match a wild card template
+     * @param val String to search for
+     * @param maxResults Maximum number of strings to look for
+     * @returns 
+     */
+    public findEquivalentStrings(val: string, maxResults = 12,): string[] {
+        const found: string[] = [];
+        const re = new RegExp(`^${val}$`)
+        const pat = this.makeUniquePattern('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.substring(0, val.length), 1)
+        for (const entry of this.Frequent[this.state.curlang][pat]) {
+            if (re.test(entry[0])) {
+                found.push(entry[0]);
+
+                if (found.length >= maxResults) {
+                    break;
                 }
             }
         }
@@ -2036,6 +2068,307 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.updateOutput()
     }
     /**
+     * Generate a dialog showing the choices for potential Cribs
+     */
+    public createSuggestCribDlg(title: string): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv);
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestCribOpts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button cribRegenerate', id: 'genbtn' }).text('Regenerate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const suggestKeyDlg = JTFDialog('suggestCribDLG', title, dlgContents);
+        return suggestKeyDlg;
+    }
+    /**
+     * Generate a random set of unique numbers withing a given range
+     * @param range Range of random numbers
+     * @returns Array of unique numbers
+     */
+    public randomIndices(wordcount: number, count = 5): number[] {
+        count = Math.min(count, wordcount);
+
+        const indices = Array.from({ length: wordcount }, (_, i) => i);
+
+        for (let i = 0; i < count; i++) {
+            const j = i + Math.floor(Math.random() * (wordcount - i));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+
+        return indices.slice(0, count);
+    }
+    /**
+     * Find possible cribs from a cipher string.
+     * This picks 5 full word cribs and 5 which are split across words
+     * @param keystring Cipherstring to pick cribs from
+     */
+    public pickCribs(keystring: string): string[] {
+        const words = keystring.split(' ')
+        const longwords = words.filter(word => word.length >= 4);
+        const wordChoices = this.randomIndices(longwords.length, 5);
+        const cribs: string[] = []
+        for (const slot of wordChoices) {
+            let longword = longwords[slot]
+            if (longword.length > 6) {
+                longword = longword.substring(0, 6)
+            }
+            cribs.push(longword)
+        }
+        const splitChoices = this.randomIndices(words.length - 2, 5);
+        for (const slot of splitChoices) {
+            let pos = slot
+            let word = words[pos++]
+            if (word.length > 2) {
+                word = word.substring(word.length - 2)
+            }
+            while (word.length < 4 && pos < words.length) {
+                word += words[pos++]
+                if (word.length > 4) {
+                    word = word.substring(0, 4)
+                }
+            }
+            cribs.push(word)
+        }
+        return cribs
+    }
+    /**
+     * Eliminate all characters which are not in the charset or space
+     */
+    public reduceString(str: string): string {
+        let res = '';
+        let lastc = '';
+        if (str !== undefined) {
+            for (const c of str.toUpperCase()) {
+                if (this.isValidChar(c)) {
+                    res += c;
+                    lastc = c;
+                } else if (lastc != ' ') {
+                    res += ' '
+                    lastc = ' '
+                }
+            }
+        }
+        return res;
+    }
+    /**
+     * 
+     * @param word 4 letter word to scramble
+     * @returns The 4 letters in a random order
+     */
+    public randomScramble(word: string): string {
+        if (word.length !== 4) {
+            throw new Error("Word must be exactly 4 letters.");
+        }
+
+        const chars = [...word];
+
+        while (true) {
+            // Fisher-Yates shuffle
+            for (let i = chars.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [chars[i], chars[j]] = [chars[j], chars[i]];
+            }
+
+            const result = chars.join('');
+            if (result !== word) {
+                return result;
+            }
+        }
+    }
+    /**
+     * Generate a use button (colored based on difficulty)
+     * @param cribdata Data for the entry
+     * @param crib Crib 
+     * @returns Button
+     */
+    public genCribUseButton(cribdata: CribKeySet, crib: string): JQuery<HTMLElement> {
+        let extraclass = ''
+        if (cribdata.equiv.length > 10) {
+            extraclass = ' alert'
+        } else if (cribdata.equiv.length > 3) {
+            extraclass = ' warning'
+        }
+
+        let title = cribdata.equiv.join('\n')
+        let lentxt = String(cribdata.equiv.length)
+        if (cribdata.equiv.length >= 20) {
+            lentxt = '20+'
+            title += '\n…'
+        }
+        const useButton = $("<a/>", {
+            'data-crib': crib,
+            'data-key': cribdata.keystr,
+            type: "button",
+            class: `button rounded cribset abbuttons${extraclass}`,
+            title: title
+        }).html(`Use ${cribdata.keystr} (${lentxt})`);
+        return useButton
+    }
+    /**
+     * Generate crib suggestions based on the current keyword and polybius key
+     * @returns nothing
+     */
+    public genCribSuggestions() {
+        // We have two categories of cribs to offer
+        //   1) Not split across a word
+        //   2) Split across a word
+        // For these two categories we also have some optionality
+        //   1) 2, 3 or 4 letters revealed (Division B doesn't get 2 letters)
+        //   2) Which letters are revealed based on anagrams.  We can determine this early on.
+        let output = $("#suggestCribOpts");
+        const testUsage = this.getTestUsage();
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        const keystring = this.minimizeString(this.state.keyword)
+
+
+        let msgDiv = $('<div/>', { id: 'cribmsg' })
+        const table = new JTTable({
+            class: 'suggestcrib',
+        });
+
+        const headRow = table.addHeaderRow()
+
+        headRow.add('Crib')
+        headRow.add('All Letters')
+        headRow.add('3 Letters')
+        if (!usedOnB) {
+            headRow.add('2 Letters')
+        }
+        output.empty().append(msgDiv)
+
+        const minLen = usedOnB ? 3 : 2
+        const maxLen = 4
+        const cipherString = this.reduceString(this.state.cipherString)
+
+        if (keystring.length !== 4) {
+            msgDiv.append($('<div/>').text('You need a four letter keyword to look for a crib.'))
+            return
+        }
+
+        // Find words to use for the crib.  We will have 5 non-split words and 5 split words
+        let cribs = this.pickCribs(cipherString);
+
+        let cribKeySets = [[], [], [], [], []]
+        // Figure out the number of anagrams for each of the possible patterns
+        for (let keyLen = minLen; keyLen <= maxLen; keyLen++) {
+            //
+            //  2 letters:    AB AC AD BC BD CD   01 02 03 12 13 23 
+            //  3 letters:    ABC ABD BCD         012 013 123
+            //  4 letters:    ABCD                1234
+            const lookup = {
+                2: [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3],],
+                3: [[0, 1, 2], [0, 1, 3], [1, 2, 3],],
+                4: [[0, 1, 2, 3]]
+            }
+            let keystr = ''
+            for (const keyset of lookup[keyLen]) {
+                const keychars = ['.', '.', '.', '.'];
+
+                for (const seti of keyset) {
+                    keychars[seti] = keystring[seti];
+                }
+
+                keystr = keychars.join('');
+                let equiv = this.findEquivalentStrings(keystr, 20)
+                cribKeySets[keyLen].push({ set: keyset, keystr: keystr.replaceAll('\.', '_'), equiv: equiv })
+            }
+        }
+
+        if (cribs.length === 0) {
+            msgDiv.append($('<div/>').text('No cribs found with the current keyword. Try a longer keyword or different Polybius key.'))
+            return
+        }
+        $('#gencrib').removeAttr('disabled').text('Regenerate')
+        $('#gencrib').off('click').on('click', () => { this.genCribSuggestions(); });
+
+        let pos3 = 0
+        let pos2 = 0
+        for (const crib of cribs) {
+            const row = table.addBodyRow()
+            row.add({ celltype: 'th', content: crib });
+
+            // These are the 4 letter Cribs which reveal the entire keyword
+            let useButton = $("<a/>", {
+                'data-crib': crib,
+                'data-key': crib,
+                type: "button",
+                class: "button rounded cribset abbuttons",
+            }).html(`Use ${keystring}`);
+            row.add(useButton)
+
+            // Show the 3 letter Crib 
+            if (pos3 >= cribKeySets[3].length) {
+                pos3 = 0;
+            }
+            const cribdata = cribKeySets[3][pos3++]
+            row.add(this.genCribUseButton(cribdata, crib))
+
+            if (!usedOnB) {
+                // Show the 2 letter Crib if this is not on Division B
+
+                if (pos2 >= cribKeySets[2].length) {
+                    pos2 = 0;
+                }
+                const cribdata = cribKeySets[2][pos2++]
+                row.add(this.genCribUseButton(cribdata, crib))
+            }
+
+        }
+        output.append(table.generate())
+        this.attachHandlers()
+    }
+    /**
+     * Set a keyword and offset from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useCrib(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const crib = jqelem.attr('data-crib')
+        const key = jqelem.attr('data-key')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setCrib(crib)
+        let cribpos = this.placeCrib()
+        console.log(cribpos)
+        console.log(`Crib: ${crib} Key:${key}`)
+        if (cribpos === undefined) {
+            $('#cribmsg').html('<h3>Something went wrong. Unable to place crib</h3>')
+            return;
+        }
+        this.state.randomSlot = [];
+        let randomChoices: number[] = []
+        for (let i = 0; i < key.length; i++) {
+            if (key[i] !== '_') {
+                randomChoices.push(i)
+            }
+        }
+
+        const randomSlots = repeatToLength(randomChoices, cribpos.criblen)
+        shuffle(randomSlots)
+        for (let pos = 0; pos < cribpos.criblen; pos++) {
+            this.state.randomSlot[pos + cribpos.position] = randomSlots[pos]
+        }
+        $('#suggestCribDLG').foundation('close')
+        this.updateOutput()
+    }
+    /**
+    * Start the process to suggest cribs
+    */
+    public suggestCrib(): void {
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
+            $('#suggestCribDLG').foundation('open');
+            this.genCribSuggestions();
+        })
+    }
+    /**
      * Reset the alphabet mapping so that we generate a new one
      */
     public resetAlphabet(): void {
@@ -2081,6 +2414,21 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     }
                 }
             });
+        $('#suggestcrib')
+            .off('click')
+            .on('click', () => {
+                this.suggestCrib()
+            })
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions()
+            })
+        $('.cribset')
+            .off('click')
+            .on('click', (e) => {
+                this.useCrib(e.target)
+            })
         $('#hint')
             .off('input')
             .on('input', (e) => {

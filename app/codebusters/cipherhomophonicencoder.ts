@@ -80,6 +80,15 @@ type CribKeySet = {
 };
 
 type CribKeySets = CribKeySet[][];
+
+//  2 letters:    AB AC AD BC BD CD   01 02 03 12 13 23 
+//  3 letters:    ABC ABD BCD         012 013 123
+//  4 letters:    ABCD                1234
+const cribHintPositions = {
+    2: [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3],],
+    3: [[0, 1, 2], [0, 1, 3], [1, 2, 3],],
+    4: [[0, 1, 2, 3]]
+}
 /**
  *
  * Homophonic Encoder
@@ -617,6 +626,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.genTestUsage(result);
         result.append(this.createSuggestKeyDlg('Suggest Key'))
         result.append(this.createSuggestCribDlg('Suggest Crib'))
+        result.append(this.createSuggestHintDlg('Suggest Hint'))
 
         const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -2085,8 +2095,29 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     )
                 )
         );
-        const suggestKeyDlg = JTFDialog('suggestCribDLG', title, dlgContents);
-        return suggestKeyDlg;
+        const suggestCribDlg = JTFDialog('suggestCribDLG', title, dlgContents);
+        return suggestCribDlg;
+    }
+    /**
+     * Generate a dialog showing the choices for potential Cribs
+     */
+    public createSuggestHintDlg(title: string): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv);
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestHintOpts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button hintRegenerate', id: 'hintbtn' }).text('Regenerate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const suggestHintDlg = JTFDialog('suggestHintDLG', title, dlgContents);
+        return suggestHintDlg;
     }
     /**
      * Generate a random set of unique numbers withing a given range
@@ -2160,28 +2191,25 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     }
     /**
      * 
-     * @param word 4 letter word to scramble
-     * @returns The 4 letters in a random order
+     * @param word 2-4 letter word to scramble
+     * @returns The 2-4 letters in a random order
      */
     public randomScramble(word: string): string {
-        if (word.length !== 4) {
-            throw new Error("Word must be exactly 4 letters.");
+        if (word.length < 2 || word.length > 4) {
+            throw new Error("Word must be 2-4 characters.");
         }
 
         const chars = [...word];
 
-        while (true) {
+        do {
             // Fisher-Yates shuffle
             for (let i = chars.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [chars[i], chars[j]] = [chars[j], chars[i]];
             }
+        } while (word.length === 4 && chars.join('') === word);
 
-            const result = chars.join('');
-            if (result !== word) {
-                return result;
-            }
-        }
+        return chars.join('');
     }
     /**
      * Generate a use button (colored based on difficulty)
@@ -2260,16 +2288,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         // Figure out the number of anagrams for each of the possible patterns
         for (let keyLen = minLen; keyLen <= maxLen; keyLen++) {
             //
-            //  2 letters:    AB AC AD BC BD CD   01 02 03 12 13 23 
-            //  3 letters:    ABC ABD BCD         012 013 123
-            //  4 letters:    ABCD                1234
-            const lookup = {
-                2: [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3],],
-                3: [[0, 1, 2], [0, 1, 3], [1, 2, 3],],
-                4: [[0, 1, 2, 3]]
-            }
             let keystr = ''
-            for (const keyset of lookup[keyLen]) {
+            for (const keyset of cribHintPositions[keyLen]) {
                 const keychars = ['.', '.', '.', '.'];
 
                 for (const seti of keyset) {
@@ -2325,6 +2345,71 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         output.append(table.generate())
         this.attachHandlers()
     }
+    public genHintSuggestions() {
+        let output = $("#suggestHintOpts");
+        const testUsage = this.getTestUsage();
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        const keystring = this.minimizeString(this.state.keyword)
+
+        let msgDiv = $('<div/>', { id: 'hintmsg' })
+        let useDiv = $('<div/>')
+
+        output.empty().append(msgDiv).append(useDiv)
+
+        const minLen = usedOnB ? 3 : 2
+        const maxLen = 4
+
+        if (keystring.length !== 4) {
+            msgDiv.append($('<div/>').text('You need a four letter keyword to look for a hint.'))
+            return
+        }
+
+        let cribKeySets = [[], [], [], [], []]
+        // Figure out the number of anagrams for each of the possible patterns
+        for (let keyLen = minLen; keyLen <= maxLen; keyLen++) {
+            //
+            let keystr = ''
+            for (const keyset of cribHintPositions[keyLen]) {
+                const keychars = ['_', '_', '_', '_'];
+                let keyLetters = ''
+
+                for (const seti of keyset) {
+                    keychars[seti] = keystring[seti];
+                    keyLetters += keystring[seti]
+                }
+
+                keystr = keychars.join('');
+                const anagrams = this.findUniqueAnagrams(keyLetters, 4, 30)
+
+                let extraclass = ''
+                if (anagrams.length > 4) {
+                    extraclass = ' alert'
+                } else if (anagrams.length > 3) {
+                    extraclass = ' warning'
+                }
+
+                let title = anagrams.join('\n')
+                let lentxt = String(anagrams.length)
+                if (anagrams.length >= 30) {
+                    lentxt = '30+'
+                    title += '\n…'
+                }
+                let div = $('<div/>', { class: "kwchoice" });
+
+                keyLetters = this.randomScramble(keyLetters)
+                const useButton = $("<a/>", {
+                    'data-hint': keyLetters,
+                    type: "button",
+                    class: `button rounded hintset abbuttons${extraclass}`,
+                    title: title
+                }).html(`Use ${keyLetters} (${lentxt})`);
+
+                div.append(useButton)
+                useDiv.append(div)
+            }
+        }
+        this.attachHandlers()
+    }
     /**
      * Set a keyword and offset from the recommended set
      * @param elem Keyword button to be used
@@ -2360,12 +2445,33 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.updateOutput()
     }
     /**
+     * Set a keyword and offset from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useHint(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const hint = jqelem.attr('data-hint')
+        this.markUndo(null)
+        this.setHint(hint)
+        $('#suggestHintDLG').foundation('close')
+        this.updateOutput()
+    }
+    /**
     * Start the process to suggest cribs
     */
     public suggestCrib(): void {
         this.loadLanguageDictionary(this.state.curlang).then(() => {
             $('#suggestCribDLG').foundation('open');
             this.genCribSuggestions();
+        })
+    }
+    /**
+    * Start the process to suggest Hints
+    */
+    public suggestHint(): void {
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
+            $('#suggestHintDLG').foundation('open');
+            this.genHintSuggestions();
         })
     }
     /**
@@ -2414,6 +2520,11 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     }
                 }
             });
+        $('#suggesthint')
+            .off('click')
+            .on('click', () => {
+                this.suggestHint()
+            })
         $('#suggestcrib')
             .off('click')
             .on('click', () => {
@@ -2424,10 +2535,20 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             .on('click', () => {
                 this.genCribSuggestions()
             })
+        $('.hintRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genHintSuggestions()
+            })
         $('.cribset')
             .off('click')
             .on('click', (e) => {
                 this.useCrib(e.target)
+            })
+        $('.hintset')
+            .off('click')
+            .on('click', (e) => {
+                this.useHint(e.target)
             })
         $('#hint')
             .off('input')

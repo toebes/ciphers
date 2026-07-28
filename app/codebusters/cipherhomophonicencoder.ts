@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap, repeatToLength, shuffle, StringArrayMap, StringMap } from '../common/ciphercommon';
+import { BoolMap, cloneObject, NumberMap, repeatToLength, shuffle, StringArrayMap, StringMap } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -336,9 +336,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             let keyword = this.minimizeString(this.state.keyword);
             let hint = this.minimizeString(this.state.hint);
             // All of the letters in the hint must be in the keyword
-            if (hint.length > keyword.length || hint.split('').some((c) => keyword.indexOf(c) < 0)) {
-                msg += ` The Hint Text '${this.state.hint}' doesn't appear to be a subset of the Key '${this.state.keyword}'.`;
-            }
+            this.checkHint()
             // For an encode, they need to mention the key
             const key = this.minimizeString(this.state.keyword);
             if (this.state.operation === 'encode') {
@@ -595,6 +593,38 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         this.setKeyword(this.state.keyword);
         this.setHint(this.state.hint);
     }
+    public checkHint(): void {
+        let emsg = ''
+        if (this.state.operation === 'decode') {
+            // Make sure all of the hint characters occur exactly once in the crib
+            const testUsage = this.getTestUsage();
+            const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+            let hintText = this.minimizeString(this.state.hint)
+            let keyText = this.minimizeString(this.state.keyword)
+            const minHint = usedOnB ? 3 : 2
+            if (hintText.length < minHint) {
+                emsg = `There needs to be at least ${minHint} hint characters provided`
+            } else if (hintText.length > keyText.length) {
+                emsg = `The hint text can not be longer than the keyword`
+            } else {
+                // We have enough characters, let's make sure that each of them occur in the keyword
+                let seen: BoolMap = {}
+                for (let c of hintText) {
+                    if (!keyText.includes(c)) {
+                        emsg = `The hint letter ${c} does not exist in the keyword ${keyText}`
+                        break;
+                    }
+                    if (seen[c]) {
+                        emsg = `The hint letter ${c} was used more than once in the hint ${hintText}`
+                        break;
+                    }
+                    seen[c] = true
+                }
+            }
+        }
+        this.setErrorMsg(emsg, 'hint');
+
+    }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
@@ -614,6 +644,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         $('#crib').val(this.state.crib);
         $('#hint').val(this.state.hint);
         super.updateOutput();
+        this.checkHint();
         this.checkDuplicateKeys();
         this.attachHandlers();
     }

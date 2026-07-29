@@ -892,7 +892,7 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
         usedletters: {},
         nonzeros: {}
     }
-    str = str.replace(new RegExp("gives root", "g"), "^");
+    str = str.replace(/gives\s*root/gi, "^");
     // Sometimes they use a different division sign
     str = str.replace(new RegExp("\xf7", "g"), "/"); //÷
     // Apparently there are two forms of dashes...

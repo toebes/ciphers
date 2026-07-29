@@ -1717,7 +1717,9 @@ function buildCryptarithmLatex(s: IState): QuestionData {
     // Determine operation label for the verbatim header
     const upper = problemText.toUpperCase();
     let opLabel = 'Addition';
-    if (upper.includes('∛')) opLabel = 'Cube Root'; //∛
+    // ACA "gives root" syntax has no ∛; cube roots are marked by quote groups of three
+    const radicand = upper.split('GIVESROOT')[0];
+    if (upper.includes('∛') || (upper.includes('GIVESROOT') && /'[A-Z]{3}('|$)/.test(radicand))) opLabel = 'Cube Root'; //∛
     else if (upper.includes('√') || upper.includes('GIVESROOT')) opLabel = 'Square Root'; //√
     else if (upper.includes('/') || upper.includes('\xf7')) opLabel = 'Division'; //÷
     else if (upper.includes('*')) opLabel = 'Multiplication';

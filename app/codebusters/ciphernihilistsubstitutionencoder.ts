@@ -109,6 +109,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: '',
         operation: 'decode',
+        question: '',
         blocksize: 0,
         polybiusKey: '',
         solverKeyLength: 4,
@@ -865,7 +866,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
     public setUIDefaults(): void {
-        this.setQuestionText(this.state.cipherString);
+        this.setCipherString(this.state.cipherString);
+        this.setQuestionText(this.state.question);
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);

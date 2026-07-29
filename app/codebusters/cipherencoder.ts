@@ -1551,7 +1551,7 @@ export class CipherEncoder extends CipherHandler {
                 const foundlimit = Math.round((kwcount / 2) * ((keylen + 1 - lower) / (upper + 1 - lower)))
                 found += this.searchForNonUniqueKeywords(foundlimit - found,
                     (found: number, keyword: string): boolean => {
-                        const useDiv = this.genUseKey(keyword, "kwset warning")
+                        const useDiv = this.genUseKey(keyword, "keyset warning")
                         cells[2].append(useDiv)
                         return true
                     }, allownonunique, keylen, keylen)

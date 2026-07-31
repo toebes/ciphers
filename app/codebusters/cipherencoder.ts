@@ -16,6 +16,8 @@ import { JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTTable } from '../common/jttable';
 import { pushForQuestion } from './cloudtestsync';
+import { QuestionTypes } from './questiontypes';
+import { DatabaseManager, QueryParms } from './databasemanager';
 
 export interface IEncoderState extends IState {
     /** K1/K2/K3/K4 Offset */
@@ -59,6 +61,8 @@ export class CipherEncoder extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Aristocrat';
 
+    public questionChoices = QuestionTypes.QuestionTypesEntries;
+
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.Aristocrat,
@@ -97,6 +101,7 @@ export class CipherEncoder extends CipherHandler {
         this.undocmdButton,
         this.redocmdButton,
         this.questionButton,
+        this.quoteButton,
         this.pointsButton,
         this.guidanceButton,
     ];
@@ -168,6 +173,13 @@ export class CipherEncoder extends CipherHandler {
      */
     public setQuestionText(question: string): void {
         this.state.question = question;
+    }
+    /**
+     * Update the quote string (and validate if necessary)
+     * @param quote New quote text string
+     */
+    public setQuoteText(quote: string): void {
+        this.state.cipherString = quote;
     }
     public setPoints(points: number): boolean {
         let changed = false
@@ -246,6 +258,20 @@ export class CipherEncoder extends CipherHandler {
         }
         this.setRichText('qtext', this.state.question);
         $('#spbonus').prop('checked', this.state.specialbonus);
+    }
+
+    /**
+     * Update the quote fields (points and quote text)
+     */
+    public updateQuoteOutput(): void {
+        if (this.state.points === undefined) {
+            this.state.points = 0;
+        }
+        $('#points').val(this.state.points);
+        if (this.state.cipherString === undefined) {
+            this.state.cipherString = '';
+        }
+        this.setRichText('qtext', this.state.cipherString);
     }
     /**
      * Sets the encoding type for the cipher
@@ -937,8 +963,10 @@ export class CipherEncoder extends CipherHandler {
             )
         );
         result.append(this.createQuestionTextDlg());
+        result.append(this.createQuoteTextDlg());
         result.append(this.createPointsDlg());
     }
+
     public genEncodeField(result: JQuery<HTMLElement>): void {
         result.append(
             JTFLabeledInput(
@@ -1013,6 +1041,32 @@ export class CipherEncoder extends CipherHandler {
                 )
         );
         const questionTextDlg = JTFDialog('SampleQText', 'Sample Question Text', dlgContents);
+        return questionTextDlg;
+    }
+
+    /**
+     * Generates a dialog showing the sample quote text
+     */
+    public createQuoteTextDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        // Add search field
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        xDiv.append(JTFLabeledInput('Search', 'text', 'quotesearch', '', 'auto'))
+        dlgContents.append(xDiv)
+
+        dlgContents.append($('<div/>', { id: 'squotetext', class: '' }));
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'quoteopts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'quotegen button', id: 'quotegenbtn' }).text('Regenerate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const questionTextDlg = JTFDialog('SampleQuoteText', 'Sample Quote Text', dlgContents);
         return questionTextDlg;
     }
     /**
@@ -1172,6 +1226,15 @@ export class CipherEncoder extends CipherHandler {
         this.genQuestionSuggestions();
     }
     /**
+     * Populate the Sample Quote Text Dialog and show it
+     */
+    public showSampleQuoteText(): void {
+        $('#squotetext')
+            .empty()
+        $('#SampleQuoteText').foundation('open');
+        this.genQuoteSuggestions();
+    }
+    /**
      * Populate the Sample Points dialog and show it
      */
     public async showSamplePoints() {
@@ -1206,6 +1269,13 @@ export class CipherEncoder extends CipherHandler {
         $('#SampleQText').foundation('close');
     }
     /**
+     * Copy the sample quote to the clipboard
+     */
+    public copySampleQuoteText(): void {
+        this.copyToClip($('#squotetext').html());
+        $('#SampleQuoteText').foundation('close');
+    }
+    /**
      * Replace the question text with what was suggested
      */
     public replaceQuestionText(): void {
@@ -1214,6 +1284,16 @@ export class CipherEncoder extends CipherHandler {
         this.setQuestionText($('#sqtext').html());
         this.updateQuestionsOutput();
         $('#SampleQText').foundation('close');
+    }
+    /**
+     * Replace the question text with what was suggested
+     */
+    public replaceQuoteText(): void {
+        this.markUndo(null)
+        delete this.state.placeholder
+        this.setQuoteText($('#squotetext').html());
+        this.updateQuoteOutput();
+        $('#SampleQuoteText').foundation('close');
     }
     /**
      * Update the score value with what was suggested in the dialog
@@ -2280,6 +2360,58 @@ export class CipherEncoder extends CipherHandler {
         */
         return false;
     }
+
+    public async searchForQuotes(qcount: number, action: (count: number, quote: string, author: string) => boolean): Promise<number> {
+        let found = 0;
+        let questionType = QuestionTypes.GetQuestionTypeEntry(this.state.cipherType);
+        let lang = "english";
+        if (questionType === undefined) {
+            return found;
+        }
+        if (questionType.lang === "es") {
+            lang = "spanish";
+        }
+        let params: QueryParms = {};
+        if (questionType.chi2 !== undefined) {
+            params.chi2 = questionType.chi2
+        }
+        if (questionType.unique !== undefined) {
+            params.unique = questionType.unique;
+        }
+        if (questionType.len !== undefined) {
+            params.len = questionType.len
+        }
+        if (questionType.homonyms !== undefined) {
+            params.homonyms = questionType.homonyms
+        }
+        if (this.state.keyword !== undefined && this.state.keyword.trim() !== "") {
+            params.keywords = this.state.keyword.toLowerCase().split(/\s+/)
+        }
+        if (this.state.testtype === ITestType.aregional ||
+            this.state.testtype === ITestType.astate) {
+            params.grade = [-Infinity, 5]
+        } else if (this.state.testtype === ITestType.bregional ||
+            this.state.testtype === ITestType.bstate) {
+            params.grade = [-Infinity, 8]
+
+        } else if (this.state.testtype === ITestType.cregional ||
+            this.state.testtype === ITestType.cstate) {
+            params.grade = [-Infinity, 12]
+        }
+        let quotes = await DatabaseManager.getRandomEntriesWithRanges(lang, params, {}, 7)
+        quotes.forEach((quote) => {
+            if (action(found, quote.quote, quote.author)) {
+                found++
+            }
+        })
+
+
+        this.attachHandlers()
+        return found;
+    }
+
+
+
     /**
      * Update the GUI with a list of suggestions for questions
      * @param qcount Number of questions to find
@@ -2455,6 +2587,29 @@ export class CipherEncoder extends CipherHandler {
         }, "")
         this.attachHandlers()
     }
+
+    public genQuoteSuggestions() {
+        let output = $("#quoteopts");
+        const divAll = $("<div/>")
+        output.empty().append(divAll)
+
+        this.searchForQuotes(7, (found: number, quote: string, author: string): boolean => {
+            // let div = $('<div/>');
+            let useButton = $("<button/>", {
+                'data-text': quote,
+                'data-author': author,
+                type: "button",
+                class: `rounded button usequote`,
+            }).html("Use");
+            divAll.append($('<div/>')
+                .append(useButton)
+                .append($('<span/>').html(quote))
+            )
+            // divAll.append(div);
+            return true;
+        })
+        this.attachHandlers()
+    }
     /**
      * Select a generated question recommendation to replace the current question text
      * @param elem Element clicked on with string to use
@@ -2468,6 +2623,27 @@ export class CipherEncoder extends CipherHandler {
         delete this.state.placeholder
         this.setQuestionText(text)
         $('#SampleQText').foundation('close')
+        this.updateOutput()
+    }
+
+    /**
+     * Select a generated quote recommendation to replace the current quote text
+     * @param elem Element clicked on with string to use
+     */
+    public useSQuote(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-text')
+        const author = jqelem.attr('data-author')
+        // Give an undo state s
+        this.markUndo(null)
+        // Mark it so that they know it has been updated.
+        delete this.state.placeholder
+        console.log("Close")
+        this.setQuoteText(text)
+        this.setAuthor(author)
+        this.setQuestionText("")
+
+        $('#SampleQuoteText').foundation('close')
         this.updateOutput()
     }
     /**
@@ -2740,6 +2916,11 @@ export class CipherEncoder extends CipherHandler {
             .on('click', (e) => {
                 this.showSampleQuestionText();
             });
+        $('.sampquote')
+            .off('click')
+            .on('click', (e) => {
+                this.showSampleQuoteText();
+            });
         $('.sampp')
             .off('click')
             .on('click', (e) => {
@@ -2781,6 +2962,11 @@ export class CipherEncoder extends CipherHandler {
             .off('click')
             .on('click', () => {
                 this.genQuestionSuggestions()
+            });
+        $('#quotegenbtn')
+            .off('click')
+            .on('click', () => {
+                this.genQuoteSuggestions()
             });
         $('#questionsearch')
             .off('input')
@@ -2832,6 +3018,11 @@ export class CipherEncoder extends CipherHandler {
             .off('click')
             .on('click', (e) => {
                 this.useQuestion(e.target);
+            })
+        $('.usequote')
+            .off('click')
+            .on('click', (e) => {
+                this.useSQuote(e.target);
             })
         $('.mgen')
             .off('click')

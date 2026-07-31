@@ -177,6 +177,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.undocmdButton,
         this.redocmdButton,
         this.questionButton,
+        this.quoteButton,
         this.pointsButton,
         this.guidanceButton,
     ];

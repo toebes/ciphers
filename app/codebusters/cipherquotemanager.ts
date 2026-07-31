@@ -7,7 +7,8 @@ import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { CipherTest, DBTable, QueryParms } from './ciphertest';
+import { CipherTest } from './ciphertest';
+import { DatabaseManager, DBTable, QueryParms } from './databasemanager';
 import * as XLSX from "xlsx";
 
 export interface ITestState extends IState {
@@ -212,7 +213,7 @@ export class CipherQuoteManager extends CipherTest {
         }
         header.add('Test Usage')
         header.add('Notes')
-        this.getEntriesWithRanges(lang, filter).then((res) => {
+        DatabaseManager.getEntriesWithRanges(lang, filter).then((res) => {
             res.forEach((val) => {
                 let row = table.addBodyRow()
                 let btnGroup = $('<div/>', { class: 'button-group small rounded shrink' })
@@ -299,7 +300,7 @@ export class CipherQuoteManager extends CipherTest {
                     skipped++;
                     processNextRecord()
                 } else {
-                    this.openDatabase(this.getLangString(), "readwrite").then((db) => {
+                    DatabaseManager.openDatabase(this.getLangString(), "readwrite").then((db) => {
                         const newRecord: QuoteRecord = this.generateRecord(quote, ent.author, ent.source, ent.notes, ent.test, ent.translation);
                         const request = db.Table.add(newRecord)
                         request.onsuccess = (event) => {
@@ -428,7 +429,7 @@ export class CipherQuoteManager extends CipherTest {
 
 
     public deleteAllQuotes(): void {
-        this.openDatabase(this.getLangString(), "readwrite").then((db) => {
+        DatabaseManager.openDatabase(this.getLangString(), "readwrite").then((db) => {
             db.Table.clear();
             db.Transaction.oncomplete = () => {
                 this.updateFilters()
@@ -437,7 +438,7 @@ export class CipherQuoteManager extends CipherTest {
     }
     public deleteQuote(qn: number): void {
         // TODO: Ask them if they really want to delete it.
-        this.openDatabase(this.getLangString(), "readwrite").then((db) => {
+        DatabaseManager.openDatabase(this.getLangString(), "readwrite").then((db) => {
             db.Table.delete(qn)
             db.Transaction.oncomplete = () => {
                 this.updateFilters()
@@ -456,7 +457,7 @@ export class CipherQuoteManager extends CipherTest {
      * @param link HTML DOM Element to put link under
      */
     public async exportQuotes(link: JQuery<HTMLElement>): Promise<void> {
-        const result = await this.getEntriesWithRanges(this.getLangString(), {}, 160000)
+        const result = await DatabaseManager.getEntriesWithRanges(this.getLangString(), {}, 160000)
         const blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
         const url = URL.createObjectURL(blob);
 

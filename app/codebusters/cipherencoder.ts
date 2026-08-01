@@ -2385,7 +2385,8 @@ export class CipherEncoder extends CipherHandler {
             params.homonyms = questionType.homonyms
         }
         if (this.state.keyword !== undefined && this.state.keyword.trim() !== "") {
-            params.keywords = this.state.keyword.toLowerCase().split(/\s+/)
+            params.keywords = undefined //Quote search ends up empty for some ciphers if there is a keyword set
+            //params.keywords = this.state.keyword.toLowerCase().split(/\s+/)
         }
         if (this.state.testtype === ITestType.aregional ||
             this.state.testtype === ITestType.astate) {

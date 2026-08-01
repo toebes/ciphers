@@ -1055,7 +1055,6 @@ export class CipherEncoder extends CipherHandler {
         xDiv.append(JTFLabeledInput('Search', 'text', 'quotesearch', '', 'auto'))
         dlgContents.append(xDiv)
 
-        dlgContents.append($('<div/>', { id: 'squotetext', class: '' }));
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'quoteopts' }))
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
@@ -1229,8 +1228,7 @@ export class CipherEncoder extends CipherHandler {
      * Populate the Sample Quote Text Dialog and show it
      */
     public showSampleQuoteText(): void {
-        $('#squotetext')
-            .empty()
+
         $('#SampleQuoteText').foundation('open');
         this.genQuoteSuggestions();
     }
@@ -1268,13 +1266,7 @@ export class CipherEncoder extends CipherHandler {
         this.copyToClip($('#sqtext').html());
         $('#SampleQText').foundation('close');
     }
-    /**
-     * Copy the sample quote to the clipboard
-     */
-    public copySampleQuoteText(): void {
-        this.copyToClip($('#squotetext').html());
-        $('#SampleQuoteText').foundation('close');
-    }
+
     /**
      * Replace the question text with what was suggested
      */
@@ -1285,16 +1277,7 @@ export class CipherEncoder extends CipherHandler {
         this.updateQuestionsOutput();
         $('#SampleQText').foundation('close');
     }
-    /**
-     * Replace the question text with what was suggested
-     */
-    public replaceQuoteText(): void {
-        this.markUndo(null)
-        delete this.state.placeholder
-        this.setQuoteText($('#squotetext').html());
-        this.updateQuoteOutput();
-        $('#SampleQuoteText').foundation('close');
-    }
+
     /**
      * Update the score value with what was suggested in the dialog
      */

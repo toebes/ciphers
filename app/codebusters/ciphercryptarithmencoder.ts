@@ -179,15 +179,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     private searchTimer: NodeJS.Timeout = undefined;
     /** Tracker for the general solution search (backtrack count and solution mapping) */
     private searchTracker: cryptarithmSearchTracker = undefined;
-    public generateButton: JTButtonItem = {
-        title: 'Generate Problems',
-        id: 'generate',
-        color: 'primary',
-    };
     public state: ICryptarithmState = cloneObject(this.defaultstate) as ICryptarithmState;
-    public extraCmdButtons: JTButtonItem[] = [
-        this.generateButton,
-    ];
 
     public searchButton: JTButtonItem = {
         title: 'Search',
@@ -941,8 +933,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         result.append(cipherwork);
         this.genTestUsage(cipherwork);
         this.genQuestionFields(cipherwork);
+        const generateButton = $('<a/>', { type: "button", class: "button primary tight", id: "generate" }).text("Generate Problems")
         cipherwork.append($('<div/>', { class: 'grid-x' })
-            .append(JTFLabeledInput("Problem", "text", "toencode", this.state.cipherString, 'auto'))
+            .append(JTFLabeledInput("Problem", "text", "toencode", this.state.cipherString, 'auto', generateButton))
         )
         result.append($('<div/>', { class: 'callout secondary probwork' })
             .append($('<div/>', { class: 'grid-x grid-margin-x' })

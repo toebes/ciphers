@@ -121,13 +121,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     public maxencodeWidth = 25;
     public maxencodeWidthDivA = 15;
 
-    public randomizeButton: JTButtonItem = {
-        title: 'Randomize',
-        id: 'randomize',
-        color: 'primary',
-    };
-
-
     public defaultstate: IHomophonicState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Homophonic,
@@ -142,15 +135,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         randomSlot: [],
     };
     public state: IHomophonicState = cloneObject(this.defaultstate) as IHomophonicState;
-    public cmdButtons: JTButtonItem[] = [
+    public extraCmdButtons: JTButtonItem[] = [
         this.randomizeButton,
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
     ];
 
     /**

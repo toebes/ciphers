@@ -51,15 +51,7 @@ export class CipherHillEncoder extends CipherEncoder {
         operation: 'encode',
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
+
     public charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public padval = 'Z';
     /**

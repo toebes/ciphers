@@ -805,15 +805,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     };
 
     public state: ICompleteColumnarState = cloneObject(this.defaultstate) as ICompleteColumnarState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
 
     /** Save and Restore are done on the CipherEncoder Class */
 

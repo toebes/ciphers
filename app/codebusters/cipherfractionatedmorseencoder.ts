@@ -7,7 +7,7 @@ import { tomorse, frommorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
 import { JTButtonItem } from "../common/jtbuttongroup";
-import {JTFDialog} from "../common/jtfdialog";
+import { JTFDialog } from "../common/jtfdialog";
 
 interface IFractionatedMorseState extends IEncoderState {
     encoded: string;
@@ -97,15 +97,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     };
     public needsRefresh = false;
     public state: IFractionatedMorseState = cloneObject(this.defaultstate) as IFractionatedMorseState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
+
     public encodecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -3345,7 +3337,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
 
-    private checkCrib(strings :string[][], input :string) :{crib :string; providesCount :number} {
+    private checkCrib(strings: string[][], input: string): { crib: string; providesCount: number } {
         const bobby = this.findCrib(strings, input);
         let hint = '';
         for (const c of bobby) {
@@ -3355,7 +3347,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         const inputCharacters = this.minimizeString(input);
         console.log(`>${input}< gives ${inputCharacters.length} letters and provides hint '${hint} (i.e. ${hint.length} mappings).`);
-        return {crib: input, providesCount: hint.length};
+        return { crib: input, providesCount: hint.length };
     }
 
 
@@ -3407,7 +3399,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             if (cleanCipher[i] === ' ')
                 continue;
             for (let j = minCribLength; j <= maxCribLength; j++) {
-                potentialCribs.push(this.checkCrib(strings, this.letterSubstring(cleanCipher, i, j )));
+                potentialCribs.push(this.checkCrib(strings, this.letterSubstring(cleanCipher, i, j)));
             }
         }
 

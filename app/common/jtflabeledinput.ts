@@ -30,14 +30,20 @@ export function JTFLabeledInput(
             class: 'input-group-field richtext',
             value: value,
         }).appendTo(inputgroup);
+        if (parm1 !== undefined) {
+            inputgroup.append(parm1)
+        }
     } else if (type === 'textarea') {
         $('<textarea/>', {
             id: id,
-            class: 'input-group-field',
+            class: 'input-group-field autogrow',
             rows: 5,
         })
             .text(value)
             .appendTo(inputgroup);
+        if (parm1 !== undefined) {
+            inputgroup.append(parm1)
+        }
     } else if (type === 'checkbox' || type === 'checkboxr') {
         // For a checkbox, the value is a boolean indicated that it should be checked
         let checkclass = ''

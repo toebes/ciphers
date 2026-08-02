@@ -75,15 +75,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         blocksize: 0,
     };
     public state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
     /* We have identified a complete solution */
     public completeSolution = false;
     /**

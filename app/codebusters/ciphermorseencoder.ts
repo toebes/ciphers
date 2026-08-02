@@ -12,15 +12,8 @@ export const ptindex = 2;
 export class CipherMorseEncoder extends CipherEncoder {
     public usesMorseTable = true;
     public cipherName = 'Morse';
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        { title: 'Randomize', color: 'primary', id: 'randomize' },
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
+    public extraCmdButtons: JTButtonItem[] = [
+        this.randomizeButton,
     ];
 
     /**

@@ -158,12 +158,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         digitsCombo: 4,
     };
     public state: IRSAState = cloneObject(this.defaultstate) as IRSAState;
-    public cmdButtons: JTButtonItem[] = [
-        { title: 'Randomize', color: 'primary', id: 'randomize' },
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.guidanceButton,
+    public extraCmdButtons: JTButtonItem[] = [
+        this.randomizeButton
     ];
     /**
      * Apply a range limit to a value, taking into account if they were using

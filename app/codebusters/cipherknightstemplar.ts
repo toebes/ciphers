@@ -25,15 +25,7 @@ export class CipherKnightsTemplarEncoder extends CipherEncoder {
         replacement: {},
     };
     public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
+
     /** Save and Restore are done on the CipherEncoder Class */
 
     /**

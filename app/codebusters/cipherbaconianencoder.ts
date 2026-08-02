@@ -166,20 +166,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
         words: [],
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        {
-            title: 'Suggest AB',
-            color: 'primary',
-            id: 'suggestab',
-            disabled: true,
-        },
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
+
+    public suggestABButton: JTButtonItem = {
+        title: 'Suggest AB',
+        id: 'suggestab',
+        color: 'primary',
+        disabled: true,
+    };
+
+    public extraCmdButtons: JTButtonItem[] = [
+        this.suggestABButton
     ];
     /** Work canvas for generating images */
     private workCanvas: HTMLCanvasElement;

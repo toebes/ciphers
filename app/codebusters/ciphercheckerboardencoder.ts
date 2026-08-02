@@ -107,15 +107,6 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         autoSolverScore: undefined
     };
     public state: ICheckerboardState = cloneObject(this.defaultstate) as ICheckerboardState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
 
     /**
      * Restore the state from either a saved file or a previous undo record

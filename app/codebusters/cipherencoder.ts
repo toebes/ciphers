@@ -10,7 +10,7 @@ import {
     IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTButtonGroup, JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTFDialog } from '../common/jtfdialog';
@@ -96,15 +96,21 @@ export class CipherEncoder extends CipherHandler {
     public stopGenerating = false; //  Flag to stop a long running process
     public searchCount = 0;
 
+    public randomizeButton: JTButtonItem = {
+        title: 'Randomize',
+        id: 'randomize',
+        color: 'primary',
+    };
+
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
+        // Insert any extra buttons that are specific to the cipher type here
         this.guidanceButton,
     ];
+    public extraCmdButtons: JTButtonItem[] = [];
+
 
     // String to hold search text for suggested questions
     private questionSearchText = '';
@@ -114,6 +120,22 @@ export class CipherEncoder extends CipherHandler {
         const result = super.setFileEntry(entry, state);
         pushForQuestion(this, result);
         return result;
+    }
+    /**
+     * Generate the command buttons for the cipher encoder.
+     * This is a combination of the standard buttons
+     * and any extra buttons that are specific to the cipher type
+     * @returns Generate buttons
+     */
+    public genCmdButtons(): JQuery<HTMLElement> {
+        if (this.extraCmdButtons.length === 0) {
+            return JTButtonGroup(this.cmdButtons);
+        }
+
+        const buttons = [...this.cmdButtons];
+        buttons.splice(buttons.length - 1, 0, ...this.extraCmdButtons);
+
+        return JTButtonGroup(buttons);
     }
     /**
      * Make a copy of the current state
@@ -173,13 +195,6 @@ export class CipherEncoder extends CipherHandler {
      */
     public setQuestionText(question: string): void {
         this.state.question = question;
-    }
-    /**
-     * Update the quote string (and validate if necessary)
-     * @param quote New quote text string
-     */
-    public setQuoteText(quote: string): void {
-        this.state.cipherString = quote;
     }
     public setPoints(points: number): boolean {
         let changed = false
@@ -919,13 +934,16 @@ export class CipherEncoder extends CipherHandler {
         result.append(this.createIsModifiedDlg());
 
         const inputbox = $('<div/>', { class: 'grid-x grid-margin-x' });
+        const suggestpButton = $('<a/>', { type: "button", class: "button primary tight sampp", id: "suggestp" }).text("Suggest Points")
+
         inputbox.append(
             JTFLabeledInput(
                 'Points',
                 'number',
                 'points',
                 this.state.points,
-                'small-12 medium-3 large-3'
+                'small-12 medium-4 large-4',
+                suggestpButton
             )
         );
 
@@ -939,18 +957,20 @@ export class CipherEncoder extends CipherHandler {
                     'checkbox',
                     'spbonus',
                     this.state.specialbonus,
-                    'small-12 medium-9 large-9'
+                    'small-12 medium-8 large-8'
                 )
             );
         }
         result.append(inputbox);
+        const suggestqButton = $('<a/>', { type: "button", class: "button primary tight sampq", id: "suggestq" }).text("Suggest Question")
         result.append(
             JTFLabeledInput(
                 'Question Text',
                 'richtext',
                 'qtext',
                 this.state.question,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestqButton
             )
         );
         result.append(
@@ -968,13 +988,16 @@ export class CipherEncoder extends CipherHandler {
     }
 
     public genEncodeField(result: JQuery<HTMLElement>): void {
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight sampquote", id: "suggestquote" }).text("Suggest Quote")
+
         result.append(
             JTFLabeledInput(
                 'Plain Text',
                 'textarea',
                 'toencode',
                 this.state.cipherString,
-                'small-12 medium-12 large-12 encbox'
+                'small-12 medium-12 large-12 encbox',
+                suggestButton
             )
         );
         result.append($('<div/>', { class: 'difficulty' }));
@@ -2623,7 +2646,7 @@ export class CipherEncoder extends CipherHandler {
         // Mark it so that they know it has been updated.
         delete this.state.placeholder
         console.log("Close")
-        this.setQuoteText(text)
+        this.setCipherString(text)
         this.setAuthor(author)
         this.setQuestionText("")
 
@@ -2764,6 +2787,11 @@ export class CipherEncoder extends CipherHandler {
         div.append(key)
         return div
     }
+    public resizeTextarea(textarea: HTMLTextAreaElement): void {
+        textarea.style.height = "0px";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }
+
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -2932,11 +2960,6 @@ export class CipherEncoder extends CipherHandler {
                 this.resetAlphabet();
                 this.updateOutput();
             });
-        $('#genkeyword')
-            .off('click')
-            .on('click', () => {
-                this.suggestKeyword()
-            });
         $('#keygenbtn')
             .off('click')
             .on('click', () => {
@@ -3012,6 +3035,16 @@ export class CipherEncoder extends CipherHandler {
             .off('click')
             .on('click', (e) => {
                 this.showSampleQuestionText();
+            });
+        const self = this;
+
+        $("textarea.autogrow")
+            .off("input.autogrow")
+            .on("input.autogrow", function () {
+                self.resizeTextarea(this as HTMLTextAreaElement);
+            })
+            .each(function () {
+                self.resizeTextarea(this as HTMLTextAreaElement);
             });
     }
 }

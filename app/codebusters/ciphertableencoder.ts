@@ -57,15 +57,7 @@ export class CipherTableEncoder extends CipherEncoder {
         replacement: {},
     };
     public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
+
     public ciphermap: Mapper;
     /** Save and Restore are done on the CipherEncoder Class */
     public save(): IEncoderState {

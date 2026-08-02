@@ -583,6 +583,30 @@ div.input-group-field,
 textarea.input-group-field {
     white-space: normal;
 }
+
+textarea.autogrow {
+    display: block;
+    width: 100%;
+    min-height: 2.4375rem;   /* Foundation input height */
+    margin: 0;
+    padding: 0.5rem;
+    border: 1px solid #cacaca;
+    border-radius: 0;
+    background: #fefefe;
+    box-shadow: inset 0 1px 2px rgba(10,10,10,.1);
+    font: inherit;
+    line-height: 1.5;
+    resize: none;
+    overflow: hidden;
+}
+
+
+.input-group a.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 tbody td,
 tbody th {
     padding: 0.5rem;
@@ -1667,6 +1691,11 @@ button.rounded {
 .button-group .button {
     margin-right: 0.2rem;
 }
+
+#genkeyword {
+    margin-left: 0.2rem;
+}
+    
 .mobile-app-toggle {
     display: -webkit-flex;
     display: -ms-flexbox;

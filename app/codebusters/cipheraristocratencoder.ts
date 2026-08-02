@@ -70,20 +70,16 @@ export class CipherAristocratEncoder extends CipherEncoder {
 
     public cipherName = 'Aristocrat';
 
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        {
-            title: 'Misspell',
-            color: 'primary',
-            id: 'misspell',
-            disabled: true,
-        },
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
+    public misspellButton: JTButtonItem = {
+        title: 'Misspell',
+        id: 'misspell',
+        color: 'primary',
+        disabled: true,
+    };
+
+    public extraCmdButtons: JTButtonItem[] = [
+        this.randomizeButton,
+        this.misspellButton,
     ];
     /**
      * saveInteractive saves the test template html for a question
@@ -963,23 +959,23 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 class: 'cell',
             }).text('Alphabet Type')
         );
-        let kwButton = $('<div/>', { class: 'cell shrink' }).append($("<button/>", {
-            type: "button",
-            id: "genkeyword",
-            class: "rounded button",
-        }).html("Suggest Keyword"));
-        let randButton = $('<div/>', { class: 'cell shrink' }).append($("<button/>", {
-            type: "button",
-            id: "randomize",
-            class: "rounded button",
-        }).html("Randomize"));
+
 
         let knButtons = JTRadioButton(-1, 'enctype', radiobuttons, this.state.encodeType);
         knButtons.addClass("grid-margin-x")
-        knButtons.append(randButton).append(kwButton);
         result.append(knButtons);
+        const span = $('<span/>')
         const validateKW = $('<a/>', { type: "button", class: "button primary tight valky", id: "validatekey" }).text("Validate Keyword")
-        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval', validateKW));
+        const kwButton = $('<a/>', { type: "button", class: "button primary tight", id: "genkeyword" }).text("Suggest Keyword")
+        span.append(validateKW).append(kwButton);
+
+        result.append(
+            JTFLabeledInput('Keyword',
+                'text',
+                'keyword',
+                this.state.keyword,
+                'kval',
+                span));
         result.append(
             JTFIncButton('Offset', 'offset', this.state.offset, 'kval small-12 medium-6 large-6')
         );
@@ -1585,6 +1581,11 @@ export class CipherAristocratEncoder extends CipherEncoder {
                         this.updateOutput();
                     }
                 }
+            });
+        $('#genkeyword')
+            .off('click')
+            .on('click', () => {
+                this.suggestKeyword()
             });
         $('#misspell')
             .off('click')

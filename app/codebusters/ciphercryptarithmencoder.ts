@@ -185,14 +185,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         color: 'primary',
     };
     public state: ICryptarithmState = cloneObject(this.defaultstate) as ICryptarithmState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
+    public extraCmdButtons: JTButtonItem[] = [
         this.generateButton,
-        this.questionButton,
-        this.pointsButton,
-        this.guidanceButton,
     ];
 
     public searchButton: JTButtonItem = {

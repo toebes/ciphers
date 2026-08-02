@@ -109,15 +109,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         blocksize: 0,
     };
     public state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
 
     /**
      * Restore the state from either a saved file or a previous undo record

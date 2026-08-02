@@ -935,24 +935,6 @@ export class CipherHandler {
         id: 'guidance',
         color: 'primary',
     };
-    public questionButton: JTButtonItem = {
-        title: 'Suggest Question',
-        id: 'suggestq',
-        class: 'sampq',
-        color: 'primary',
-    };
-    public quoteButton: JTButtonItem = {
-        title: 'Suggest Quote',
-        id: 'suggestquote',
-        class: 'sampquote',
-        color: 'primary',
-    };
-    public pointsButton: JTButtonItem = {
-        title: 'Suggest Points',
-        id: 'suggestp',
-        class: 'sampp',
-        color: 'primary',
-    };
 
     public cmdButtons: JTButtonItem[] = [
         { title: 'Load', color: 'primary', id: 'load' },

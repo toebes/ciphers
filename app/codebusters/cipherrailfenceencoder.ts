@@ -452,15 +452,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         replacement: {},
     };
     public state: IRailFenceState = cloneObject(this.defaultstate) as IRailFenceState;
-    public cmdButtons: JTButtonItem[] = [
-        this.saveButton,
-        this.undocmdButton,
-        this.redocmdButton,
-        this.questionButton,
-        this.quoteButton,
-        this.pointsButton,
-        this.guidanceButton,
-    ];
+
     /** Save and Restore are done on the CipherEncoder Class */
 
     /**

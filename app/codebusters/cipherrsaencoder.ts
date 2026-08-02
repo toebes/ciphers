@@ -3,6 +3,7 @@ import { IOperationType, IScoreInformation, ITestQuestionFields, ITestType, tool
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { gcd, getRandomIntInclusive, getRandomPrime, modularInverse } from '../common/mathsupport';
@@ -258,6 +259,45 @@ export class CipherRSAEncoder extends CipherEncoder {
         $('#digitsData').val(this.state.digitsCombo);
         super.updateOutput();
     }
+    public genQuestionFields(result: JQuery<HTMLElement>): void {
+        result.append(this.createIsModifiedDlg());
+
+        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x' });
+        const suggestpButton = $('<a/>', { type: "button", class: "button primary tight sampp", id: "suggestp" }).text("Suggest Points")
+
+        inputbox.append(
+            JTFLabeledInput(
+                'Points',
+                'number',
+                'points',
+                this.state.points,
+                'small-12 medium-4 large-4',
+                suggestpButton
+            )
+        );
+
+        inputbox.append(
+            JTFLabeledInput(
+                'Special Bonus',
+                'checkbox',
+                'spbonus',
+                this.state.specialbonus,
+                'small-12 medium-8 large-8'
+            )
+        );
+        result.append(inputbox);
+        result.append(
+            JTFLabeledInput(
+                'Question Text',
+                'richtext',
+                'qtext',
+                this.state.question,
+                'small-12 medium-12 large-12'
+            )
+        );
+        result.append(this.createPointsDlg());
+    }
+
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
@@ -276,7 +316,6 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
 
         this.genQuestionFields(result);
-        this.genEncodeField(result);
 
         result.append(
             JTFIncButton(

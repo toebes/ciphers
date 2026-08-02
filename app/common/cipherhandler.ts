@@ -941,6 +941,12 @@ export class CipherHandler {
         class: 'sampq',
         color: 'primary',
     };
+    public quoteButton: JTButtonItem = {
+        title: 'Suggest Quote',
+        id: 'suggestquote',
+        class: 'sampquote',
+        color: 'primary',
+    };
     public pointsButton: JTButtonItem = {
         title: 'Suggest Points',
         id: 'suggestp',

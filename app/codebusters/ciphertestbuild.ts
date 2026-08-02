@@ -9,8 +9,10 @@ import { JTRow, JTTable } from '../common/jttable';
 import { IAristocratState } from './cipheraristocratencoder';
 import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
-import { CipherTest, ITestState, QueryParms, QuestionType, QuoteUpdates, UsedIdMap } from './ciphertest';
+import { CipherTest, ITestState } from './ciphertest';
 import { pickRandom } from '../common/pickrandom';
+import { QuestionType } from './questiontypes';
+import { DatabaseManager, QueryParms, QuoteUpdates, UsedIdMap } from './databasemanager'
 
 // Configuration for the range of questions on the test that can be Aristocrats
 const aristocratDivBCPCTMin = .35
@@ -26,7 +28,7 @@ export type IOperationBucket =
 
 export type TemplateTestTypes = 'none' | 'cregional' | 'cstate' | 'cnational' | 'cpractice' | 'bregional' | 'bstate' | 'bnational' | 'bpractice' | 'aregional' | 'apractice' | 'singlecipher'
 export type TestDifficultyType = 'easy' | 'standard'
-export type DifficultyType = 'easy' | 'medium' | 'hard'
+
 export interface ITempleteInfo {
     title: string;
     type: ITestType;
@@ -987,7 +989,7 @@ export class CipherTestBuild extends CipherTest {
                 this.state.testtype === ITestType.cstate) {
                 parms.grade = [-Infinity, 12]
             }
-            this.getRandomEntriesWithRanges(lang, parms, usedmap, 3).then((res) => {
+            DatabaseManager.getRandomEntriesWithRanges(lang, parms, usedmap, 3).then((res) => {
                 $("#cm" + idNum).show()
                 if (res.length === 0) {
                     ctcDiv.empty().append($("<b>").text("Unable to find any quotes which meet the criteria"))
@@ -1163,8 +1165,8 @@ export class CipherTestBuild extends CipherTest {
         }
         const test = this.setTestEntry(-1, testEntry);
         // We need to mark them in the database as used.
-        await this.updateDBRecords("english", englishUpdates)
-        await this.updateDBRecords("spanish", spanishUpdates)
+        await DatabaseManager.updateDBRecords("english", englishUpdates)
+        await DatabaseManager.updateDBRecords("spanish", spanishUpdates)
         if (editAfter) {
             this.gotoEditTest(test);
         } else {
@@ -1379,7 +1381,7 @@ export class CipherTestBuild extends CipherTest {
 
         Updates[dataId] = { id: dataId, testUsage: "BANNED" }
         // We need to mark them in the database as banned.
-        await this.updateDBRecords(lang, Updates)
+        await DatabaseManager.updateDBRecords(lang, Updates)
         $(elem).parent().hide()
     }
     /**

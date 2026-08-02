@@ -6,9 +6,10 @@ import { JTTable } from '../common/jttable';
 import * as XLSX from "xlsx";
 import { AnyMap } from './cipherquotemanager';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { CipherTest, QuestionType } from './ciphertest';
+import { CipherTest } from './ciphertest';
 import { htmlToElement } from '../common/htmldom';
 import { CipherPrintFactory } from './cipherfactory';
+import { QuestionType } from './questiontypes';
 
 export interface ITestState extends IState {
     /** A URL to to import test date from on load */

@@ -810,6 +810,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         this.undocmdButton,
         this.redocmdButton,
         this.questionButton,
+        this.quoteButton,
         this.pointsButton,
         this.guidanceButton,
     ];

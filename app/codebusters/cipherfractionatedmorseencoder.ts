@@ -7,6 +7,7 @@ import { tomorse, frommorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
 import { JTButtonItem } from "../common/jtbuttongroup";
+import {JTFDialog} from "../common/jtfdialog";
 
 interface IFractionatedMorseState extends IEncoderState {
     encoded: string;
@@ -528,7 +529,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
-        result.append(this.createKeywordDlg('Suggest Keyword'))
+        result.append(this.createKeywordDlg('Suggest Keyword'));
+        result.append(this.createSuggestCribDlg('Suggest Crib'));
+
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
@@ -549,7 +552,22 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             )
         );
         result.append(inputbox);
-        this.addHintCrib(result);
+
+        const suggestCribButton = $('<a/>', {
+            type: 'button',
+            class: 'button primary tight',
+            id: 'suggestcrib',
+        }).text('Suggest Crib')
+        result.append(
+            JTFLabeledInput(
+                'Crib Text',
+                'text',
+                'crib',
+                this.state.crib,
+                'crib small-12 medium-12 large-12',
+                suggestCribButton
+            )
+        )
 
         return result;
     }
@@ -3244,6 +3262,223 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
     }
 
+
+    /**
+     * Returns a substring based on letter positions only.
+     * Spaces are ignored when counting positions but are preserved
+     * in the returned string.
+     *
+     * @param text   Original string
+     * @param start  Zero-based starting letter index (spaces ignored)
+     * @param length Number of letters to include
+     */
+    public letterSubstring(
+        text: string,
+        start: number,
+        length: number
+    ): string {
+        if (length <= 0) {
+            return "";
+        }
+
+        let letterIndex = 0;
+        let startPos = -1;
+        let endPos = -1;
+        let lettersCopied = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+
+            if (ch !== " ") {
+                if (letterIndex === start && startPos === -1) {
+                    startPos = i;
+                }
+
+                if (startPos !== -1) {
+                    lettersCopied++;
+
+                    if (lettersCopied === length) {
+                        endPos = i;
+                        break;
+                    }
+                }
+                letterIndex++;
+            }
+        }
+        if (startPos === -1) {
+            return "";
+        }
+
+        if (endPos === -1) {
+            endPos = text.length - 1;
+        }
+
+        return text.substring(startPos, endPos + 1);
+    }
+
+    /**
+     * Generate a dialog showing the choices for potential Cribs
+     */
+    public createSuggestCribDlg(title: string): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>')
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv)
+        dlgContents.append(
+            $('<div/>', { class: 'callout primary', id: 'suggestCribOpts' })
+        )
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append(
+                    $('<a/>', { class: 'button cribRegenerate', id: 'genbtn' }).text(
+                        'Regenerate'
+                    )
+                )
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        )
+        return JTFDialog('suggestCribDLG', title, dlgContents)
+    }
+
+
+    private checkCrib(strings :string[][], input :string) :{crib :string; providesCount :number} {
+        const bobby = this.findCrib(strings, input);
+        let hint = '';
+        for (const c of bobby) {
+            if (c != ' ' && hint.indexOf(c) < 0) {
+                hint += c;
+            }
+        }
+        const inputCharacters = this.minimizeString(input);
+        console.log(`>${input}< gives ${inputCharacters.length} letters and provides hint '${hint} (i.e. ${hint.length} mappings).`);
+        return {crib: input, providesCount: hint.length};
+    }
+
+
+    public genCribSuggestions() {
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), 50);
+        let output = $("#suggestCribOpts");
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        //const cellRight = $('<div/>', { class: 'cell auto' })
+        const cellMid = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellMid)//.append(cellRight)
+        output.empty().append(divAll);
+
+        //CRIB GENERATOR SETTINGS
+        let minCribLength = 4;
+        let maxCribLength = 9;
+        // // Target direct and indirect reveal amount
+        // let targetRevealCount = 15;
+        // let minRevealCount = 5;
+        // Number of cribs to add to UI
+        let cribSelectCount = 14;
+        // Generator Randomize Factor 0-1
+        let randomizerWeight = 0.2;
+
+        let spacedcipher = '';
+        const cleanCipher = this.cleanString(this.state.cipherString).toUpperCase();
+        const cipherlen = cleanCipher.length;
+
+        // Make a copy and remove the slash word separator
+        const strings = this.makeReplacement(this.state.cipherString, 1000 /*this.maxEncodeWidth*/);
+        const hintStrings = strings.map(array => array.slice());
+
+        const letters = new Set<string>();
+        const cipherString = hintStrings[0][ctindex];
+        for (const ch of cipherString) {
+            if (ch >= 'A' && ch <= 'Z') {
+                letters.add(ch);
+            }
+        }
+        let uniqueLettersUsedInCiphertext = letters.size;
+
+        let potentialCribs = new Array<{
+            crib: string
+            providesCount: number
+        }>()
+
+        // calls check crib and returns some ideas
+        for (let i = 0; i < cleanCipher.length - maxCribLength; i++) {
+            if (cleanCipher[i] === ' ')
+                continue;
+            for (let j = minCribLength; j <= maxCribLength; j++) {
+                potentialCribs.push(this.checkCrib(strings, this.letterSubstring(cleanCipher, i, j )));
+            }
+        }
+
+        //Add selection amount to the UI
+        for (var selection = 0; selection < potentialCribs.length; selection++) {
+            if (cribSelectCount === 0) {
+                break;
+            }
+            if (Math.random() < randomizerWeight || (potentialCribs.length - selection) <= cribSelectCount) { //Pick crib randomly
+
+                let difficulty = 'Average';
+                const percentGiven = 100.0 * potentialCribs[selection].providesCount / uniqueLettersUsedInCiphertext;
+                if (percentGiven > 50) {
+                    difficulty = 'Easier';
+                } else if (percentGiven < 40) {
+                    difficulty = 'Harder';
+                }
+
+                let div = $('<div/>', { class: "kwchoice" });
+
+                let useButton = $("<a/>", {
+                    'data-crib': potentialCribs[selection].crib,
+                    type: "button",
+                    class: "button rounded cribset abbuttons",
+                }).html(`Use`);
+                div.append(useButton);
+                div.append(`${potentialCribs[selection].crib} <em>[${difficulty}]</em>`)
+                if (cribSelectCount % 2 === 0) {
+                    cellLeft.append(div);
+                } else {
+                    cellMid.append(div);
+                }
+                cribSelectCount--;
+            }
+
+        }
+        this.attachHandlers();
+    }
+
+
+    /**
+     * Start the process to suggest cribs
+     */
+    public suggestCrib(): void {
+        this.loadLanguageDictionary('en').then(() => {
+            $('#suggestCribOpts')
+                .empty()
+                .text('Generating crib suggestions... (this may take a little while)');
+            $('#gencrib').attr('disabled', 'disabled');
+            $('#suggestCribDLG').foundation('open');
+            // Generate the crib suggestions after a brief pause to allow the dialog to open
+            setTimeout(() => {
+                this.genCribSuggestions();
+            }, 1)
+        });
+    }
+
+    /**
+     * Set a keyword and offset from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useCrib(elem: HTMLElement): void {
+        const selectedUseButton = $(elem);
+        const text = selectedUseButton.attr('data-crib');
+        // Give an undo state s
+        this.markUndo(null);
+        this.setCrib(text);
+        $('#suggestCribDLG').foundation('close')
+        this.updateOutput();
+    }
+
+
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -3254,5 +3489,20 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             .on('click', () => {
                 this.suggestKeyword()
             });
+        $('#suggestcrib')
+            .off('click')
+            .on('click', () => {
+                this.suggestCrib()
+            });
+        $('.cribset')
+            .off('click')
+            .on('click', (e) => {
+                this.useCrib(e.target)
+            })
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions()
+            })
     }
 }

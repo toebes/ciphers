@@ -8,6 +8,7 @@ import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTFDialog } from "../common/jtfdialog";
+import { pickRandom } from "../common/pickrandom";
 
 interface IFractionatedMorseState extends IEncoderState {
     encoded: string;
@@ -183,9 +184,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         if (max > min) {
             rangetext = `, from a range of ${min} to ${max}`
         }
-        if (qdata.len < 32) {
-            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 40 characters for a good quote</em></p>`
-        }
+        // RTL Aug.17, 2026  Commenting this out as I think the guidance is bad.  Shorter plain text increases the number of cribs that reveal more letters.
+        // if (qdata.len < 32) {
+        //     scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 40 characters for a good quote</em></p>`
+        // }
         if (qdata.len > 2) {
             scoringText += `<p>There are ${qdata.len} characters in the quote.
                 ${hintCharsRevealedText}${autoSolverLoops}${remainingUnknowns}${pointsForGuessing}
@@ -3269,44 +3271,30 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         text: string,
         start: number,
         length: number
-    ): string {
-        if (length <= 0) {
-            return "";
+    ): string | undefined {
+        if (length <= 0 || start < 0 || start >= text.length) {
+            return undefined;
         }
 
-        let letterIndex = 0;
-        let startPos = -1;
-        let endPos = -1;
-        let lettersCopied = 0;
+        let lettersFound = 0;
+        let result = "";
 
-        for (let i = 0; i < text.length; i++) {
+        for (let i = start; i < text.length; i++) {
             const ch = text[i];
 
-            if (ch !== " ") {
-                if (letterIndex === start && startPos === -1) {
-                    startPos = i;
-                }
+            result += ch;
 
-                if (startPos !== -1) {
-                    lettersCopied++;
+            if (/[A-Za-z]/.test(ch)) {
+                lettersFound++;
 
-                    if (lettersCopied === length) {
-                        endPos = i;
-                        break;
-                    }
+                if (lettersFound === length) {
+                    return result;
                 }
-                letterIndex++;
             }
         }
-        if (startPos === -1) {
-            return "";
-        }
 
-        if (endPos === -1) {
-            endPos = text.length - 1;
-        }
-
-        return text.substring(startPos, endPos + 1);
+        // Not enough letters remained in the string.
+        return undefined;
     }
 
     /**
@@ -3346,7 +3334,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             }
         }
         const inputCharacters = this.minimizeString(input);
-        console.log(`>${input}< gives ${inputCharacters.length} letters and provides hint '${hint} (i.e. ${hint.length} mappings).`);
+        if (inputCharacters.length < 4) {
+            return undefined;
+        }
+        // console.log(`>${input}< gives ${inputCharacters.length} letters and provides hint '${hint} (i.e. ${hint.length} mappings).`);
         return { crib: input, providesCount: hint.length };
     }
 
@@ -3354,12 +3345,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public genCribSuggestions() {
         const encoded = this.chunk(this.cleanString(this.state.cipherString), 50);
         let output = $("#suggestCribOpts");
+        let msgDiv = $('<div/>');
         const divAll = $("<div/>", { class: 'grid-x' })
         const cellLeft = $('<div/>', { class: 'cell auto' })
         //const cellRight = $('<div/>', { class: 'cell auto' })
         const cellMid = $('<div/>', { class: 'cell auto' })
         divAll.append(cellLeft).append(cellMid)//.append(cellRight)
-        output.empty().append(divAll);
+        output.empty().append(msgDiv).append(divAll);
 
         //CRIB GENERATOR SETTINGS
         let minCribLength = 4;
@@ -3395,47 +3387,72 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }>()
 
         // calls check crib and returns some ideas
-        for (let i = 0; i < cleanCipher.length - maxCribLength; i++) {
+        for (let i = 0; i <= cleanCipher.length - minCribLength; i++) {
             if (cleanCipher[i] === ' ')
                 continue;
             for (let j = minCribLength; j <= maxCribLength; j++) {
-                potentialCribs.push(this.checkCrib(strings, this.letterSubstring(cleanCipher, i, j)));
+                let cribChunk = this.letterSubstring(cleanCipher, i, j);
+                if (cribChunk === undefined) {
+                    continue;
+                }
+                let potentialCrib = this.checkCrib(strings, cribChunk);
+                if (potentialCrib != undefined) {
+                    potentialCribs.push(potentialCrib);
+                }
             }
         }
+        let easier = 0;
+        let average = 0;
+        let harder = 0;
+        potentialCribs.forEach((c, i) => {
+            const percentGiven = 100.0 * c.providesCount / uniqueLettersUsedInCiphertext;
+            if (percentGiven > 50) {
+                easier++;
+            } else if (percentGiven < 40) {
+                harder++;
+            } else {
+                average++;
+            }
+        })
 
+        msgDiv.append(
+            $('<div/>').text(
+                `Based on your current plain text, approximately ${((100.0 * easier) / potentialCribs.length).toFixed(
+                    0
+                )}% of the possible cribs will make the problem easier, ${(
+                    (100.0 * harder) /
+                    potentialCribs.length
+                ).toFixed(0)}% will make the problem harder, and ${
+                    (100.0 * average / potentialCribs.length).toFixed(0)
+                }% make it average difficulty.`) //  In general, shorter plain text makes the problem easier because more cribs reveal a higher percentage of mapped letters.
+        )
         //Add selection amount to the UI
-        for (var selection = 0; selection < potentialCribs.length; selection++) {
-            if (cribSelectCount === 0) {
-                break;
-            }
-            if (Math.random() < randomizerWeight || (potentialCribs.length - selection) <= cribSelectCount) { //Pick crib randomly
-
-                let difficulty = 'Average';
-                const percentGiven = 100.0 * potentialCribs[selection].providesCount / uniqueLettersUsedInCiphertext;
-                if (percentGiven > 50) {
-                    difficulty = 'Easier';
-                } else if (percentGiven < 40) {
-                    difficulty = 'Harder';
-                }
-
-                let div = $('<div/>', { class: "kwchoice" });
-
-                let useButton = $("<a/>", {
-                    'data-crib': potentialCribs[selection].crib,
-                    type: "button",
-                    class: "button rounded cribset abbuttons",
-                }).html(`Use`);
-                div.append(useButton);
-                div.append(`${potentialCribs[selection].crib} <em>[${difficulty}]</em>`)
-                if (cribSelectCount % 2 === 0) {
-                    cellLeft.append(div);
-                } else {
-                    cellMid.append(div);
-                }
-                cribSelectCount--;
+        const pickedCribs = pickRandom(potentialCribs, cribSelectCount);
+        pickedCribs.forEach((crib, cribSelectCount) => {
+            let difficulty = 'Average';
+            const percentGiven = 100.0 * crib.providesCount / uniqueLettersUsedInCiphertext;
+            if (percentGiven > 50) {
+                difficulty = 'Easier';
+            } else if (percentGiven < 40) {
+                difficulty = 'Harder';
             }
 
-        }
+            let div = $('<div/>', { class: "kwchoice" });
+
+            let useButton = $("<a/>", {
+                'data-crib': crib.crib,
+                type: "button",
+                class: "button rounded cribset abbuttons",
+            }).html(`Use`);
+            div.append(useButton);
+            div.append(`${crib.crib} <em>[${difficulty}]</em>`)
+            if (cribSelectCount % 2 === 0) {
+                cellLeft.append(div);
+            } else {
+                cellMid.append(div);
+            }
+            cribSelectCount--;
+        });
         this.attachHandlers();
     }
 

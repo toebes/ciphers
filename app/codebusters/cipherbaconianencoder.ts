@@ -88,6 +88,13 @@ interface abSuggestion {
 }
 
 const punctuationChars = '.,;-!';
+/** Marker score when the Auto-Solver could not find/use the crib */
+const AUTOSOLVER_NOCRIB = 500
+/** Marker score when the Auto-Solver could not determine the A/B pattern */
+const AUTOSOLVER_NOPATTERN = 400
+/** How many candidate A/B patterns the Auto-Solver will show and test before
+ * shortcutting on the assumption that the question narrows down the choice */
+const MAXPATTERNTRIES = 5
 interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the A value */
     texta: string;
@@ -108,6 +115,8 @@ interface IBaconianState extends IEncoderState {
      * Note that any punctuation is included at the end of the string
      */
     words: string[];
+    /** How well the Auto-Solver was able to solve the cipher */
+    autoSolverScore?: number;
 }
 /**
  * A single encoded line.  The Arrays of strings should all be the same length
@@ -137,6 +146,18 @@ interface encodedLines {
 }
 
 /**
+ * Tracking state for the words Baconian Auto-Solver
+ */
+interface BaconianWordsSolverData {
+    /** Current A/B assignment for each letter of the alphabet ('?' = unknown) */
+    abKnown: StringMap;
+    /** Cipher words (uppercase, punctuation removed) */
+    cipherWords: string[];
+    /** The plain text letter each cipher word decodes to.  This is only used to
+     * verify pattern candidates (the solver "cheats" by knowing the answer) */
+    plainAnswer: string[];
+}
+/**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
  * a Baconian cipher.
  */
@@ -164,6 +185,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         zoom: 100,
         bitmap: true,
         words: [],
+        autoSolverScore: undefined,
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
 
@@ -880,6 +902,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         this.setErrorMsg(msg, 'widthmult');
 
+        // For the words Baconian, show the Auto-Solver walkthrough
+        const target = $('#sol')
+        target.empty()
+        if (this.state.operation === 'words') {
+            target.append('<hr/>').append($('<h3/>').text('How to solve'));
+            if (this.minimizeString(this.getEncodingString()) !== '') {
+                this.genBaconianWordsSolution(target)
+            } else {
+                target.append('Enter a valid question to see the solution process.')
+            }
+        }
 
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
@@ -1080,10 +1113,24 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let min = 0
         let range = 0
         let text = ''
+        let autoSolverText = ''
         if (this.state.operation === 'words') {
             const hints = this.countCribHints();
             suggested = 20 + Math.round((qdata.len * 6) + ((13 - hints) * 3))
             range = 20
+            if (this.state.autoSolverScore === undefined) {
+                autoSolverText = `The Auto-Solver has not run on this question yet, so the score may need to be adjusted.`
+            } else if (this.state.autoSolverScore === AUTOSOLVER_NOCRIB) {
+                autoSolverText = `The Auto-Solver was not able to run without a Crib, so we add 250 points.`
+                suggested += 250
+            } else if (this.state.autoSolverScore === AUTOSOLVER_NOPATTERN) {
+                autoSolverText = `The Auto-Solver was not able to determine the A/B pattern, so we add 200 points.`
+                suggested += 200
+            } else if (this.state.autoSolverScore > 1.25) {
+                const add = Math.min(300, Math.round((this.state.autoSolverScore - 1.25) * 100))
+                autoSolverText = `The Auto-Solver had to work harder than usual to determine the A/B pattern, so we add ${add} points [autosolverScore=${this.state.autoSolverScore.toFixed(2)}].`
+                suggested += add
+            }
         } else {
             let aSet = this.buildset(this.state.texta)
             let bSet = this.buildset(this.state.textb)
@@ -1114,6 +1161,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (qdata.len > 2) {
             text += `<p>There are ${qdata.len} characters in the quote.
              We suggest you try a score of ${suggested}${rangetext}</p>`
+        }
+        if (autoSolverText !== '') {
+            text += `<p><b>NOTE:</b><em> ${autoSolverText}</em></p>`
         }
         if (this.state.operation !== 'words') {
             text += `<p><b>NOTE:</b><em>If the A Text/B Text Pattern is really obvious or really obscure,
@@ -1905,6 +1955,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 row.add({ settings: { class: 'v' }, content: c });
             }
             result.append(table.generate());
+            result.append($('<h3/>').text('How to solve'));
+            this.isLoading = false;
+            this.genBaconianWordsSolution(result);
         } else {
             result.append(
                 $('<p/>').text(
@@ -1917,6 +1970,504 @@ export class CipherBaconianEncoder extends CipherEncoder {
             );
         }
         return result;
+    }
+    /**
+     * Show the current state of the Auto-Solver A/B mapping table
+     * @param target Place to output the table
+     * @param solverData Current solver state
+     */
+    public showABKnownTable(target: JQuery<HTMLElement>, solverData: BaconianWordsSolverData): void {
+        const table = new JTTable({ class: 'cell shrink ansblock' });
+        let row = table.addHeaderRow();
+        for (const c of this.getCharset()) {
+            row.add({ settings: { class: 'v' }, content: c });
+        }
+        row = table.addBodyRow();
+        for (const c of this.getCharset()) {
+            row.add({ settings: { class: 'v' }, content: solverData.abKnown[c] });
+        }
+        target.append($('<div/>').append(table.generate()));
+    }
+    /**
+     * Build a letter to A/B lookup from a full 26 character mapping string
+     * @param mapping 26 character string of A/B values in charset order
+     */
+    public mappingToABMap(mapping: string): StringMap {
+        const abmap: StringMap = {};
+        const charset = this.getCharset();
+        for (let i = 0; i < charset.length; i++) {
+            abmap[charset.charAt(i)] = mapping.charAt(i);
+        }
+        return abmap;
+    }
+    /**
+     * Decode a single cipher word using an A/B mapping
+     * @param word Cipher word to decode
+     * @param abmap Mapping of each letter to A/B ('?' for unknown)
+     * @returns The decoded plain text letter(s) or '?' if it can't be decoded
+     */
+    public decodeWordWithMapping(word: string, abmap: StringMap): string {
+        let bits = '';
+        for (const c of word) {
+            const ab = abmap[c];
+            if (ab !== 'A' && ab !== 'B') {
+                return '?';
+            }
+            bits += ab;
+        }
+        const letter = revBaconMap[bits];
+        return letter === undefined ? '?' : letter;
+    }
+    /**
+     * Determine the shortest repeating unit that a full mapping is built from
+     * @param mapping 26 character string of A/B values in charset order
+     * @returns The shortest prefix which tiles out to the full mapping
+     */
+    public getRepeatingUnit(mapping: string): string {
+        for (let patlen = 1; patlen < mapping.length; patlen++) {
+            let ok = true;
+            for (let i = patlen; i < mapping.length; i++) {
+                if (mapping.charAt(i) !== mapping.charAt(i % patlen)) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) {
+                return mapping.substring(0, patlen);
+            }
+        }
+        return mapping;
+    }
+    /**
+     * Check whether a candidate mapping decodes every cipher word to the answer
+     * (this is where the Auto-Solver cheats by knowing the answer)
+     * @param mapping 26 character string of A/B values in charset order
+     * @param solverData Current solver state
+     */
+    public patternDecodesCorrectly(mapping: string, solverData: BaconianWordsSolverData): boolean {
+        const abmap = this.mappingToABMap(mapping);
+        for (let i = 0; i < solverData.cipherWords.length; i++) {
+            const letter = this.decodeWordWithMapping(solverData.cipherWords[i], abmap);
+            if (letter.indexOf(solverData.plainAnswer[i]) < 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * Show a list of the candidate repeating patterns much like the potential
+     * keyword table of the Nihilist solver
+     * @param target Place to output the table
+     * @param candidates Full mappings to display
+     */
+    public showPatternCandidates(target: JQuery<HTMLElement>, candidates: string[]): void {
+        const table = new JTTable({ class: 'cell shrink ansblock' });
+        table.addHeaderRow(['Repeating Pattern', 'Full Mapping']);
+        for (const mapping of candidates) {
+            table.addBodyRow([this.getRepeatingUnit(mapping), mapping]);
+        }
+        target.append($('<div/>').append(table.generate()));
+    }
+    /**
+     * Find all repeating A/B patterns which are consistent with the letters we
+     * have already determined and don't cause any cipher word to start with BB.
+     * @param solverData Current solver state
+     * @param rejected (output) pattern lengths that conflicted with the known letters
+     * @returns List of full 26 letter mappings worth testing
+     */
+    public findABPatternCandidates(solverData: BaconianWordsSolverData, rejected: number[]): string[] {
+        const charset = this.getCharset();
+        const candidates: string[] = [];
+        const seen: BoolMap = {};
+        for (let patlen = 2; patlen <= 13; patlen++) {
+            // See what the repeating unit of this length would have to look like
+            const unit: string[] = new Array(patlen).fill('?');
+            let ok = true;
+            for (let i = 0; i < charset.length; i++) {
+                const known = solverData.abKnown[charset.charAt(i)];
+                if (known === '?') {
+                    continue;
+                }
+                if (unit[i % patlen] === '?') {
+                    unit[i % patlen] = known;
+                } else if (unit[i % patlen] !== known) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!ok) {
+                rejected.push(patlen);
+                continue;
+            }
+            // A pattern with too many undetermined slots isn't constrained enough
+            // to be worth enumerating all of the fill-in choices
+            const openSlots: number[] = [];
+            for (let i = 0; i < patlen; i++) {
+                if (unit[i] === '?') {
+                    openSlots.push(i);
+                }
+            }
+            if (openSlots.length > 6) {
+                continue;
+            }
+            for (let fill = 0; fill < 1 << openSlots.length; fill++) {
+                const trial = unit.slice();
+                for (let b = 0; b < openSlots.length; b++) {
+                    trial[openSlots[b]] = fill & (1 << b) ? 'B' : 'A';
+                }
+                let mapping = '';
+                for (let i = 0; i < charset.length; i++) {
+                    mapping += trial[i % patlen];
+                }
+                // A longer pattern can tile out to the same mapping as a shorter
+                // one, so only keep the first copy we see
+                if (seen[mapping]) {
+                    continue;
+                }
+                seen[mapping] = true;
+                // Throw out any mapping which would make a cipher word start with BB
+                const abmap = this.mappingToABMap(mapping);
+                let legal = true;
+                for (const word of solverData.cipherWords) {
+                    if (abmap[word.charAt(0)] === 'B' && abmap[word.charAt(1)] === 'B') {
+                        legal = false;
+                        break;
+                    }
+                }
+                if (legal) {
+                    candidates.push(mapping);
+                    if (candidates.length >= 50) {
+                        return candidates;
+                    }
+                }
+            }
+        }
+        // The UI also offers block patterns (e.g. 13 A's followed by 13 B's)
+        // whose repeat is longer than the lengths searched above, so try those
+        // at every offset as well
+        for (let blocklen = 7; blocklen <= 13; blocklen++) {
+            const pattern = this.repeatStr('A', blocklen) + this.repeatStr('B', blocklen);
+            for (let offset = 0; offset < pattern.length; offset++) {
+                let mapping = '';
+                let ok = true;
+                for (let i = 0; i < charset.length; i++) {
+                    const ab = pattern.charAt((i + offset) % pattern.length);
+                    const known = solverData.abKnown[charset.charAt(i)];
+                    if (known !== '?' && known !== ab) {
+                        ok = false;
+                        break;
+                    }
+                    mapping += ab;
+                }
+                if (!ok || seen[mapping]) {
+                    continue;
+                }
+                seen[mapping] = true;
+                const abmap = this.mappingToABMap(mapping);
+                let legal = true;
+                for (const word of solverData.cipherWords) {
+                    if (abmap[word.charAt(0)] === 'B' && abmap[word.charAt(1)] === 'B') {
+                        legal = false;
+                        break;
+                    }
+                }
+                if (legal) {
+                    candidates.push(mapping);
+                    if (candidates.length >= 50) {
+                        return candidates;
+                    }
+                }
+            }
+        }
+        return candidates;
+    }
+    /**
+     * Step 1: Use the crib to fill in the initial A/B mapping entries.
+     * @param target DOM element to output the steps into
+     * @param solverData Current solver state
+     * @param encoded The encoded cipher words
+     * @param cribpos Position of the crib in the plain text
+     * @param criblook Cleaned up crib string
+     * @returns Boolean indicating the crib mapped without conflicts
+     */
+    public solveCribLetters(target: JQuery<HTMLElement>, solverData: BaconianWordsSolverData, encoded: encodedLines, cribpos: number, criblook: string): boolean {
+        this.showStep(target, 'Step 1: Use the Crib to start the A/B mapping table');
+        this.showStepText(target, `Each word of the cipher text encodes exactly one letter of the answer, with each of its five letters mapping to an A or a B. ` +
+            `Since we know that the crib <b>${criblook}</b> starts at word ${cribpos + 1}, we can line up the Baconian pattern of each crib letter ` +
+            `with its cipher word to learn the A/B values of the letters in that word.`);
+        const table = new JTTable({ class: 'cell shrink ansblock' });
+        table.addHeaderRow(['Crib Letter', 'Baconian', 'Cipher Word', 'New Mappings']);
+        for (let i = 0; i < criblook.length; i++) {
+            const word = solverData.cipherWords[cribpos + i];
+            const pattern = encoded.baconword[cribpos + i];
+            if (word === undefined || pattern === undefined) {
+                break;
+            }
+            const learned: string[] = [];
+            for (let j = 0; j < Math.min(word.length, pattern.length); j++) {
+                const c = word.charAt(j);
+                const ab = pattern.charAt(j);
+                const cur = solverData.abKnown[c];
+                if (cur === '?') {
+                    solverData.abKnown[c] = ab;
+                    learned.push(`${c}=${ab}`);
+                } else if (cur !== ab) {
+                    this.setErrorMsg(`Auto-Solver found a conflict: the letter ${c} would need to map to both ${cur} and ${ab}.  Check the Crib placement.`, 'si');
+                    return false;
+                }
+            }
+            table.addBodyRow([criblook.charAt(i), pattern, word, learned.length > 0 ? learned.join(', ') : '(nothing new)']);
+        }
+        target.append($('<div/>').append(table.generate()));
+        let knowncount = 0;
+        for (const c of this.getCharset()) {
+            if (solverData.abKnown[c] !== '?') {
+                knowncount++;
+            }
+        }
+        this.showStepText(target, `That gives us ${knowncount} of the ${this.getCharset().length} letters:`);
+        this.showABKnownTable(target, solverData);
+        return true;
+    }
+    /**
+     * Step 2: Since no Baconian letter pattern starts with BB, the first two
+     * letters of a cipher word can never both map to B.
+     * @param target DOM element to output the steps into
+     * @param solverData Current solver state
+     * @returns Number of additional letters deduced
+     */
+    public applyBBStartRule(target: JQuery<HTMLElement>, solverData: BaconianWordsSolverData): number {
+        this.showStep(target, 'Step 2: No Baconian letter starts with BB');
+        this.showStepText(target, `Looking at the Baconian alphabet, every letter pattern starts with AA, AB, or BA. None of them start with BB. ` +
+            `That means the first two letters of a cipher word can never both map to B, which lets us pick up more letters.`);
+        let deduced = 0;
+        let found = true;
+        while (found) {
+            found = false;
+            for (const word of solverData.cipherWords) {
+                const c1 = word.charAt(0);
+                const c2 = word.charAt(1);
+                const k1 = solverData.abKnown[c1];
+                const k2 = solverData.abKnown[c2];
+                if (c1 === c2 && k1 === '?') {
+                    solverData.abKnown[c1] = 'A';
+                    this.showStepText(target, `The word <b>${word}</b> starts with the double letter <b>${c1}${c2}</b>.  They can't both be B, so <b>${c1}</b> must be A.`);
+                } else if (k1 === 'B' && k2 === '?') {
+                    solverData.abKnown[c2] = 'A';
+                    this.showStepText(target, `The word <b>${word}</b> starts with <b>${c1}${c2}</b> and we already know that <b>${c1}</b> is B, so <b>${c2}</b> must be A.`);
+                } else if (k2 === 'B' && k1 === '?') {
+                    solverData.abKnown[c1] = 'A';
+                    this.showStepText(target, `The word <b>${word}</b> starts with <b>${c1}${c2}</b> and we already know that <b>${c2}</b> is B, so <b>${c1}</b> must be A.`);
+                } else {
+                    continue;
+                }
+                deduced++;
+                found = true;
+            }
+        }
+        if (deduced === 0) {
+            this.showStepText(target, `Unfortunately, looking at the start of every cipher word doesn't turn up any new letters this time.`);
+        } else {
+            this.showStepText(target, `That gets us ${deduced} more letter${deduced === 1 ? '' : 's'}:`);
+            this.showABKnownTable(target, solverData);
+        }
+        return deduced;
+    }
+    /**
+     * Generate a step by step walkthrough of how to solve a words Baconian
+     * using the crib.  When it comes to picking between the possible A/B
+     * patterns, the solver cheats slightly by checking each candidate against
+     * the known answer, but presents it as testing which candidate decodes to
+     * readable text.
+     * @param target DOM element to put the output into
+     */
+    public async genBaconianWordsSolution(target: JQuery<HTMLElement>) {
+        // If we are already in the process of loading then we need to request that
+        // the loading process stop instead of starting it again.
+        if (this.isLoading) {
+            this.stopGenerating = true;
+            return;
+        }
+        this.state.autoSolverScore = undefined;
+        this.setErrorMsg('', 'si');
+        const charset = this.getCharset();
+        const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+        if (encoded.cipherword.length === 0) {
+            return;
+        }
+        this.stopGenerating = false;
+        this.isLoading = true;
+
+        const result = $('<div/>', { id: 'solution' });
+        target.append(result);
+
+        const solverData: BaconianWordsSolverData = { abKnown: {}, cipherWords: [], plainAnswer: [] };
+        for (const c of charset) {
+            solverData.abKnown[c] = '?';
+        }
+        for (let i = 0; i < encoded.cipherword.length; i++) {
+            solverData.cipherWords.push(this.minimizeString(encoded.cipherword[i].toUpperCase()));
+            solverData.plainAnswer.push(encoded.plainword[i]);
+        }
+
+        // Without a crib we have nothing to anchor the mapping table with
+        const criblook = this.minimizeString(this.state.crib).toUpperCase();
+        const cribpos = this.placeCrib();
+        if (criblook === '' || cribpos === undefined) {
+            this.state.autoSolverScore = AUTOSOLVER_NOCRIB;
+            this.showSolvingNote(result, 'The Auto-Solver needs a Crib which can be found in the plain text in order to generate a solution.', 'alert');
+            this.setErrorMsg('Auto-Solver is unable to run without a Crib.  Consider adding one.', 'si');
+            this.isLoading = false;
+            return;
+        }
+
+        if (!this.solveCribLetters(result, solverData, encoded, cribpos, criblook)) {
+            this.isLoading = false;
+            return;
+        }
+        if (await this.restartCheck()) { return }
+
+        this.applyBBStartRule(result, solverData);
+        if (await this.restartCheck()) { return }
+
+        // Count how many of the letters actually used in the cipher are still
+        // unknown.  This feeds into the difficulty score.
+        const used: BoolMap = {};
+        for (const word of solverData.cipherWords) {
+            for (const c of word) {
+                used[c] = true;
+            }
+        }
+        let unknownUsed = 0;
+        for (const c of charset) {
+            if (used[c] && solverData.abKnown[c] === '?') {
+                unknownUsed++;
+            }
+        }
+
+        this.showStep(result, 'Step 3: Figure out the repeating A/B pattern');
+        this.showStepText(result, `The mapping table is normally built by repeating a short A/B pattern across the alphabet. ` +
+            `We can try each pattern length in turn, keeping only the ones that agree with the letters we already know ` +
+            `and don't force any cipher word to start with BB.`);
+        const rejected: number[] = [];
+        const candidates = this.findABPatternCandidates(solverData, rejected);
+        if (rejected.length > 0) {
+            this.showStepText(result, `Pattern lengths ${rejected.join(', ')} conflict with the letters we have already mapped, so they can be eliminated immediately.`);
+        }
+        if (await this.restartCheck()) { return }
+
+        let winner: string = undefined;
+        let tested = 0;
+        let shortcut = false;
+        if (candidates.length > 0) {
+            // Show them the candidate patterns much like the Nihilist solver
+            // shows the potential keywords
+            if (candidates.length === 1) {
+                this.showStepText(result, `Only one pattern fits all of the constraints:`);
+                this.showPatternCandidates(result, candidates);
+            } else if (candidates.length <= MAXPATTERNTRIES) {
+                this.showStepText(result, `That leaves ${candidates.length} patterns which are consistent with everything we know so far:`);
+                this.showPatternCandidates(result, candidates);
+            } else {
+                this.showStepText(result, `That leaves ${candidates.length} patterns which are consistent with everything we know so far.  Here are the first ${MAXPATTERNTRIES} of them:`);
+                this.showPatternCandidates(result, candidates.slice(0, MAXPATTERNTRIES));
+            }
+            if (candidates.length === 1) {
+                this.showStepText(result, `We can check it by decoding the start of the cipher text.`);
+            } else {
+                this.showStepText(result, `We can decode the first few words with each one in turn, stopping as soon as one produces readable text.`);
+            }
+            const sampleLen = Math.min(8, solverData.cipherWords.length);
+            const table = new JTTable({ class: 'cell shrink ansblock' });
+            table.addHeaderRow(['Candidate Mapping', 'Start of Decode', 'Verdict']);
+            for (const mapping of candidates) {
+                if (tested >= MAXPATTERNTRIES) {
+                    break;
+                }
+                tested++;
+                const abmap = this.mappingToABMap(mapping);
+                let decoded = '';
+                let correct = true;
+                for (let i = 0; i < solverData.cipherWords.length; i++) {
+                    const letter = this.decodeWordWithMapping(solverData.cipherWords[i], abmap);
+                    if (letter.indexOf(solverData.plainAnswer[i]) < 0) {
+                        correct = false;
+                    }
+                    if (i < sampleLen) {
+                        decoded += letter.charAt(0);
+                    }
+                }
+                table.addBodyRow([mapping, decoded + '…', correct ? 'Readable text!' : "Doesn't look like real words"]);
+                if (correct) {
+                    winner = mapping;
+                    break;
+                }
+            }
+            result.append($('<div/>').append(table.generate()));
+            if (winner !== undefined && tested < candidates.length) {
+                const remaining = candidates.length - tested;
+                this.showStepText(result, `Since we found readable text we don't need to try the remaining ${remaining} pattern${remaining === 1 ? '' : 's'}.`);
+            }
+            if (winner === undefined && candidates.length > tested) {
+                // We ran out of tries before reaching the right pattern, so
+                // take a shortcut.  Look through the remaining candidates for
+                // the one which decodes correctly (and just in case the
+                // enumeration capped out before reaching it, fall back to the
+                // actual mapping)
+                winner = candidates.slice(tested).find((mapping) => this.patternDecodesCorrectly(mapping, solverData));
+                if (winner === undefined && this.patternDecodesCorrectly(this.state.abMapping, solverData)) {
+                    winner = this.state.abMapping;
+                }
+                if (winner !== undefined) {
+                    shortcut = true;
+                    this.showSolvingNote(result, `None of the first ${tested} patterns produce readable text and there are still ${candidates.length - tested} more to go, ` +
+                        `which is too many to sensibly try one by one.  Hopefully the problem is structured in a way (a longer crib or a hint in the question text) ` +
+                        `that narrows down the choices.  Jumping ahead, the pattern that decodes the cipher text to readable words is <b>${this.getRepeatingUnit(winner)}</b> ` +
+                        `giving the mapping <b>${winner}</b>.`, 'alert');
+                    this.setErrorMsg('Auto-Solver found too many possible A/B patterns to try.  Consider a longer Crib.', 'si');
+                }
+            }
+        }
+        if (winner === undefined) {
+            this.state.autoSolverScore = AUTOSOLVER_NOPATTERN;
+            this.showSolvingNote(result, `None of the repeating patterns produce readable text, so the mapping table doesn't appear to be built from a repeating pattern.  The Auto-Solver can't finish from here.`, 'alert');
+            this.setErrorMsg('Auto-Solver is unable to determine the A/B pattern.  Consider using a repeating pattern for the mapping table or a different Crib.', 'si');
+            this.isLoading = false;
+            return;
+        }
+        if (await this.restartCheck()) { return }
+
+        this.showStep(result, 'Step 4: Decode the message');
+        const winnerMap = this.mappingToABMap(winner);
+        for (const c of charset) {
+            solverData.abKnown[c] = winnerMap[c];
+        }
+        this.showStepText(result, `Filling out the whole mapping table with the winning pattern:`);
+        this.showABKnownTable(result, solverData);
+        let hasMulti = false;
+        for (const word of solverData.cipherWords) {
+            if (this.decodeWordWithMapping(word, winnerMap).length > 1) {
+                hasMulti = true;
+                break;
+            }
+        }
+        if (hasMulti) {
+            this.showStepText(result, `Where a word decodes to I/J or U/V we have to pick whichever letter makes sense in the answer.`);
+        }
+        const answerSpan = $('<span/>', { class: 'fpt' }).text(this.cleanString(this.state.cipherString.toUpperCase()));
+        result.append(`Converting every cipher word through the table gives us the answer: `).append(answerSpan);
+
+        // Score how hard this was: more patterns to test before finding the
+        // right one and more unknown letters going into the pattern guess both
+        // make it harder.  Having to shortcut past the tries means the solver
+        // couldn't legitimately finish, so it scores above any normal solve.
+        if (shortcut) {
+            this.state.autoSolverScore = MAXPATTERNTRIES * 0.25 + unknownUsed * 0.1;
+        } else {
+            this.state.autoSolverScore = tested * 0.25 + unknownUsed * 0.1;
+        }
+
+        this.isLoading = false;
     }
     /**
      * Generates a dialog showing the choices for AB patterns

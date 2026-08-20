@@ -467,6 +467,20 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
     }
     /**
+     * Show the length of the plain text along with an assessment of whether
+     * it is in the recommended range for a Baconian cipher
+     */
+    public showLengthStatistics(): void {
+        const len = this.minimizeString(this.state.cipherString).length;
+        let statusText = `Plain text length=${len}`;
+        if (len < 27) {
+            statusText += ' [Short]';
+        } else if (len > 45) {
+            statusText += ' [Long]';
+        }
+        $('#statistics').text(statusText);
+    }
+    /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */

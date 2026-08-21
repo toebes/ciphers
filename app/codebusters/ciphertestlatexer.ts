@@ -31,6 +31,18 @@ interface QuestionData {
 
 // ─── Utility helpers ─────────────────────────────────────────────────────────
 
+// Accented characters (Xenocrypt plaintext) rendered as LaTeX accent commands so
+// they survive regardless of the input encoding of the pasted .tex file.
+const LATEX_ACCENTS: Record<string, string> = {
+    'á': "\\'{a}", 'é': "\\'{e}", 'í': "\\'{\\i}", 'ó': "\\'{o}", 'ú': "\\'{u}",
+    'Á': "\\'{A}", 'É': "\\'{E}", 'Í': "\\'{I}", 'Ó': "\\'{O}", 'Ú': "\\'{U}",
+    'à': '\\`{a}', 'è': '\\`{e}', 'ì': '\\`{\\i}', 'ò': '\\`{o}', 'ù': '\\`{u}',
+    'ä': '\\"{a}', 'ë': '\\"{e}', 'ï': '\\"{\\i}', 'ö': '\\"{o}', 'ü': '\\"{u}',
+    'Ä': '\\"{A}', 'Ë': '\\"{E}', 'Ï': '\\"{I}', 'Ö': '\\"{O}', 'Ü': '\\"{U}',
+    'ñ': '\\~{n}', 'Ñ': '\\~{N}', 'ç': '\\c{c}', 'Ç': '\\c{C}',
+    '¿': '\\textquestiondown{}', '¡': '\\textexclamdown{}',
+};
+
 function latexEscape(s: string): string {
     return String(s ?? '')
         .replace(/\\/g, '\\textbackslash{}')
@@ -42,7 +54,14 @@ function latexEscape(s: string): string {
         .replace(/_/g, '\\_')
         .replace(/\{/g, '\\{')
         .replace(/\}/g, '\\}')
-        .replace(/~/g, '\\textasciitilde{}');
+        .replace(/~/g, '\\textasciitilde{}')
+        .replace(/[áéíóúÁÉÍÓÚàèìòùäëïöüÄËÏÖÜñÑçÇ¿¡]/g, (c) => LATEX_ACCENTS[c] ?? c);
+}
+
+/** Answer-key text: the plaintext exactly as entered (punctuation and sentence
+ *  case intact), with whitespace collapsed to single spaces. */
+function keyAnswerText(pt: string): string {
+    return pt.replace(/\s+/g, ' ').trim();
 }
 
 function ordinal(n: number): string {
@@ -1036,7 +1055,7 @@ function buildAristocratLatex(s: IState): QuestionData {
 
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: extract,
         keyword: extract ? keyword : null,
         isBonus: bonus,
@@ -1060,7 +1079,7 @@ function buildAtbashLatex(s: IState): QuestionData {
         `\n \\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1085,7 +1104,7 @@ function buildCaesarLatex(s: IState): QuestionData {
         `\n\\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1137,7 +1156,7 @@ function buildBaconianLatex(s: IState): QuestionData {
             `\n\n \\Large{\n\\begin{verbatim}\n${wordsText}\n\n\\end{verbatim}}\n${BACON_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
         return {
             latex,
-            answer: ptClean,
+            answer: keyAnswerText(pt),
             answerBold: false,
             keyword: null,
             isBonus: bonus,
@@ -1154,7 +1173,7 @@ function buildBaconianLatex(s: IState): QuestionData {
         `\n\n \\Large{\n\\begin{verbatim}\n${PLACEHOLDER}\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: ptClean,
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1202,7 +1221,7 @@ function buildHillLatex(s: IState): QuestionData {
         `${matrix}\n\n \\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1253,7 +1272,7 @@ function buildNihilistLatex(s: IState): QuestionData {
         q + `\n\n \\Large{\n\\begin{verbatim}\n${y}\n\n\\end{verbatim}}\n${NIH_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1302,7 +1321,7 @@ function buildPortaLatex(s: IState): QuestionData {
     const latex = q + `\n\n\\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1352,7 +1371,7 @@ function buildAffineLatex(s: IState): QuestionData {
     const latex = q + `\n\n\\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: ptClean,
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1401,7 +1420,7 @@ function buildFracMorseLatex(s: IState): QuestionData {
         q + `\n\n \\Large{\n\\begin{verbatim}\n${display}\n\n\\end{verbatim}}\n${FRAC_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1453,7 +1472,7 @@ function buildCheckerboardLatex(s: IState): QuestionData {
         q + `\n\n \\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n${CB_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: ptClean,
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1511,7 +1530,7 @@ function buildHomophonicLatex(s: IState): QuestionData {
         q + `\n\n \\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}}\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: ptClean,
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1541,7 +1560,7 @@ function buildColumnarLatex(s: IState): QuestionData {
     const latex = q + `\n\n \\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
-        answer: pt.replace(/[^A-Za-z ]/g, '').toUpperCase(),
+        answer: keyAnswerText(pt),
         answerBold: false,
         keyword: null,
         isBonus: bonus,
@@ -1735,14 +1754,16 @@ function buildCryptarithmLatex(s: IState): QuestionData {
     const body = `\\Large\n\\begin{verbatim}\n${verbatimBody}\\end{verbatim}\n`;
     const latex = `${q}\n\\parskip 1cm\n\n${body}\\vfill\n\\uplevel{\\hrulefill}`;
 
-    // Answer key shows the solution values; if not solved, fall back to soltext
-    const answer = solValues || soltext || problemText;
+    // Answer key shows the decoded solution text in bold (via the keyword slot),
+    // followed by the digit values it decodes from; if not solved, fall back to
+    // the equation itself.
+    const answer = solValues || problemText;
 
     return {
         latex,
         answer,
         answerBold: false,
-        keyword: null,
+        keyword: soltext || null,
         isBonus: bonus,
         points: value,
         questionText: s.question ?? '',
@@ -1850,7 +1871,7 @@ function buildLatex(
         tqFreqRow = Array.from({ length: 26 }, (_, i) =>
             String(tqLetters.split('').filter((c) => c.charCodeAt(0) === 65 + i).length),
         ).join('&');
-        tqAnswer = latexEscape(tqPt.trim());
+        tqAnswer = latexEscape(keyAnswerText(tqState.cipherString ?? ''));
     }
 
     if (isKey) {

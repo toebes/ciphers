@@ -2369,12 +2369,12 @@ export class CipherEncoder extends CipherHandler {
 
     public async searchForQuotes(qcount: number, action: (count: number, quote: string, author: string) => boolean): Promise<number> {
         let found = 0;
-        let questionType = QuestionTypes.GetQuestionTypeEntry(this.state.cipherType);
+        let questionType = QuestionTypes.GetQuestionTypeEntry(this.state.cipherType, this.state.curlang);
         let lang = "english";
         if (questionType === undefined) {
             return found;
         }
-        if (questionType.lang === "es") {
+        if (questionType.lang === "es" || this.state.curlang === 'es') {
             lang = "spanish";
         }
         let params: QueryParms = {};

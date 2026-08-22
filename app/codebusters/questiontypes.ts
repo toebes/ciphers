@@ -464,10 +464,15 @@ export class QuestionTypes {
     /**
      * 
      * @param qTitle 
+     * @param langauge
      * @returns 
      */
-    public static GetQuestionTypeEntry(cipherType: ICipherType): QuestionType {
-        const choice = this.QuestionTypesEntries.findIndex((elem) => elem.cipherType === cipherType)
+    public static GetQuestionTypeEntry(cipherType: ICipherType, lang: string = 'en'): QuestionType {
+        let choice = this.QuestionTypesEntries.findIndex((elem) =>
+            elem.cipherType === cipherType && (elem.lang ?? 'en') === lang)
+        if (choice === -1) {
+            choice = this.QuestionTypesEntries.findIndex((elem) => elem.cipherType === cipherType)
+        }
         if (choice === -1) {
             return undefined
         }

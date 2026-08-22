@@ -15,10 +15,6 @@ from bs4 import BeautifulSoup
 import requests
 from random import choice
 from datetime import datetime
-import urllib3
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 BASE_URL = "https://proverbia.net/"
 NOW = datetime.now()
 
@@ -30,7 +26,7 @@ HEADERS = {
 
 def get_soup(url: str) -> BeautifulSoup:
     """Download a web page and return it as a BeautifulSoup object."""
-    page = requests.get(url, headers=HEADERS, timeout=30, verify=False)
+    page = requests.get(url, headers=HEADERS, timeout=30)
     page.raise_for_status()
     return BeautifulSoup(page.content, "html.parser")
 

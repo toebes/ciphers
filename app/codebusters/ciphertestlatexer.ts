@@ -319,6 +319,28 @@ function bonusStar(bonus: boolean): string {
 }
 
 /**
+ * Render ciphertext as a verbatim block that is centered on the page as a
+ * whole while its lines stay left-aligned relative to each other.  fancyvrb's
+ * BVerbatim typesets the lines as one box, which \begin{center} then centers
+ * (a plain verbatim inside center would center every line individually).
+ * Requires \usepackage{fancyvrb} in the preamble.
+ *
+ * Inside the exam `questions` list the text block is indented by the 20pt
+ * \leftmargin (see \questionshook), so \begin{center} centers on a window
+ * shifted 10pt right of the true text column center.  Prepending -20pt of
+ * horizontal space (half of which centering redistributes) re-centers the box
+ * on the full text width.  The timed question sits outside the list, so it
+ * skips the compensation.
+ */
+function centeredVerbatim(body: string, inQuestionList = true): string {
+    const shift = inQuestionList ? '\\hspace*{-20pt}' : '';
+    // BVerbatim's box sits entirely above its baseline (height = whole block,
+    // depth = 0) and picks up no vertical separation of its own, so without
+    // explicit space it collides with the text above and below it.
+    return `\\par\\vspace{\\baselineskip}\n{\\Large\n\\begin{center}\n${shift}\\begin{BVerbatim}[formatcom=\\ctfont]\n${body}\n\\end{BVerbatim}\n\\end{center}}\n\\par\\vspace{\\baselineskip}`;
+}
+
+/**
  * Wrap a space-separated string of tokens into lines no wider than `width`,
  * joining lines with `\n\n\n` (LaTeX verbatim blank-line spacing).
  */
@@ -759,9 +781,7 @@ function buildAristocratLatex(s: IState): QuestionData {
 
     const latex =
         intro +
-        '\n\\Large{\n\\begin{verbatim}\n' +
-        formatted +
-        '\n\\end{verbatim}}\n' +
+        '\n' + centeredVerbatim(formatted) + '\n' +
         tableHeader +
         '\\hline\n' + freqTable + '\n\\hline\n\\end{tabular}\n\\end{center}}\n\\vfill\n\\uplevel{\\hrulefill}\n';
 
@@ -786,7 +806,7 @@ function buildAtbashLatex(s: IState): QuestionData {
         `Decode this phrase that was encoded using the \\textbf{Atbash} cipher.`);
     const latex =
         `${q}\n` +
-        `\n \\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        `\n ${centeredVerbatim(formatted)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -808,7 +828,7 @@ function buildCaesarLatex(s: IState): QuestionData {
         `Decode this phrase that was encoded using the \\textbf{Caesar} cipher.`);
     const latex =
         `${q}\n` +
-        `\n\\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        `\n${centeredVerbatim(formatted)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -870,7 +890,7 @@ function buildBaconianLatex(s: IState): QuestionData {
         const q = buildQuestionIntro(value, bonus, s, fallback);
         const latex =
             q +
-            `\n\n \\Large{\n\\begin{verbatim}\n${wordsText}\n\n\\end{verbatim}}\n${BACON_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
+            `\n\n ${centeredVerbatim(wordsText)}\n${BACON_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
         return {
             latex,
             answer: keyAnswerText(pt),
@@ -887,7 +907,7 @@ function buildBaconianLatex(s: IState): QuestionData {
         `Decode this phrase that was encoded using the \\textbf{Baconian} cipher.`);
     const latex =
         q +
-        `\n\n \\Large{\n\\begin{verbatim}\n${PLACEHOLDER}\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        `\n\n ${centeredVerbatim(PLACEHOLDER)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -938,7 +958,7 @@ function buildHillLatex(s: IState): QuestionData {
         `Decode this phrase that was encoded using the \\textbf{Hill} cipher and the encoding key \\textbf{${keyword}}.`);
     const latex =
         `${q}\n` +
-        `${matrix}\n\n \\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        `${matrix}\n\n ${centeredVerbatim(formatted)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1000,7 +1020,7 @@ function buildNihilistLatex(s: IState): QuestionData {
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
     const latex =
-        q + `\n\n \\Large{\n\\begin{verbatim}\n${y}\n\n\\end{verbatim}}\n${NIH_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        q + `\n\n \\Large{\n\\begin{Verbatim}[formatcom=\\ctfont]\n${y}\n\n\\end{Verbatim}\n}\n${NIH_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1052,7 +1072,7 @@ function buildPortaLatex(s: IState): QuestionData {
     }
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
-    const latex = q + `\n\n\\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+    const latex = q + `\n\n${centeredVerbatim(out)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1106,7 +1126,7 @@ function buildAffineLatex(s: IState): QuestionData {
     }
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
-    const latex = q + `\n\n\\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+    const latex = q + `\n\n${centeredVerbatim(out)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1163,7 +1183,7 @@ function buildFracMorseLatex(s: IState): QuestionData {
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
     const latex =
-        q + `\n\n \\Large{\n\\begin{verbatim}\n${display}\n\n\\end{verbatim}}\n${FRAC_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        q + `\n\n ${centeredVerbatim(display)}\n${FRAC_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1224,7 +1244,7 @@ function buildCheckerboardLatex(s: IState): QuestionData {
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
     const latex =
-        q + `\n\n \\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n${CB_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
+        q + `\n\n \\Large{\n\\begin{Verbatim}[formatcom=\\ctfont]\n${out}\n\n\\end{Verbatim}\n}\n${CB_TABLE}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1294,7 +1314,7 @@ function buildHomophonicLatex(s: IState): QuestionData {
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
     const latex =
-        q + `\n\n \\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n` +
+        q + `\n\n \\Large{\n\\begin{Verbatim}[formatcom=\\ctfont]\n${out}\n\n\\end{Verbatim}\n}\n` +
         `${crib && ptClean.includes(crib) ? HOM_LETTER_TABLE : HOM_NUM_TABLE}\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
@@ -1325,7 +1345,7 @@ function buildColumnarLatex(s: IState): QuestionData {
         (crib ? `You are told that the plaintext contains \\textbf{${crib}}.` : '');
     const q = buildQuestionIntro(value, bonus, s, colFallback);
 
-    const latex = q + `\n\n \\Large{\n\\begin{verbatim}\n${formatted}\n\n\\end{verbatim}}\n\\vfill\n\\uplevel{\\hrulefill}`;
+    const latex = q + `\n\n ${centeredVerbatim(formatted)}\n\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1519,7 +1539,7 @@ function buildCryptarithmLatex(s: IState): QuestionData {
         `Solve this \\textbf{cryptarithm} for ${mathNums}. ` +
         `Write out your final answer and $\\boxed{\\text{box}}$ it.`;
     const q = buildQuestionIntro(value, bonus, s, cryptFallback);
-    const body = `\\Large\n\\begin{verbatim}\n${verbatimBody}\\end{verbatim}\n`;
+    const body = `${centeredVerbatim(verbatimBody.replace(/\n+$/, ''))}\n`;
     const latex = `${q}\n\\parskip 1cm\n\n${body}\\vfill\n\\uplevel{\\hrulefill}`;
 
     // Answer key shows the decoded solution text in bold (via the keyword slot),
@@ -1631,6 +1651,9 @@ function buildLatex(
     let tqcipher = '';
     let tqFreqRow = '&'.repeat(25); // 26 empty cells
     let tqAnswer = '';
+    // The question text the author wrote for the timed question; the
+    // raise-your-hand instruction is appended to it below.
+    let tqIntro = 'Solve this \\textbf{Aristocrat}.';
     if (tqState) {
         const tqCt = substitutionCipherText(getPrintHandler(tqState));
         tqcipher = wordWrapVerb(tqCt, 52);
@@ -1639,6 +1662,10 @@ function buildLatex(
             String(tqLetters.split('').filter((c) => c.charCodeAt(0) === 65 + i).length),
         ).join('&');
         tqAnswer = latexEscape(keyAnswerText(tqState.cipherString ?? ''));
+        const bolded = tqState.question ? applyQuestionBolding(tqState.question, tqState) : '';
+        if (bolded) {
+            tqIntro = /[.!?]$/.test(bolded) ? bolded : `${bolded}.`;
+        }
     }
 
     if (isKey) {
@@ -1808,6 +1835,11 @@ ${answerLines.join('')}
 \\usepackage{musicography}
 \\usepackage{comment}
 \\usepackage{wasysym}
+\\usepackage{fancyvrb}
+% Bold font for the ciphertext verbatim blocks: Latin Modern typewriter has a
+% real bold face (Computer Modern's cmtt does not), pinned to T1 encoding so it
+% works alongside the document's T2A default.
+\\newcommand{\\ctfont}{\\fontencoding{T1}\\fontfamily{lmtt}\\fontseries{b}\\selectfont}
 \\usepackage[nodisplayskipstretch]{setspace}
 \\usepackage{lastpage}
 \\usepackage[table]{xcolor}
@@ -1880,25 +1912,41 @@ ${answerLines.join('')}
 \\setlength\\extrarowheight{2pt}
 \\setlength{\\tabcolsep}{3pt}
 %%%%%%%%% THE TEST %%%%%%%%%
-\\textbf{Timed Question. }(\\tqvalue~Points) Solve this \\textbf{Aristocrat}. When you have finished, \\textbf{\\tqphrase} so your answer can be checked and time recorded.
+% The timed question is framed: the content (which contains verbatim material,
+% so it cannot sit in \\fbox's argument directly) is captured in an lrbox first.
+\\newsavebox{\\tqsavebox}
+\\setlength{\\fboxsep}{8pt}
+\\begin{lrbox}{\\tqsavebox}
+\\begin{minipage}{\\dimexpr\\textwidth-2\\fboxsep-2\\fboxrule\\relax}
+\\textbf{Timed Question. }(\\tqvalue~Points) ${tqIntro} When you have finished, \\textbf{\\tqphrase} so your answer can be checked and time recorded.
 
-\\Large{
-\\begin{verbatim}
+\\par\\vspace{\\baselineskip}
+{\\Large
+\\begin{center}
+\\begin{BVerbatim}[formatcom=\\ctfont]
+
 ${tqcipher}
-\\end{verbatim}}
+
+
+\\end{BVerbatim}
+\\end{center}}
+\\par\\vspace{\\baselineskip}
 {\\normalsize
 \\begin{center}
 \\begin{tabular}
 {|m{2cm}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|}
 \\hline
 &A&B&C&D&E&F&G&H&I&J&K&L&M&N&O&P&Q&R&S&T&U&V&W&X&Y&Z\\\\
-\\hline 
+\\hline
 Frequency&${tqFreqRow}\\\\
-\\hline 
+\\hline
 Replacement&&&&&&&&&&&&&&&&&&&&&&&&&&\\\\
 \\hline
 \\end{tabular}
 \\end{center}}
+\\end{minipage}
+\\end{lrbox}
+\\noindent\\fbox{\\usebox{\\tqsavebox}}
 
 \\newpage
 

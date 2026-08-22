@@ -4,16 +4,17 @@
  * Converts a ciphers-app test (sourceTestData) directly into two LaTeX strings:
  * one for the student exam and one for the answer key.
  *
- * All information is read straight from the IState / ITest objects that already
- * live in the ciphers repository — no external server or re-implementation of
- * encoding logic is needed.  For deterministic ciphers the formula is applied
- * once; for non-deterministic ciphers (random Aristocrat, Homophonic) the
- * specific choices are read back from the saved state fields
- * (alphabetSource/alphabetDest, randomSlot).
+ * The ciphertext itself is produced by the SAME encoder classes the printed
+ * test uses: each question state is restored into a CipherPrintFactory handler
+ * (exactly like ciphertest.ts printTestQuestion does) and the handler's own
+ * string-level encoding methods are called.  This file only formats those
+ * strings into the LaTeX templates, so the .tex output always matches the
+ * rendered/printed test.
  */
 
-import { IState, ITest, ITestType } from '../common/cipherhandler';
+import { CipherHandler, IState, ITest, ITestType } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
+import { CipherPrintFactory } from './cipherfactory';
 import { cryptarithmParsed, parseCryptarithm } from '../common/cryptarithm';
 import { sourceTestData } from './ciphertest';
 
@@ -391,377 +392,39 @@ function wordsOnlyVerb(encoded: string, plaintext: string): string {
     return wordWrapVerb(words.join(' '));
 }
 
-// ─── Cipher encoding helpers ──────────────────────────────────────────────────
+// ─── Cipher encoding via the real encoder classes ─────────────────────────────
 
-/** Aristocrat/Patristocrat/Xenocrypt: use the cached alphabetSource/alphabetDest stored in state */
-function encodeSubstitution(plaintext: string, state: IState): string {
+/** Width passed to the encoders' line-splitting logic so they return a single
+ *  unsplit row; the LaTeX templates below do their own wrapping. */
+const NOWRAP = 100000;
+
+/**
+ * Create the same print handler the PDF/print path uses (CipherPrintFactory +
+ * restore, see ciphertest.ts GetPrintFactory) so the LaTeX export shares one
+ * encoding implementation with the rendered test.
+ */
+function getPrintHandler(s: IState): CipherHandler {
+    // Xenocrypts are normally stored as Aristocrat + curlang !== 'en'; map any
+    // explicitly-typed Xenocrypt to Aristocrat because the factory has no
+    // Xenocrypt entry and would fall back to a no-op encoder.
+    const ctype = s.cipherType === ICipherType.Xenocrypt ? ICipherType.Aristocrat : s.cipherType;
+    const handler = CipherPrintFactory(ctype, s.curlang);
+    handler.restore(s, true);
+    return handler;
+}
+
+/**
+ * Substitution-family ciphertext (Aristocrat/Patristocrat/Xenocrypt, Atbash,
+ * Caesar): a single aligned line with spacing/punctuation preserved, exactly
+ * as the handler's makeReplacement produces for the printed test.  For
+ * Patristocrats getEncodingString() already returns the text in blocks of 5.
+ */
+function substitutionCipherText(handler: CipherHandler): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const st = state as any;
-    const src: string = st.alphabetSource ?? '';
-    const dst: string = st.alphabetDest ?? '';
-    if (src.length >= 26 && dst.length >= 26) {
-        return plaintext
-            .toUpperCase()
-            .split('')
-            .map((c) => {
-                const i = src.indexOf(c);
-                return i >= 0 ? dst[i] : c;
-            })
-            .join('');
-    }
-    // Fallback: replacement map is source→cipher
-    const rep: Record<string, string> = (state.replacement as Record<string, string>) ?? {};
-    return plaintext
-        .toUpperCase()
-        .split('')
-        .map((c) => rep[c] ?? c)
-        .join('');
-}
-
-function encodeAtbash(plaintext: string): string {
-    return plaintext
-        .toUpperCase()
-        .replace(/[^A-Z]/g, '')
-        .split('')
-        .map((c) => String.fromCharCode(155 - c.charCodeAt(0)))
-        .join('');
-}
-
-function encodeCaesar(plaintext: string, shift: number): string {
-    return plaintext
-        .toUpperCase()
-        .replace(/[^A-Z]/g, '')
-        .split('')
-        .map((c) => String.fromCharCode(((c.charCodeAt(0) - 65 + shift) % 26) + 65))
-        .join('');
-}
-
-function encodeAffine(plaintext: string, a: number, b: number): string {
-    return plaintext
-        .toUpperCase()
-        .replace(/[^A-Z]/g, '')
-        .split('')
-        .map((c) => String.fromCharCode(((a * (c.charCodeAt(0) - 65) + b) % 26) + 65))
-        .join('');
-}
-
-function encodeHill(plaintext: string, keyword: string): string {
-    const kw = keyword.toUpperCase().replace(/[^A-Z]/g, '');
-    const z = kw.split('').map((c) => c.charCodeAt(0) - 65);
-    const letters = plaintext.toUpperCase().replace(/[^A-Z]/g, '').split('').map((c) => c.charCodeAt(0) - 65);
-
-    const result: number[] = [];
-    if (kw.length === 4) {
-        const padded = letters.length % 2 === 1 ? [...letters, 25] : letters;
-        for (let i = 0; i < padded.length; i += 2) {
-            result.push((z[0] * padded[i] + z[1] * padded[i + 1]) % 26);
-            result.push((z[2] * padded[i] + z[3] * padded[i + 1]) % 26);
-        }
-    } else if (kw.length === 9) {
-        while (letters.length % 3 !== 0) letters.push(25);
-        for (let i = 0; i < letters.length; i += 3) {
-            result.push((z[0] * letters[i] + z[1] * letters[i + 1] + z[2] * letters[i + 2]) % 26);
-            result.push((z[3] * letters[i] + z[4] * letters[i + 1] + z[5] * letters[i + 2]) % 26);
-            result.push((z[6] * letters[i] + z[7] * letters[i + 1] + z[8] * letters[i + 2]) % 26);
-        }
-    }
-    return result.map((n) => String.fromCharCode(n + 65)).join('');
-}
-
-function buildNihilistAlphabet(kw: string): string {
-    const seen = new Set<string>();
-    let out = '';
-    for (const c of kw.toLowerCase()) {
-        if (c !== 'j' && /[a-z]/.test(c) && !seen.has(c)) {
-            out += c;
-            seen.add(c);
-        }
-    }
-    for (const c of 'abcdefghiklmnopqrstuvwxyz') {
-        if (!seen.has(c)) out += c;
-    }
-    return out.toUpperCase();
-}
-
-function encodeNihilist(plaintext: string, keyword: string, polybiusKey: string): number[] {
-    const alph = buildNihilistAlphabet(polybiusKey);
-    const pkMap: Record<string, number> = {};
-    for (let i = 0; i < 25; i++) pkMap[alph[i]] = (Math.floor(i / 5) + 1) * 10 + (i % 5) + 1;
-    const kw = keyword.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
-    const letters = plaintext.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
-    return letters.split('').map((c, i) => (pkMap[c] ?? 0) + (pkMap[kw[i % kw.length]] ?? 0));
-}
-
-function encodePorta(plaintext: string, keyword: string): string {
-    const letters = plaintext.toUpperCase().replace(/[^A-Z]/g, '');
-    const kw = keyword.toUpperCase().replace(/[^A-Z]/g, '');
-    return letters
-        .split('')
-        .map((c, i) => {
-            const kc = kw.charCodeAt(i % kw.length) - 65;
-            const p = c.charCodeAt(0) - 65;
-            let v: number;
-            if (p < 13) {
-                v = ((p + Math.floor(kc / 2)) % 13) + 13;
-            } else {
-                v = ((p - Math.floor(kc / 2)) % 13 + 13) % 13;
-            }
-            return String.fromCharCode(v + 65);
-        })
-        .join('');
-}
-
-const MORSE_CODE: Record<string, string> = {
-    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---',
-    K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-',
-    U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..',
-    '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
-    '6': '-....', '7': '--...', '8': '---..', '9': '----.',
-};
-
-function fracAlphabet(kw: string): string {
-    const seen = new Set<string>();
-    let out = '';
-    for (const c of kw.toUpperCase()) {
-        if (/[A-Z]/.test(c) && !seen.has(c)) { out += c; seen.add(c); }
-    }
-    for (const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
-        if (!seen.has(c)) out += c;
-    }
-    return out;
-}
-
-/**
- * Mirrors CipherFractionatedMorseEncoder.makeReplacement to produce
- * word-boundary-split rows of cipher letters for the LaTeX verbatim block.
- * Each returned string is one verbatim row in "  A  B  C  " format
- * (2 leading spaces, 2-space separator between letters, 2 trailing spaces),
- * matching the format in test.tex exactly.
- * maxWidth=53 matches CipherHandler.maxEncodeWidth.
- */
-function fracMorseWordRows(plaintext: string, keyword: string, maxWidth = 53): string[] {
-    const alpha = fracAlphabet(keyword.replace(/\s/g, ''));
-    // Triplet patterns use the same . / - / x notation as MORSE_CODE above
-    const DOTS = ['.', '.', '.', '.', '.', '.', '.', '.', '.', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'];
-    const DASH = ['.', '.', '.', '-', '-', '-', 'x', 'x', 'x', '.', '.', '.', '-', '-', '-', 'x', 'x', 'x', '.', '.', '.', '-', '-', '-', 'x', 'x'];
-    const TIRD = ['.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-', 'x', '.', '-'];
-    const fracMap: Record<string, string> = {};
-    for (let i = 0; i < 26; i++) fracMap[DOTS[i] + DASH[i] + TIRD[i]] = alpha[i];
-
-    const rows: string[] = [];
-    let encodeline = '';
-    let lastsplit = -1;
-    let partialMorse = '';
-    let stashedMorse = '';
-    let extraFraction = '';
-    let makeupMorse = 0;
-    let extra = '';
-    let spaceextra = '';
-
-    const clean = plaintext.toUpperCase().replace(/[^A-Z ]/g, '');
-
-    // makeReplacement encodeline format: " A  B  C " (1 leading, 2 between, 1 trailing)
-    // test.tex format:                  "  A  B  C  " (2 leading, 2 between, 2 trailing)
-    // Adding one extra space on each side converts between the two.
-    const flushRow = (enc: string) => { rows.push(' ' + enc + ' '); };
-
-    for (const ch of clean) {
-        if (ch === ' ') {
-            extra = spaceextra;
-            extraFraction = spaceextra;
-            lastsplit = encodeline.length;
-            continue;
-        }
-        const morselet = MORSE_CODE[ch];
-        if (!morselet) continue;
-
-        // Undo the incomplete makeup cipher letter from the previous letter
-        if (makeupMorse > 0) {
-            encodeline = encodeline.substring(0, encodeline.length - 3);
-        }
-
-        partialMorse += stashedMorse + extraFraction + morselet;
-        extraFraction = 'x';
-
-        stashedMorse = partialMorse.substring(3 * Math.floor(partialMorse.length / 3));
-
-        if (partialMorse.length % 3 === 2) {
-            makeupMorse = 1;
-            partialMorse += 'x';
-        } else if (partialMorse.length % 3 === 1) {
-            makeupMorse = 2;
-            partialMorse += 'xx';
-        } else {
-            makeupMorse = 0;
-        }
-
-        while (partialMorse.length >= 3) {
-            encodeline += ' ' + (fracMap[partialMorse.substring(0, 3)] ?? '?') + ' ';
-            partialMorse = partialMorse.substring(3);
-        }
-
-        extra = 'x';
-        spaceextra = 'xx';
-
-        if (encodeline.length >= maxWidth) {
-            if (lastsplit <= 0) {
-                flushRow(encodeline);
-                encodeline = '';
-                lastsplit = -1;
-            } else {
-                flushRow(encodeline.substring(0, lastsplit));
-                encodeline = encodeline.substring(lastsplit);
-                lastsplit = -1;
-            }
-        }
-    }
-
-    if (encodeline.length > 0) {
-        flushRow(encodeline);
-    }
-
-    return rows;
-}
-
-function buildCheckerboardAlphabet(polyKey: string): string {
-    const seen = new Set<string>();
-    let out = '';
-    for (const c of polyKey.toLowerCase()) {
-        if (c !== 'j' && /[a-z]/.test(c) && !seen.has(c)) { out += c; seen.add(c); }
-    }
-    for (const c of 'abcdefghiklmnopqrstuvwxyz') {
-        if (!seen.has(c)) out += c;
-    }
-    return out.toUpperCase();
-}
-
-function encodeCheckerboard(
-    plaintext: string,
-    hkey: string,
-    vkey: string,
-    polyKey: string,
-): string[] {
-    const alph = buildCheckerboardAlphabet(polyKey);
-    const hk = hkey.toUpperCase();
-    const vk = vkey.toUpperCase();
-    const pk: Record<string, string> = {};
-    for (let r = 0; r < 5; r++) {
-        for (let c = 0; c < 5; c++) {
-            pk[alph[r * 5 + c]] = vk[r] + hk[c];
-        }
-    }
-    return plaintext
-        .toUpperCase()
-        .replace(/[^A-Z]/g, '')
-        .replace(/J/g, 'I')
-        .split('')
-        .map((c) => pk[c] ?? '??');
-}
-
-function encodeHomophonic(plaintext: string, keyword: string, randomSlot: number[]): string[] {
-    const alph = 'ABCDEFGHIKLMNOPQRSTUVWXYZ'; // 25 letters, no J
-    const kw = keyword.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I').slice(0, 4);
-    const table: Record<string, string[]> = {};
-    for (const c of alph) table[c] = [];
-    for (let row = 0; row < 4; row++) {
-        const startLetter = kw[row];
-        const startNum = row * 25 + 1;
-        const startIdx = alph.indexOf(startLetter);
-        for (let i = 0; i < 25; i++) {
-            const idx = (startIdx + i) % 25;
-            table[alph[idx]].push(String(startNum + i).padStart(2, '0'));
-        }
-    }
-    const clean = plaintext.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
-    return clean.split('').map((c, i) => {
-        const slot = randomSlot?.[i] ?? 0;
-        return table[c]?.[slot % 4] ?? '??';
-    });
-}
-
-function encodeCompleteColumnar(plaintext: string, columns: number, keyword: string): string {
-    const letters = plaintext.toUpperCase().replace(/[^A-Z]/g, '');
-    const rows = Math.ceil(letters.length / columns);
-    const padded = letters.padEnd(rows * columns, 'X');
-
-    const cols: string[] = [];
-    for (let c = 0; c < columns; c++) {
-        let col = '';
-        for (let r = 0; r < rows; r++) col += padded[r * columns + c];
-        cols.push(col);
-    }
-
-    const kw = keyword.toUpperCase().slice(0, columns).padEnd(columns, '~');
-    const order = kw.split('').map((c, i) => ({ c, i }));
-    order.sort((a, b) => (a.c < b.c ? -1 : a.c > b.c ? 1 : a.i - b.i));
-
-    return order.map(({ i }) => cols[i]).join('');
-}
-
-// ─── Baconian encoding helpers ─────────────────────────────────────────────────
-
-const BACON_MAP: Record<string, string> = {
-    A: 'AAAAA', B: 'AAAAB', C: 'AAABA', D: 'AAABB', E: 'AABAA', F: 'AABAB',
-    G: 'AABBA', H: 'AABBB', I: 'ABAAA', J: 'ABAAA', K: 'ABAAB', L: 'ABABA',
-    M: 'ABABB', N: 'ABBAA', O: 'ABBAB', P: 'ABBBA', Q: 'ABBBB', R: 'BAAAA',
-    S: 'BAAAB', T: 'BAABA', U: 'BAABB', V: 'BAABB', W: 'BABAA', X: 'BABAB',
-    Y: 'BABBA', Z: 'BABBB',
-};
-
-/**
- * Strip HTML tags and decode basic HTML entities from a Baconian texta/textb string.
- * The Baconian state stores these as HTML-rich strings (e.g. "<P>" or "<b>+</b>")
- * for browser rendering; we need the bare characters for LaTeX verbatim output.
- */
-function stripBaconHtml(s: string): string[] {
-    const plain = s
-        .replace(/<[^>]*>/g, '')    // remove HTML tags
-        .replace(/&nbsp;/gi, ' ')
-        .replace(/&amp;/gi, '&')
-        .replace(/&lt;/gi, '<')
-        .replace(/&gt;/gi, '>')
-        .replace(/&quot;/gi, '"');
-    // Split into characters; we keep spaces as single-char tokens
-    const chars = Array.from(plain);
-    // Filter out empty strings (shouldn't happen, but be safe)
-    return chars.filter((c) => c.length > 0);
-}
-
-function encodeBaconianLetters(
-    plaintext: string,
-    texta: string,
-    textb: string,
-    linewidth: number,
-    btype: string,
-): string {
-    const a = stripBaconHtml(texta).map((c) => c.toUpperCase());
-    const b = stripBaconHtml(textb).map((c) => c.toUpperCase());
-    const letters = plaintext.toUpperCase().replace(/[^A-Z]/g, '');
-    const bits = letters
-        .split('')
-        .map((c) => BACON_MAP[c] ?? 'AAAAA')
-        .join('');
-
-    let encoded = '';
-    let ai = 0;
-    let bi = 0;
-    for (const bit of bits) {
-        if (bit === 'A') {
-            encoded += a[ai % a.length];
-            ai++;
-        } else {
-            encoded += b[bi % b.length];
-            bi++;
-        }
-    }
-
-    let spaced = '';
-    const lw = linewidth > 0 ? linewidth : 55;
-    for (let i = 0; i < encoded.length; i++) {
-        spaced += encoded[i];
-        if ((i + 1) % lw === 0) spaced += '\n\n\n';
-    }
-    return spaced;
+    const h = handler as any;
+    h.genAlphabet();
+    const strings: string[][] = h.makeReplacement(h.getEncodingString(), NOWRAP);
+    return strings.map((r) => r[0]).join('');
 }
 
 // ─── Nihilist / Porta / Affine: word-spaced or block output ───────────────────
@@ -892,7 +555,7 @@ const FRAC_TABLE =
     '\\hline\n\\end{tabular}\n\\end{center}\n';
 
 const NIH_TABLE =
-    '\n\\begin{flushright}\\vspace{-1.5cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|}\n' +
+    '\n\\begin{flushright}\\vspace{-1cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|}\n' +
     '\\hline\n&1&2&3&4&5  \\\\\n\\hline\n' +
     '1&&&&&  \\\\\n\\hline\n2&&&&&  \\\\\n\\hline\n3&&&&&  \\\\\n\\hline\n4&&&&&  \\\\\n\\hline\n5&&&&&  \\\\\n\\hline\n' +
     '\\end{tabular}}\\end{flushright} \n';
@@ -912,6 +575,46 @@ const BACON_TABLE =
     '{|m{2cm}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|m{9.675pt}|}\n' +
     '\\hline\n&A&B&C&D&E&F&G&H&I&J&K&L&M&N&O&P&Q&R&S&T&U&V&W&X&Y&Z\\\\\n' +
     '\\hline\nReplacement&&&&&&&&&&&&&&&&&&&&&&&&&&\\\\\n\\hline\n\\end{tabular}\n\\end{flushleft}}';
+
+// Homophonic worksheet tables: 25 columns wide.  The decode version lists the
+// codes 1–99 plus 00 with four blank working rows underneath; the crib version
+// shows the 25-letter alphabet (I/J shared) above four blank working rows.
+const HOM_COLS = '|' + Array(25).fill('C{13pt}').join('|') + '|';
+const HOM_BLANK_ROW = Array(25).fill('').join('&') + '\\\\ \\hline\n';
+
+const HOM_NUM_TABLE = (() => {
+    let rows = '';
+    for (let r = 0; r < 4; r++) {
+        const nums: string[] = [];
+        for (let c = 1; c <= 25; c++) {
+            const n = r * 25 + c;
+            nums.push(n === 100 ? '00' : String(n));
+        }
+        rows += nums.join('&') + '\\\\ \\hline\n';
+    }
+    for (let r = 0; r < 4; r++) rows += HOM_BLANK_ROW;
+    return (
+        '\n{\\normalsize\\begin{center}{\\renewcommand{\\arraystretch}{1.2}\n' +
+        `\\begin{tabular}{${HOM_COLS}}\n\\hline\n` +
+        rows +
+        '\\end{tabular}}\\end{center}}\n'
+    );
+})();
+
+const HOM_LETTER_TABLE = (() => {
+    const letters = 'ABCDEFGH'.split('').concat(['I/J']).concat('KLMNOPQRSTUVWXYZ'.split(''));
+    // Header letters float above the grid (no cell borders on the header row)
+    const header = letters.map((l) => `\\multicolumn{1}{c}{${l}}`).join('&') + '\\\\ \\hline\n';
+    let rows = '';
+    for (let r = 0; r < 4; r++) rows += HOM_BLANK_ROW;
+    return (
+        '\n{\\normalsize\\begin{center}{\\renewcommand{\\arraystretch}{1.2}\n' +
+        `\\begin{tabular}{${HOM_COLS}}\n` +
+        header +
+        rows +
+        '\\end{tabular}}\\end{center}}\n'
+    );
+})();
 
 // ─── Frequency table builder ───────────────────────────────────────────────────
 
@@ -991,16 +694,11 @@ function buildAristocratLatex(s: IState): QuestionData {
     const ctype = isXeno ? 'Xenocrypt' : isPat ? 'Patristocrat' : 'Aristocrat';
     const alphLabel = encodeType && encodeType !== '' ? `${encodeType} ` : '';
 
-    const ct = encodeSubstitution(pt, s);
+    // Patristocrat states come back from getEncodingString() already in blocks
+    // of 5, so the same wrap works for the whole family.
+    const ct = substitutionCipherText(getPrintHandler(s));
     const ctLetters = ct.replace(/[^A-Z\u00D1]/g, '');
-    const formatted = isPat
-        ? (() => {
-            const letOnly = ctLetters.replace(/[^A-Z]/g, '');
-            const chunks: string[] = [];
-            for (let i = 0; i < letOnly.length; i += 5) chunks.push(letOnly.slice(i, i + 5));
-            return wordWrapVerb(chunks.join(' '));
-        })()
-        : wordWrapVerb(ct);
+    const formatted = wordWrapVerb(ct);
 
     // Crib is stored separately from the hint text; use it for bolding begins/ends/contains
     const crib: string = ((st.crib ?? '') as string).toUpperCase().replace(/[^A-Z]/g, '');
@@ -1038,7 +736,21 @@ function buildAristocratLatex(s: IState): QuestionData {
             `You are told that the keyword used is ${keyword.length} letters long. ` +
             `What is the keyword? $\\boxed{\\text{Box}}$ your final answer.`;
     }
-    const intro = buildQuestionIntro(value, bonus, s, introFallback) + '\n';
+    let intro = buildQuestionIntro(value, bonus, s, introFallback);
+    if (extract) {
+        // Keyword answer blanks: two blank lines after the question text, then
+        // one rule per character of each keyword word, 0.5cm between words.
+        const ruleLine = (s.keyword ?? '')
+            .trim()
+            .split(/\s+/)
+            .filter((w) => w.length > 0)
+            .map((w) => Array.from(w).map(() => '\\rule{0.5cm}{.1mm}').join(' '))
+            .join('\\hspace{0.5cm}');
+        if (ruleLine) {
+            intro += ` \\\\\\\\\n\\textbf{Keyword}: ${ruleLine}`;
+        }
+    }
+    intro += '\n';
 
     const tableHeader = isXeno ? XENO_TABLE_HEADER : MONO_TABLE_HEADER;
     const freqTable = isXeno
@@ -1068,10 +780,8 @@ function buildAtbashLatex(s: IState): QuestionData {
     const pt = s.cipherString ?? '';
     const value = s.points ?? 100;
     const bonus = s.specialbonus ?? false;
-    const ct = encodeAtbash(pt);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bs = 0;
-    const formatted = formatPortaOutput(ct, 0, pt);
+    const ct = substitutionCipherText(getPrintHandler(s));
+    const formatted = formatPortaOutput(ct.replace(/[^A-Z]/g, ''), 0, pt);
     const q = buildQuestionIntro(value, bonus, s,
         `Decode this phrase that was encoded using the \\textbf{Atbash} cipher.`);
     const latex =
@@ -1089,14 +799,11 @@ function buildAtbashLatex(s: IState): QuestionData {
 }
 
 function buildCaesarLatex(s: IState): QuestionData {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const st = s as any;
     const pt = s.cipherString ?? '';
     const value = s.points ?? 100;
     const bonus = s.specialbonus ?? false;
-    const offset = Number(st.offset ?? 13);
-    const ct = encodeCaesar(pt, offset);
-    const formatted = blockWrapVerb(ct, 5);
+    const ct = substitutionCipherText(getPrintHandler(s));
+    const formatted = blockWrapVerb(ct.replace(/[^A-Z]/g, ''), 5);
     const q = buildQuestionIntro(value, bonus, s,
         `Decode this phrase that was encoded using the \\textbf{Caesar} cipher.`);
     const latex =
@@ -1133,9 +840,19 @@ function buildBaconianLatex(s: IState): QuestionData {
         '% and paste it here in place of this comment block.';
 
     if (operation === 'words') {
-        // Word Baconian — the words are stored as plain ASCII and can be included
-        const words: string[] = (st.words ?? []) as string[];
-        const wordsText = wordWrapVerb(words.map((w: string) => w.toUpperCase()).join(' '), 58);
+        // Word Baconian — pull the encoded word list from the real encoder so
+        // slot word choices and punctuation match the printed test.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const handler = getPrintHandler(s) as any;
+        const encoded = handler.makeBaconianReplacement(handler.getEncodingString(), NOWRAP);
+        // cipherword is one chosen word per plaintext letter; lines[].ciphertext
+        // carries the assembled display text including punctuation separators.
+        const words: string[] = (encoded.cipherword ?? []) as string[];
+        const wordsText = wordWrapVerb(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            encoded.lines.map((line: any) => line.ciphertext.join('').trim()).join(' '),
+            58,
+        );
         const cribClean = crib.replace(/[^A-Z]/g, '').toUpperCase();
 
         let fallback = `Decode this phrase that was encoded using the \\textbf{Baconian} cipher.`;
@@ -1187,7 +904,10 @@ function buildHillLatex(s: IState): QuestionData {
     const keyword = (s.keyword ?? '').toUpperCase().replace(/[^A-Z]/g, '');
     const value = s.points ?? 100;
     const bonus = s.specialbonus ?? false;
-    const ct = encodeHill(pt, keyword);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    const vals = handler.getValidKey(handler.state.keyword);
+    const ct: string = vals ? handler.computeHill(vals) : '';
     const formatted = wordWrapVerb(ct.split('').join(' '), 72);
 
     let matrix = '';
@@ -1242,7 +962,18 @@ function buildNihilistLatex(s: IState): QuestionData {
     const crib: string = (st.crib ?? '').toUpperCase().replace(/[^A-Z]/g, '');
     const operation: string = st.operation ?? 'decode';
 
-    const encoded = encodeNihilist(pt, keyword, polybiusKey);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    // genQuestion relies on load() having built the polybius map; build it here
+    handler.polybiusMap = handler.buildPolybiusMap();
+    const seqsets: string[][][] = handler.buildNihilistSequenceSets(pt, NOWRAP);
+    // Row 0 holds the cipher tokens; non-letter characters pass through verbatim
+    const encoded: number[] = [];
+    for (const line of seqsets) {
+        for (const tok of line[0]) {
+            if (/^\d+$/.test(tok)) encoded.push(Number(tok));
+        }
+    }
     const y = formatNihilistOutput(encoded, bs, pt);
     const ptClean = pt.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
 
@@ -1292,7 +1023,10 @@ function buildPortaLatex(s: IState): QuestionData {
     const crib: string = (st.crib ?? '').toUpperCase().replace(/[^A-Z]/g, '');
     const operation: string = st.operation ?? 'decode';
 
-    const ctStr = encodePorta(pt, keyword);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    const strings: string[][] = handler.buildReplacementVigenere(pt, s.keyword ?? '', NOWRAP);
+    const ctStr = strings.map((r) => r[0]).join('').replace(/[^A-Z]/g, '');
     const out = formatPortaOutput(ctStr, bs, pt);
     const ptClean = pt.toUpperCase().replace(/[^A-Z]/g, '');
 
@@ -1343,7 +1077,11 @@ function buildAffineLatex(s: IState): QuestionData {
     const hint: string = st.hint ?? '';
     const operation: string = st.operation ?? 'decode';
 
-    const ctStr = encodeAffine(pt, a, b);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    handler.genAlphabet();
+    const strings: string[][] = handler.buildReplacement(pt, NOWRAP);
+    const ctStr = strings.map((r) => r[0]).join('').replace(/[^A-Z]/g, '');
     const out = bs === 0
         ? formatPortaOutput(ctStr, 0, pt)
         : blockWrapVerb(ctStr, bs);
@@ -1353,7 +1091,7 @@ function buildAffineLatex(s: IState): QuestionData {
     if (crib) {
         let nhint: string;
         if (crib.length === 2) {
-            const ctCrib = encodeAffine(crib, a, b);
+            const ctCrib = crib.split('').map((c: string) => handler.affinechar(c)).join('');
             nhint = `ciphertext \\textbf{${ctCrib}} decodes to \\textbf{${crib}}`;
         } else {
             nhint = `the plaintext contains \\textbf{${crib}}`;
@@ -1386,12 +1124,20 @@ function buildFracMorseLatex(s: IState): QuestionData {
     const pt = s.cipherString ?? '';
     const value = s.points ?? 100;
     const bonus = s.specialbonus ?? false;
-    const keyword = (s.keyword ?? '').replace(/\s/g, '');
     const crib: string = (st.crib ?? '').replace(/[^\w]/g, '').toUpperCase();
     const hint: string = st.hint ?? '';
     const hintType: string = st.hintType ?? 'None';
 
-    const display = fracMorseWordRows(pt, keyword).join('\n\n\n');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    // setUIDefaults (skipped by restore(state, true)) normally widens the charset
+    // to include digits; match it so quotes with numbers encode identically.
+    handler.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+    // Row 0 is the cipher line with each letter as " X " (3 chars); the handler
+    // splits rows at word boundaries within maxEncodeWidth just like the PDF.
+    const strings: string[][] = handler.makeReplacement(pt, handler.maxEncodeWidth);
+    // test.tex rows carry one extra leading/trailing space vs the handler's format
+    const display = strings.map((r) => ' ' + r[0] + ' ').join('\n\n\n');
 
     const ptClean = pt.replace(/[^\w]/g, '').toUpperCase();
 
@@ -1435,15 +1181,24 @@ function buildCheckerboardLatex(s: IState): QuestionData {
     const pt = s.cipherString ?? '';
     const value = s.points ?? 100;
     const bonus = s.specialbonus ?? false;
-    const hkey = (s.keyword ?? '').toUpperCase();
-    const vkey = (st.keyword2 ?? '').toUpperCase();
     const polyKey: string = st.polybiusKey ?? '';
     const bs: number = st.blocksize ?? 5;
     const crib: string = (st.crib ?? '').toUpperCase().replace(/[^A-Z]/g, '');
     const hint: string = (st.hint ?? '').toUpperCase().replace(/[^A-Z]/g, '');
     const operation: string = st.operation ?? 'decode';
 
-    const pairs = encodeCheckerboard(pt, hkey, vkey, polyKey);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    const pbMap = handler.buildPolybiusMap();
+    handler.polybiusMap = pbMap;
+    const seqsets: string[][][] = handler.buildCheckerboardSequenceSets(pt, NOWRAP, 11, pbMap);
+    // Row 0 holds the two-letter cipher pairs; non-letters pass through verbatim
+    const pairs: string[] = [];
+    for (const line of seqsets) {
+        for (const tok of line[0]) {
+            if (/^[A-Z]{2}$/.test(tok)) pairs.push(tok);
+        }
+    }
     const out = formatCheckerboardOutput(pairs, bs, pt);
     const ptClean = pt.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
     const cribTarget = crib || hint;
@@ -1492,10 +1247,22 @@ function buildHomophonicLatex(s: IState): QuestionData {
     const crib: string = (st.crib ?? '').toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
     const hint: string = st.hint ?? '';
     const hintType: string = st.hintType ?? 'None';
-    const randomSlot: number[] = st.randomSlot ?? [];
 
-    const encoded = encodeHomophonic(pt, keyword, randomSlot);
-    const out = formatHomophonicOutput(encoded, bs, pt);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    const strings: Array<[string[], string[]]> = handler.buildReplacementHomophonic(pt, NOWRAP);
+    // Index 0 holds the numeric cipher tokens; plainCt100 maps '100' → '00'
+    // the same way the printed test displays it.
+    const encoded: string[] = [];
+    for (const strset of strings) {
+        for (const tok of strset[0]) {
+            if (/^\d+$/.test(tok)) encoded.push(handler.plainCt100(tok));
+        }
+    }
+    // Pad single-digit codes with a leading space standing in for the tens
+    // digit so the verbatim token grid stays aligned (hint text stays unpadded).
+    const display = encoded.map((v) => (v.length < 2 ? ' ' + v : v));
+    const out = formatHomophonicOutput(display, bs, pt);
     const ptClean = pt.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
 
     let fallback: string;
@@ -1527,7 +1294,8 @@ function buildHomophonicLatex(s: IState): QuestionData {
     const q = buildQuestionIntro(value, bonus, s, fallback);
 
     const latex =
-        q + `\n\n \\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}}\\vfill\n\\uplevel{\\hrulefill}`;
+        q + `\n\n \\Large{\n\\begin{verbatim}\n${out}\n\n\\end{verbatim}}\n` +
+        `${crib && ptClean.includes(crib) ? HOM_LETTER_TABLE : HOM_NUM_TABLE}\\vfill\n\\uplevel{\\hrulefill}`;
     return {
         latex,
         answer: keyAnswerText(pt),
@@ -1545,11 +1313,11 @@ function buildColumnarLatex(s: IState): QuestionData {
     const pt = s.cipherString ?? '';
     const value = s.points ?? 100;
     const bonus = s.specialbonus ?? false;
-    const columns: number = st.columns ?? 5;
-    const keyword = (s.keyword ?? '').toUpperCase();
     const crib: string = (st.crib ?? '').toUpperCase().replace(/[^A-Z]/g, '');
 
-    const ct = encodeCompleteColumnar(pt, columns, keyword);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = getPrintHandler(s) as any;
+    const ct: string = handler.getEncodedText();
     const formatted = blockWrapVerb(ct, 5);
 
     const colFallback =
@@ -1864,8 +1632,7 @@ function buildLatex(
     let tqFreqRow = '&'.repeat(25); // 26 empty cells
     let tqAnswer = '';
     if (tqState) {
-        const tqPt = (tqState.cipherString ?? '').toUpperCase().replace(/[^A-Z ]/g, '');
-        const tqCt = encodeSubstitution(tqPt, tqState);
+        const tqCt = substitutionCipherText(getPrintHandler(tqState));
         tqcipher = wordWrapVerb(tqCt, 52);
         const tqLetters = tqCt.replace(/[^A-Z]/g, '');
         tqFreqRow = Array.from({ length: 26 }, (_, i) =>

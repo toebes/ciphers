@@ -1461,6 +1461,15 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * Compute the complete columnar ciphertext for the current state.
+     * Exposed so the LaTeX exporter shares the exact encoding used by
+     * genQuestion/genAnswer (CompleteColumnarSolver is not exported).
+     */
+    public getEncodedText(): string {
+        const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this, this.state.columns, this.state.keyword, this.state.cipherString, this.state.crib);
+        return ccs.getCompleteColumnarEncoding();
+    }
+    /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {

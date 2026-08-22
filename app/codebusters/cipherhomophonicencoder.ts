@@ -506,14 +506,13 @@ export class CipherHomophonicEncoder extends CipherEncoder {
 
     /**
       * Generate the recommended score and score ranges for a cipher
-      * 100 for a Decode (approximately 2 points per letter), 120 for an Encode.
-      * If the Block Size is the same as the Key length subtract 20 points.
-      * If the Block Size is non-zero and different from the Key length, add 25 points.
+      * If the Block Size is non-zero, add 40 points.
       * @returns Computed score ranges for the cipher and text description
       */
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
         let testUsage = this.getTestUsage();
+        let hint = this.minimizeString(this.state.hint);
         const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
         let text = ''
         let rangetext = ''
@@ -521,20 +520,16 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         let suggested = 0
         let range = 5
         let scaleFactor = 1
+        let straightModifier = 120;
         if (this.state.cipherType === ICipherType.Homophonic) {
             range = 10
             if (usedOnA) {
                 scaleFactor = 1.2
             }
-            suggested = Math.round(scaleFactor * qdata.len * 2.25)
+            suggested = Math.round(scaleFactor * qdata.len * 2.25 + straightModifier)
             if (this.state.blocksize > 0) {
-                if (this.state.blocksize === this.state.keyword.length) {
-                    suggested -= 20;
-                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`;
-                } else {
-                    suggested += 25;
-                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`;
-                }
+                suggested += 40;
+                extra += ` The block size is not equal to zero, making it about 40 points harder.`;
             }
         } else {
             range = 15
@@ -551,9 +546,13 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 suggested -= 10
             }
         }
-        if (this.state.operation === 'crypt') {
-            suggested += 15;
-            extra += ` A cryptanalysis problem adds extra work, which makes it about 15 points harder.`;
+        if (this.state.operation === 'decode') {
+            suggested += 55;
+            extra += ` A decode problem adds extra work, which makes it about 55 points harder.`;
+            if (hint.length < 3) {
+                suggested += 45;
+                extra += ` Less than three hint characters are provided, making it about 45 points harder.`;
+            }
         }
 
         const min = Math.max(suggested - range, 0)
@@ -563,7 +562,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
             rangetext = ` (From a range of ${min} to ${max})`
         }
         if (qdata.len < 30) {
-            text = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 40 characters for a good quote</em></p>`
+            text = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 30 characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
             text += `<p>There are ${qdata.len} characters in the quote.${extra}

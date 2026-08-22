@@ -261,6 +261,13 @@ function applyQuestionBolding(text: string, s: IState): string {
                     /\(\s*(\d+(?:\s+\d+)*)\s*\)/g,
                     (_, nums: string) => `(\\textbf{${nums.replace(/\s+/g, ' ').trim()}})`,
                 );
+                // Checkerboard letter-pair groups: the generic uppercase pass has
+                // already bolded each pair, so collapse "( \textbf{OP} \textbf{BC} )"
+                // into "(\textbf{OP BC})", dropping the stray spaces inside the parens
+                p = p.replace(
+                    /\(\s*((?:\\textbf\{[A-Z]{2}\}\s*)+)\)/g,
+                    (_, grp: string) => `(\\textbf{${(grp.match(/[A-Z]{2}/g) ?? []).join(' ')}})`,
+                );
                 // Bold ordinal position ranges: "27th through 35th"
                 p = p.replace(
                     /\b(\d+(?:st|nd|rd|th) through \d+(?:st|nd|rd|th))\b/gi,
@@ -577,13 +584,13 @@ const FRAC_TABLE =
     '\\hline\n\\end{tabular}\n\\end{center}\n';
 
 const NIH_TABLE =
-    '\n\\begin{flushright}\\vspace{-1cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|}\n' +
+    '\n\\begin{flushright}\\vspace{-0.7cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|C{18pt}|}\n' +
     '\\hline\n&1&2&3&4&5  \\\\\n\\hline\n' +
     '1&&&&&  \\\\\n\\hline\n2&&&&&  \\\\\n\\hline\n3&&&&&  \\\\\n\\hline\n4&&&&&  \\\\\n\\hline\n5&&&&&  \\\\\n\\hline\n' +
     '\\end{tabular}}\\end{flushright} \n';
 
 const CB_TABLE =
-    '\n\\begin{flushright}\\vspace{-1.5cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|}\n' +
+    '\n\\begin{flushright}\\vspace{-0.7cm}{\\renewcommand{\\arraystretch}{1.2}\n\\begin{tabular}{m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|m{18pt}|}\n' +
     '\\cline{2-6}\n& \\multicolumn{1}{r|}{} &  &  &  &  \\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} & \\multicolumn{1}{r|}{} &  &  &  &  \\\\ \\hline\n' +
     '\\multicolumn{1}{|l|}{} &&&&&\\\\ \\hline\n' +
@@ -1404,6 +1411,40 @@ function renderCryptarithmWork(parsed: cryptarithmParsed): string {
 }
 
 /**
+ * Render a multiplication cryptarithm as hand-written work:
+ *   SLEEP*BED=RLPOVD+RBDBRR+OPLCS=COVERED  →
+ *       SLEEP
+ *   x     BED
+ *   ---------
+ *      RLPOVD
+ *     RBDBRR
+ *    OPLCS
+ *   ---------
+ *     COVERED
+ * Partial-product lineitems come pre-padded on the right (one column per digit
+ * of the multiplier already consumed), so right-alignment produces the stagger.
+ */
+function renderMultiplicationWork(parsed: cryptarithmParsed): string {
+    const items = parsed.lineitems;
+    let width = 0;
+    for (const item of items) {
+        width = Math.max(width, item.content.length);
+    }
+    // Leading column for the 'x' operator, matching the addition layout
+    const totalWidth = width + 2;
+    const lines: string[] = [];
+    for (const item of items) {
+        if (item.class === 'ovl') {
+            lines.push('-'.repeat(totalWidth));
+        }
+        const op = item.prefix === '*' ? 'x' : ' ';
+        const line = op + ' '.repeat(totalWidth - 1 - item.content.length) + item.content;
+        lines.push(line.replace(/\s+$/, ''));
+    }
+    return lines.join('\n');
+}
+
+/**
  * Format a cryptarithm equation string into the multi-line verbatim display used in test.tex.
  *
  * For addition/subtraction:
@@ -1435,21 +1476,13 @@ function formatCryptarithmEquation(eq: string, mapping: Record<string, number>):
     }
 
     if (hasMul) {
-        // Multiplication: A*B=C — show as simple columnar display
-        const eqSign = upper.indexOf('=');
-        const mulSign = upper.indexOf('*');
-        if (mulSign < 0 || eqSign < 0) return upper;
-        const multiplicand = upper.slice(0, mulSign);
-        const multiplier = upper.slice(mulSign + 1, eqSign);
-        const product = upper.slice(eqSign + 1);
-        const maxLen = Math.max(multiplicand.length, multiplier.length, product.length);
-        const w = maxLen + 3;
-        return [
-            ' '.repeat(w - multiplicand.length) + multiplicand,
-            'x' + ' '.repeat(w - 1 - multiplier.length) + multiplier,
-            '-'.repeat(w),
-            ' '.repeat(w - product.length) + product,
-        ].join('\n');
+        // Multiplication: parse so any worked partial products
+        // (A*B=P1+P2+P3=C) come out staggered like hand-written work
+        const parsed = parseCryptarithm(raw, 10);
+        if (parsed.lineitems.length > 1) {
+            return renderMultiplicationWork(parsed);
+        }
+        return upper;
     }
 
     // Addition / Subtraction: parse LHS and RHS of the '=' sign

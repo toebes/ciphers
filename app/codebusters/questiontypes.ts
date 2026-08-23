@@ -365,15 +365,15 @@ export class QuestionTypes {
         },
         {
             title: "Baconian Letter for Letter",
-            guidance: '[35-50 characters]',
-            len: [35, 50],
+            guidance: '[30-40 characters]',
+            len: [30, 40],
             group: 3, weight: 0.5, cipherType: ICipherType.Baconian,
             operation: 'let4let'
         },
         {
             title: "Baconian Sequence",
-            guidance: '[35-50 characters]',
-            len: [35, 50],
+            guidance: '[30-40 characters]',
+            len: [30, 40],
             group: 3, weight: 0.5, cipherType: ICipherType.Baconian,
             operation: 'sequence',
         },
@@ -464,10 +464,15 @@ export class QuestionTypes {
     /**
      * 
      * @param qTitle 
+     * @param langauge
      * @returns 
      */
-    public static GetQuestionTypeEntry(cipherType: ICipherType): QuestionType {
-        const choice = this.QuestionTypesEntries.findIndex((elem) => elem.cipherType === cipherType)
+    public static GetQuestionTypeEntry(cipherType: ICipherType, lang: string = 'en'): QuestionType {
+        let choice = this.QuestionTypesEntries.findIndex((elem) =>
+            elem.cipherType === cipherType && (elem.lang ?? 'en') === lang)
+        if (choice === -1) {
+            choice = this.QuestionTypesEntries.findIndex((elem) => elem.cipherType === cipherType)
+        }
         if (choice === -1) {
             return undefined
         }

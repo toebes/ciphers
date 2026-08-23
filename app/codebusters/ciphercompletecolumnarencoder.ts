@@ -6,6 +6,9 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { CipherEncoder, suggestedData } from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTTable } from '../common/jttable';
+import { JTFDialog } from "../common/jtfdialog";
+import { ctindex } from "./ciphermorseencoder";
+import { pickRandom } from "../common/pickrandom";
 
 type IColumnOrder = number[][];
 /*interface IColumnOrder {
@@ -780,6 +783,8 @@ class CompleteColumnarSolver extends CipherEncoder {
 
 }
 
+type Dictionary<T> = Record<number, T[]>;
+
 /**
  * CipherCompleteColumnarEncoder - This class handles all of the actions associated with encoding
  * a CompleteColumnar cipher.
@@ -1135,6 +1140,391 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         return hint
     }
 
+    /**
+     * Returns a substring based on letter positions only.
+     * Spaces are ignored when counting positions but are preserved
+     * in the returned string.
+     *
+     * @param text   Original string
+     * @param start  Zero-based starting letter index (spaces ignored)
+     * @param length Number of letters to include
+     */
+    public letterSubstring(
+        text: string,
+        start: number,
+        length: number
+    ): string | undefined {
+        if (length <= 0 || start < 0 || start >= text.length) {
+            return undefined;
+        }
+
+        let lettersFound = 0;
+        let result = "";
+
+        for (let i = start; i < text.length; i++) {
+            const ch = text[i];
+
+            result += ch;
+
+            if (/[A-Za-z]/.test(ch)) {
+                lettersFound++;
+
+                if (lettersFound === length) {
+                    return result;
+                }
+            }
+        }
+
+        // Not enough letters remained in the string.
+        return undefined;
+    }
+
+    /**
+     * Generate a dialog showing the choices for potential Cribs
+     */
+    public createSuggestCribDlg(title: string): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>')
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv)
+        dlgContents.append(
+            $('<div/>', { class: 'callout primary', id: 'suggestCribOpts' })
+        )
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append(
+                    $('<a/>', { class: 'button cribRegenerate', id: 'genbtn' }).text(
+                        'Regenerate'
+                    )
+                )
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        )
+        return JTFDialog('suggestCribDLG', title, dlgContents)
+    }
+
+
+    /**
+     * This is a routine used for debug.
+     * @param strings
+     * @param input
+     * @private
+     */
+    private checkCrib(strings: string[][], input: string): { crib: string; rank: number } {
+        let hint = '';
+        const inputCharacters = this.minimizeString(input);
+        if (inputCharacters.length < 4) {
+            return undefined;
+        }
+        if (DEBUG) {
+            console.log(`>${input}< gives ${inputCharacters.length} letters and provides hint '${hint} (i.e. ${hint.length} mappings).`);
+        }
+        return { crib: input, rank: hint.length };
+    };
+
+
+    /**
+     * This routine takes cr
+     * @param dictionary - different cribs
+     * @param count - how many results you want back
+     * @param weights - rough distribution for easy, medium, hard cribs (in that order).  An array of 3 numbers that should add up to 100
+     * @private
+     */
+    private chooseRandomEntries<T>(
+        dictionary: Dictionary<T>,
+        count: number,
+        weights: [number, number, number]
+    ): T[] {
+        if (count <= 0) {
+            return [];
+        }
+
+        if (weights.some(weight => weight < 0)) {
+            throw new Error("Weights cannot be negative");
+        }
+
+        if (weights[0] + weights[1] + weights[2] === 0) {
+            throw new Error("At least one weight must be greater than zero");
+        }
+
+        /*
+         * Determine the numeric range.
+         */
+        const keys = Object.keys(dictionary)
+            .map(Number)
+            .filter(Number.isFinite);
+
+        if (keys.length === 0) {
+            return [];
+        }
+
+        const min = Math.min(...keys);
+        const max = Math.max(...keys);
+        const range = max - min + 1;
+
+        const lowEnd = min + Math.ceil(range / 3) - 1;
+        const mediumEnd = min + Math.ceil(range * 2 / 3) - 1;
+
+        /*
+         * Build the three groups.
+         */
+        const groups: T[][] = [[], [], []];
+
+        for (const key of keys) {
+            const group =
+                key <= lowEnd ? 0 :
+                    key <= mediumEnd ? 1 :
+                        2;
+
+            groups[group].push(...dictionary[key]);
+        }
+
+        const result: T[] = [];
+
+        /*
+         * Select entries one at a time.
+         */
+        for (let selection = 0; selection < count; selection++) {
+
+            /*
+             * Find groups that still have entries and have a
+             * non-zero weight.
+             */
+            const availableGroups = [0, 1, 2].filter(
+                i => groups[i].length > 0 && weights[i] > 0
+            );
+
+            // Nothing left to select.
+            if (availableGroups.length === 0) {
+                break;
+            }
+
+            /*
+             * Randomly select a group according to its weight.
+             */
+            const totalWeight = availableGroups.reduce(
+                (sum, i) => sum + weights[i],
+                0
+            );
+
+            let random = Math.random() * totalWeight;
+            let selectedGroup = availableGroups[availableGroups.length - 1];
+
+            for (const i of availableGroups) {
+                random -= weights[i];
+
+                if (random < 0) {
+                    selectedGroup = i;
+                    break;
+                }
+            }
+
+            /*
+             * Randomly select an entry from that group.
+             */
+            const group = groups[selectedGroup];
+            const entryIndex = Math.floor(Math.random() * group.length);
+
+            group[entryIndex]['rank'] = selectedGroup + 1;
+            result.push(group[entryIndex]);
+
+            /*
+             * Remove the entry so it cannot be selected again.
+             */
+            group.splice(entryIndex, 1);
+        }
+
+        /*
+         * Randomize the final result so entries aren't grouped
+         * according to the order in which their groups were selected.
+         */
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+
+        return result;
+    }
+
+    public genCribSuggestions() {
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), 50);
+        let output = $("#suggestCribOpts");
+        let msgDiv = $('<div/>');
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        const cellMid = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellMid)//.append(cellRight)
+        output.empty().append(msgDiv).append(divAll);
+
+        //CRIB GENERATOR SETTINGS
+        let minCribLength = this.state.columns - 1;
+        let maxCribLength = this.state.columns + 2;
+        // Number of cribs to add to UI
+        let cribSelectCount = 14;
+        let randomizerWeight = 0.2;
+
+        const cleanCipher = this.cleanString(this.state.cipherString).toUpperCase();
+
+        // Make a copy and remove the slash word separator
+        const strings = this.makeReplacement(this.state.cipherString, 1000 /*this.maxEncodeWidth*/);
+        const hintStrings = strings.map(array => array.slice());
+
+        const letters = new Set<string>();
+        const cipherString = hintStrings[0][ctindex];
+        for (const ch of cipherString) {
+            if (ch >= 'A' && ch <= 'Z') {
+                letters.add(ch);
+            }
+        }
+
+        let potentialCribs = new Array<{
+            crib: string
+            rank: number
+        }>()
+
+        // calls check crib and returns some ideas
+        for (let i = 0; i <= cleanCipher.length - minCribLength; i++) {
+            if (cleanCipher[i] === ' ')
+                continue;
+            for (let j = minCribLength; j <= maxCribLength; j++) {
+                let cribChunk = this.letterSubstring(cleanCipher, i, j);
+                if (cribChunk === undefined) {
+                    continue;
+                }
+                let potentialCrib = this.checkCrib(strings, cribChunk);
+                if (potentialCrib != undefined) {
+                    potentialCribs.push(potentialCrib);
+                }
+            }
+        }
+        if (DEBUG) {
+            console.log(`There are ${potentialCribs.length} possible cribs of length ${minCribLength} to ${maxCribLength} characters.`);
+        }
+        const columnCount = this.state.columns;
+        const completeColumnarSolver = new CompleteColumnarSolver(this, columnCount, this.state.keyword, this.state.cipherString, this.state.crib);
+        const cipherText = completeColumnarSolver.getCompleteColumnarEncoding();
+        const cipherTextLength = completeColumnarSolver.getTextLength();
+        const rowCount = cipherTextLength / columnCount;
+        const rowLetters = []
+        const rowXCount = []
+
+        for (let i = 0; i < rowCount; i++) {
+            // The letters in this row.
+            rowLetters[i] = ''
+            // Holds the number of pad characters per row (could be a real letter, though)
+            rowXCount[i] = 0
+            for (let j = 0; j < cipherTextLength; j += rowCount) {
+                const letter = cipherText.substring(j + i, j + i + 1)
+                rowLetters[i] += letter
+                if (letter === 'X') {
+                    rowXCount[i]++
+                }
+            }
+        }
+
+        const distribution = {};
+        potentialCribs.forEach((c, i) => {
+            const cleanCrib = this.minimizeString(c.crib);
+            let safeCrib = cleanCrib
+
+            if (cleanCrib.length + 1 > columnCount) {
+                safeCrib = cleanCrib.substring(0, columnCount);
+            }
+            completeColumnarSolver.setCrib(safeCrib);
+
+            const cribLocations = this.findCribPositions(completeColumnarSolver, rowLetters, safeCrib);
+            if (distribution[cribLocations.length] === undefined) {
+                distribution[cribLocations.length] = [];
+                distribution[cribLocations.length].push(c);
+            } else {
+                distribution[cribLocations.length].push(c);
+            }
+
+        });
+
+        msgDiv.append(
+            $('<div/>').text(
+                `The difficulty suggested for each crib is pertinent only to the possible cribs in this problem.
+                It is simply a rough gauge of the number of possible column ordering combinations for that crib.`)
+        );
+        //Add selection amount to the UI
+
+        // Always Take 2 trivial cribs, meaning it will only yeild 1 column order combination.
+        const trivialCribs = pickRandom(distribution[1], 2);
+        // Remove trivial entries
+        delete distribution[1];
+
+
+        // Pick random cribs with variable distributed difficulty based on test type.
+        const pickedCribs = trivialCribs.concat(this.chooseRandomEntries(distribution, 12,
+            (this.thisTestType === ITestType.bstate || this.thisTestType === ITestType.cstate ? [25, 25, 50] : [25, 50, 25])));
+
+        // Display the picked cribs in the dialog
+        pickedCribs.forEach((c: {crib: string, rank: number}, i) => {
+            let difficulty = 'Average';
+            const ranking = c.rank;
+            if (ranking === 2) {
+                difficulty = 'Easier';
+            } else if (ranking === 3) {
+                difficulty = 'Harder';
+            } else if (ranking === 0) {
+                difficulty = 'Trivial';
+            }
+
+            let div = $('<div/>', { class: "kwchoice" });
+
+            let useButton = $("<a/>", {
+                'data-crib': c.crib,
+                type: "button",
+                class: "button rounded cribset abbuttons",
+            }).html(`Use`);
+            div.append(useButton);
+            div.append(`${c.crib} <em>[${difficulty}]</em>`);
+
+            if (cribSelectCount % 2 === 0) {
+                cellLeft.append(div);
+            } else {
+                cellMid.append(div);
+            }
+            cribSelectCount--;
+        });
+        this.attachHandlers();
+    }
+
+    /**
+     * Start the process to suggest cribs
+     */
+    public suggestCrib(): void {
+        this.loadLanguageDictionary('en').then(() => {
+            $('#suggestCribOpts')
+                .empty()
+                .text('Generating crib suggestions... (this may take a little while)');
+            $('#gencrib').attr('disabled', 'disabled');
+            $('#suggestCribDLG').foundation('open');
+            // Generate the crib suggestions after a brief pause to allow the dialog to open
+            setTimeout(() => {
+                this.genCribSuggestions();
+            }, 1)
+        });
+    }
+
+    /**
+     * Set a keyword and offset from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useCrib(elem: HTMLElement): void {
+        const selectedUseButton = $(elem);
+        const text = selectedUseButton.attr('data-crib');
+        // Give an undo state s
+        this.markUndo(null);
+        this.setCrib(text);
+        $('#suggestCribDLG').foundation('close')
+        this.updateOutput();
+    }
+
     public attachHandlers(): void {
         super.attachHandlers();
 
@@ -1198,6 +1588,21 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     console.log(`Generated random column order: ${columnOrder}`);
                 }
             });
+        $('#suggestcrib')
+            .off('click')
+            .on('click', () => {
+                this.suggestCrib()
+            });
+        $('.cribset')
+            .off('click')
+            .on('click', (e) => {
+                this.useCrib(e.target)
+            })
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions()
+            });
     }
 
     private generateRandomColumnOrder(): string {
@@ -1224,8 +1629,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         $('#columns').val(this.state.columns);
         $('#columnorder').val(this.state.keyword);
         $('#crib').val(this.state.crib);
-        // const v = String(this.state.isRailRange);
-        // $('#isRailRange').val(v);
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -1251,8 +1654,15 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         // Create an input for the column order in the cryptanalysis case.
         inputbox.append(JTFLabeledInput('Column Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4', randomizeButton));
 
-        inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4'));
+        const suggestCribButton = $('<a/>', {
+            type: 'button',
+            class: 'button primary tight',
+            id: 'suggestcrib',
+        }).text('Suggest Crib')
+
+        inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4', suggestCribButton));
         result.append(inputbox);
+        result.append(this.createSuggestCribDlg('Suggest Crib'))
 
         return result;
     }
@@ -1638,9 +2048,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
             if (cleanCrib.length + 1 > columnCount) {
                 safeCrib = cleanCrib.substring(0, columnCount);
-                ccs.setCrib(safeCrib);
             }
-            let cribLocation = this.checkConsecutiveRowsForCrib(ccs, safeCrib, rowLetters);
+            ccs.setCrib(safeCrib)
+            let cribLocation = this.findCribPositions(ccs, rowLetters, safeCrib);
             if (cribLocation.length > 0) {
                 const rowDetails = {};
                 result.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + cribLocation.length + ' positions of the ' + columnCount + ' column encoding:'));
@@ -1661,7 +2071,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                         }
 
                         // !!!!!!!!!!!!!
-                        div.append(`Row ${cribInfo[i][0] + 1} ${cribCountInfo} crib letters in it (`);
+                        div.append(`Row ${cribInfo[i][0]} ${cribCountInfo} crib letters in it (`);
                         div.append(cleanCrib.substring(0, offset));
                         div.append($('<span>').addClass('morefocus').text(cleanCrib.substring(offset, offset + cribInfo[i][1])));
                         div.append(cleanCrib.substring(offset + cribInfo[i][1])).append(`).`);
@@ -1730,155 +2140,123 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         return false;
     }
 
-    private checkConsecutiveRowsForCrib(completeColumnarSolver: CompleteColumnarSolver, crib: string, rowLetters: string[]): any[] {
+    private findCribPositions(
+        completeColumnarSolver: CompleteColumnarSolver,
+        cipherText: string[],
+        crib: string
+    ): any [] {
+//    ): { rows: [number, number][] }[] {
+        const rows = cipherText.length;
+        const cols = cipherText[0]?.length ?? 0;
 
-        let columnsFitEncoding = [];
-
-        const cribLetters = crib.split('');
-
-        // Create a object that contains the counts of letters that make up the crib.  It will allow us to
-        // determine if the crib letters exist over 2 rows.
-        const cribSignature = {};
-        for (const letter of cribLetters) {
-            if (cribSignature[letter] === undefined) {
-                cribSignature[letter] = 1;
-            } else {
-                cribSignature[letter] = cribSignature[letter] + 1;
-            }
+        if (rows === 0 || cols === 0 || crib.length === 0) {
+            return [];
+        }
+        if (cipherText.some(row => row.length !== cols)) {
+            throw new Error("cipherText must contain strings of equal length");
         }
 
-        for (let rowNumber = 0; rowNumber < rowLetters.length; rowNumber++) {
-            let sigMatch = 0;
-            let cribCharacters = 0;
-            const firstRowFoundIndexes = []
-            const secondRowFoundIndexes = [];
-            let combinedRows = ''
-            if (rowNumber < rowLetters.length - 1) {
-                // Combine the i row and the i+1 row...
-                combinedRows = rowLetters[rowNumber] + rowLetters[rowNumber + 1];
+        // Only consider as many crib characters as can fit in a single row.
+        crib = crib.substring(0, cols);
 
-                // ...then create a 'rows' signature.
-                let rowSignature = {};
-                const combinedRowsLetters = combinedRows.split('');
-                for (const letter of combinedRowsLetters) {
-                    if (rowSignature[letter] === undefined) {
-                        rowSignature[letter] = 1;
-                    } else {
-                        rowSignature[letter] += 1;
-                    }
+        const results: { rows: [number, number][] }[] = [];
+
+        function canMatchRows(
+            rowNumbers: number[],
+            rowCounts: number[]
+        ): boolean {
+            const usedColumns = new Set<number>();
+
+            const positions: { char: string; row: number }[] = [];
+            let cribIndex = 0;
+
+            for (let i = 0; i < rowNumbers.length; i++) {
+                for (let j = 0; j < rowCounts[i]; j++) {
+                    positions.push({
+                        char: crib[cribIndex++],
+                        row: rowNumbers[i]
+                    });
                 }
+            }
 
-                // Compare the crib signature to the combined rows signature to see if the crib is in these rows.
-                for (const key in cribSignature) {
-                    if (DEBUG) {
-                        console.log('Checking key: ' + key);
-                    }
-                    if (rowSignature[key] !== undefined) {
-                        cribCharacters++;
-                        if (rowSignature[key] === cribSignature[key]) {
-                            // This is a absolutely known crib letter position.
-                            if (DEBUG) {
-                                console.log('Matched: ' + rowSignature[key] + ' and ' + cribSignature[key]);
-                                console.log('Got a single match!');
-                            }
-                            sigMatch++;
-                        }
-                        else if (rowSignature[key] >= cribSignature[key]) {
-                            // potentially a couple places for the crib letter.
-                            if (DEBUG) {
-                                console.log(`Letter ${key} is found in ${rowSignature[key]} places.`);
-                            }
-                            sigMatch++;
-                        }
-
-                    }
+            function search(position: number): boolean {
+                if (position === positions.length) {
+                    return true;
                 }
-                // Check if a match was found for all letters in the crib...
-                if (sigMatch === Object.keys(cribSignature).length) {
-                    // Yes this might be one, return true.
-                    if (DEBUG) {
-                        console.log('!!!!!!!!!!!!!!!!!!!!!!!!! Maybe a match...');
-                    }
-                    // Find where the crib letters are split between the rows if at all...
-                    let firstRowCount = 0;
-                    let secondRowCount = 0;
+                const { char, row } = positions[position];
+                const cipherRow = cipherText[row - 1];
 
-                    // Search first row in order of crib letters until a crib letter is not found and avoid duplicates
-                    for (let letterIndex = 0; letterIndex < cribLetters.length; letterIndex++) {
-                        let foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex]);;
-                        while (firstRowFoundIndexes.includes(foundCribLetterIndex) && foundCribLetterIndex !== -1) {
-                            foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex], foundCribLetterIndex + 1);
-                        }
-
-                        if (foundCribLetterIndex !== -1/* && firstRowFoundIndexes.indexOf(foundCribLetterIndex) === -1*/) {
-                            firstRowFoundIndexes.push(foundCribLetterIndex);
-                            firstRowCount++;
-                        } else {
-                            break;
-                        }
-                    }
-                    // If no part of the crib was found in the first row, go to the next row (it will become the first row)
-                    if (firstRowCount === 0) {
+                for (let col = 0; col < cols; col++) {
+                    if (usedColumns.has(col)) {
                         continue;
                     }
-                    // Now search the second row for the remaining crib letters.  This ensures a crib that is split
-                    // does not have a letter 'behind' it.  This does not prevent a bad crib choice, but we should
-                    // be able to point it out later.
-                    // check crib again, starting from the back.
-                    for (let letterIndex = cribLetters.length - 1; letterIndex >= 0; letterIndex--) {
-                        let foundCribLetterIndex = rowLetters[rowNumber + 1].indexOf(cribLetters[letterIndex]);
-                        if (foundCribLetterIndex !== -1) {
-                            secondRowFoundIndexes.push(foundCribLetterIndex);
-                            secondRowCount++;
-                        } else {
-                            break;
-                        }
+                    if (cipherRow[col] !== char) {
+                        continue;
                     }
-
-                    const overlap = (firstRowCount + secondRowCount) - cribLetters.length;
-
-                    for (let x = 0; x <= overlap; x++) {
-                        if (cribLetters.length === firstRowCount + secondRowCount - overlap) {
-                            let skipRowCount = 0;
-                            let rowCribPlacement = [];
-                            if (firstRowCount > 0) {
-                                rowCribPlacement.push([rowNumber, firstRowCount - (overlap - x)]);
-                            } else {
-                                skipRowCount = 0;
-                            }
-                            if (secondRowCount > 0) {
-                                rowCribPlacement.push([rowNumber + 1, secondRowCount - x]);
-                            } else {
-                                skipRowCount = 0;
-                            }
-                            const o = {};
-                            o['rows'] = rowCribPlacement;
-
-                            columnsFitEncoding.push(o);
-                            const cribSplitInformation = new CribSplitInformation(cribLetters.length, rowLetters);
-                            completeColumnarSolver.addColumnsToAnalyze(rowLetters[rowNumber].length, cribSplitInformation);
-
-                            cribSplitInformation.setSplitInformation(rowNumber, firstRowCount - (overlap - x), secondRowCount - x);
-
-                            if (DEBUG) {
-                                console.log('This is it!!!');
-                            }
-                            //columnsFitEncoding = true;
-                            rowNumber += skipRowCount;
-                        }
+                    usedColumns.add(col);
+                    if (search(position + 1)) {
+                        return true;
                     }
+                    usedColumns.delete(col);
                 }
+
+                return false;
             }
-            if (firstRowFoundIndexes.length > 0 || secondRowFoundIndexes.length > 0) {
-                if (DEBUG) {
-                    console.log(`In the two rows starting at ${rowNumber}, the number of crib characters found is:
-                        ${cribCharacters}.  >${combinedRows}- first row: ${firstRowFoundIndexes.join(',')};
-                        second row: ${secondRowFoundIndexes.join(',')}`);
+
+            return search(0);
+        }
+
+        for (let startRow = 1; startRow <= rows; startRow++) {
+            // Crib entirely within one row.
+            if (canMatchRows([startRow], [crib.length])) {
+                results.push({
+                    rows: [[startRow, crib.length]],
+                })
+                const cribSplitInformation = new CribSplitInformation(
+                    crib.length,
+                    cipherText
+                )
+                completeColumnarSolver.addColumnsToAnalyze(
+                    cipherText[startRow].length,
+                    cribSplitInformation
+                )
+                cribSplitInformation.setSplitInformation(startRow - 1, crib.length, 0)
+            }
+
+            // Crib split across two consecutive rows.
+            if (startRow < rows) {
+                for (let firstCount = 1; firstCount < crib.length; firstCount++) {
+                    const secondCount = crib.length - firstCount
+
+                    if (
+                        canMatchRows([startRow, startRow + 1], [firstCount, secondCount])
+                    ) {
+                        results.push({
+                            rows: [
+                                [startRow, firstCount],
+                                [startRow + 1, secondCount],
+                            ],
+                        })
+                        const cribSplitInformation = new CribSplitInformation(
+                            crib.length,
+                            cipherText
+                        )
+                        completeColumnarSolver.addColumnsToAnalyze(
+                            cipherText[startRow].length,
+                            cribSplitInformation
+                        )
+                        cribSplitInformation.setSplitInformation(
+                            startRow - 1,
+                            firstCount,
+                            secondCount
+                        )
+                    }
                 }
             }
         }
-        return columnsFitEncoding;
+        return results;
     }
+
 
     private summarizeXAnalysis(columnCount: number, rowXCount: number[]): string {
         let returnValue: string = '';

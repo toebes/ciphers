@@ -1558,7 +1558,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             const startpos = this.getPositionText(cribpos.position + 1);
             const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
             hinttext += ` The ${startpos} through ${endpos} cipher units (${this.genMonoText(cribpos.ciphertext.join(' '))})
-                decode to be ${this.genMonoText(cribpos.plaintext)}. `
+                decode to ${this.genMonoText(cribpos.plaintext)}. `
         }
         return hinttext
     }

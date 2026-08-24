@@ -897,6 +897,15 @@ export class CipherEncoder extends CipherHandler {
 
         $('#chi').text(statusText);
         this.validateQuestion();
+        const questionKey = this.makeQuestionKey(this.state.question);
+        if (!this.questionsUsed.has(questionKey)) {
+            this.questionsUsed.add(questionKey);
+        } else {
+            let msg = '';
+            this.setErrorMsg(msg, 'vq');
+                msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
+            this.setErrorMsg(msg, 'pq');
+        }
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
@@ -1231,7 +1240,7 @@ export class CipherEncoder extends CipherHandler {
             "The following quote${author} has been encoded using the ${cipherName} Cipher.",
             "The following quote${author} has been encoded using the ${cipherName} Cipher. What did they say?",
             "The following ${cipherName} Cipher encodes a quote${author}",
-            "An observation${author} has been encoded as a ${cipherName} Cipher.",
+            `An observation$\{author} has been encoded using the $\{cipherName} Cipher.`,
         ]
         if (extraStrings !== undefined) {
             choices = choices.concat(extraStrings)
@@ -2158,7 +2167,7 @@ export class CipherEncoder extends CipherHandler {
                 'A sticky note on the mirror contained ${this.state.author} written in ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'The cafeteria receipt printed ${this.state.author} using the ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'Every dawn the digital sign displays ${this.state.author} encoded with ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'Someone etched ${this.state.author} into the desk in ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Someone used a laser to etch ${this.state.author} into the window in ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'The vending machine gave you a slip with ${this.state.author} hidden in ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'Your calculator briefly showed ${this.state.author} encrypted as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'A paper airplane carried ${this.state.author} encoded using the ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
@@ -2196,13 +2205,13 @@ export class CipherEncoder extends CipherHandler {
         }
 
         const plainTemplates = [
-            'A quote${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2} for you to decode.${hinttext}${operationtext}',
-            'Solve this quote${this.genAuthor()}${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'Decrypt the following cipher text${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'A phrase${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
+            'A quote${this.genAuthor()}${langtext} has been encoded using the ${fixedName} cipher${operationtext2} for you to decode.${hinttext}${operationtext}',
+            'Solve this quote${this.genAuthor()}${langtext} that has been encoded using the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            'Decrypt the following ciphertext${langtext} that has been encoded using the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            'A phrase${this.genAuthor()}${langtext} has been encoded using the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
             'A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} Cipher has been received.${hinttext}${operationtext}',
-            'The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
+            'A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been received.${hinttext}${operationtext}',
+            'The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
         ];
         for (questionTemplate of plainTemplates) {
             if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
@@ -2214,74 +2223,74 @@ export class CipherEncoder extends CipherHandler {
 
         questionTemplates = [
             'Someone passed you a piece of paper with this ${fixedName} encoded quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}',
-            'While scrolling through an old floppy disk labeled "TOP SECRET", you discovered this quote${this.genAuthor()}${langtext} hidden as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Your robot vacuum just projected this message onto the ceiling. It\'s a quote${this.genAuthor()}${langtext} encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A mysterious QR code on the back of a cereal box leads to this encrypted quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
+            'While scrolling through an old floppy disk labeled "TOP SECRET", you discovered this quote${this.genAuthor()}${langtext} hidden as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "Your robot vacuum just projected this message onto the ceiling. It's a quote${this.genAuthor()}${langtext} encoded using the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'A mysterious QR code on the back of a cereal box leads to this encrypted quote${this.genAuthor()}${langtext} using the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
             'Etched into the surface of a melted vinyl record, you found this ${fixedName}-encrypted quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your smart fridge started flashing this cryptic message at 3 a.m. It\'s${this.genAuthor()}${langtext} encoded in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Hidden in the source code of a retro video game, this ${fixedName} puzzle${langtext} reveals a quote${this.genAuthor()}${operationtext2}.${hinttext}${operationtext}',
-            'Your drone photographed some weird markings in a parking lot. Turns out it\'s a quote${this.genAuthor()}${langtext} in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Scratched onto the lens of an abandoned telescope, decode this ${fixedName} quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            "Your smart fridge started flashing this cryptic message at 3 a.m. It's${this.genAuthor()}${langtext} encoded using the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'Hidden in the source code of a retro video game, this ${fixedName} ciphertext puzzle${langtext} reveals a quote${this.genAuthor()}${operationtext2}.${hinttext}${operationtext}',
+            "Your drone photographed some weird markings in a parking lot. Turns out it's a quote${this.genAuthor()}${langtext} in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'Scratched onto the lens of an abandoned telescope, decode this ${fixedName} ciphertext quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
             'A time-capsule USB drive from 1983 just auto-opened with this ${fixedName}-encrypted message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your chemistry lab\'s fume hood started beeping in Morse… but the real puzzle is this ${fixedName} quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your 3D printer paused mid-print to extrude this mysterious ${fixedName} string${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            "Your chemistry lab's fume hood started beeping in Morse… but the real puzzle is this ${fixedName} ciphertext quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
+            'Your 3D printer paused mid-print to extrude this mysterious ${fixedName} ciphertext string${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
             'Your graphing calculator won’t stop displaying this ${fixedName} puzzle${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Found on a microchip inside a disassembled robotics kit: this ${fixedName} Cipher${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your school\'s intercom crackled to life with static… then spelled out this ${fixedName} message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            'Found on a microchip inside a disassembled robotics kit: ${cipherAorAn} ${fixedName} cipher${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            "Your school's intercom crackled to life with static… then spelled out this ${fixedName} ciphertext message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
             'A vending machine just dispensed a candy wrapper with this ${fixedName} code${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your lab partner\'s retainer case clicked open to reveal this ${fixedName}-encrypted quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Found taped under a desk in study hall: this ${fixedName} puzzle${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            "Your lab partner's retainer case clicked open to reveal this ${fixedName}-encrypted quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
+            'Found taped under a desk in study hall: ${cipherAorAn} ${fixedName} ciphertext puzzle${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
             'A mysterious balloon release at the science fair carried this ${fixedName} banner${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your Bunsen burner\'s flame suddenly spelled this ${fixedName} message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'A glitch in the school\'s grading portal displayed this ${fixedName} string${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            "Your Bunsen burner's flame suddenly spelled this ${fixedName} ciphertext message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
+            "A glitch in the school's grading portal displayed this ${fixedName} string${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
             'Scrawled in dry-erase marker on the whiteboard after hours: this ${fixedName} encoded quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your microscope slide prep strangely revealed this ${fixedName} message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Found inside a dissected frog\'s stomach (plastic, don’t worry): this ${fixedName} note${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'A message in a bottle washed up in the school\'s decorative fountain—decode this ${fixedName} cipher text${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Your lava lamp started bubbling in ${fixedName} code${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'A message flashes briefly on a malfunctioning computer screen. It turns out to be a quote${this.genAuthor()}${langtext} written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Archaeologists unearth a stone tablet inscribed with a message. It\'s a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You intercept a mysterious radio signal. Decoding it reveals a quote${this.genAuthor()}${langtext} encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A message was left on the whiteboard after science club. It\'s a quote${this.genAuthor()}${langtext} encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'While repairing an old telescope, you find a note hidden in the tube. The message is a quote${this.genAuthor()}${langtext} written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Someone left this coded message in the school lab. You are told it\'s a quote${this.genAuthor()}${langtext} encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A fragment of text is discovered in a time capsule from 1965. It\'s a quote${this.genAuthor()}${langtext} encrypted as ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'The message below was intercepted from an experimental satellite transmission. It contains a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You open a forgotten email draft saved in the school\'s computer system. It holds a quote${this.genAuthor()}${langtext} encoded in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A weathered note is found inside an old science textbook. The writing appears to be a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A riddle is discovered taped under a chemistry lab bench. It\'s a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You receive an anonymous text message containing a coded passage. It\'s said to be a quote${this.genAuthor()}${langtext}, encrypted with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'An explorer\'s journal mentions a “hidden truth” encoded below. It turns out to be a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'While analyzing the background noise from a physics experiment, you detect this pattern. It\'s a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You stumble across this encoded text on an old floppy disk labeled “Project Discovery.” It\'s a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A note falls out of a borrowed library book. The message is a quote${this.genAuthor()}${langtext}, written as ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'Someone left a paper with the message below on the copy machine in the office. It\'s a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Astronomers notice this repeating sequence in deep-space data. It\'s actually a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You find this encoded line written in invisible ink on a lab safety poster. It\'s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A coded message is discovered inside a fortune cookie. It turns out to be a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'While debugging a program, you find this hidden in the comments. It\'s a quote${this.genAuthor()}${langtext}, encrypted with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Your science fair project logs contain a mysterious string of letters. It\'s a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Someone has left a coded message on the classroom 3D printer\'s display. You’re told it\'s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'You uncover this encoded note tucked behind a microscope slide. It\'s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'This coded passage was discovered in the margin of a physics exam from years ago. It\'s a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'During a field trip, you notice these strange markings on a metal plaque. They represent a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'You find an encoded message in the test tube rack, written on masking tape. It\'s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'This coded note is discovered inside a sealed envelope labeled “Confidential.” It\'s a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'You receive this puzzling text during a live science broadcast. It contains a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Someone left this encrypted quote scribbled on the chalkboard before class began. It\'s a quote${this.genAuthor()}${langtext}, written as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'This string of symbols appears on the display of a malfunctioning calculator. It hides a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'A mysterious postcard arrives from an unknown sender. It contains a coded quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'An old robot prototype suddenly prints this encoded text. It\'s a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You find a coded sequence scratched into the surface of a lab stool. It turns out to be a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'The janitor found this strange paper strip under a Bunsen burner. It\'s a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'Your lab partner discovered this pattern on the back of a graphing calculator. It\'s a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'You receive this cryptic message from the future through an online time capsule. It\'s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'The message below was encoded into the DNA sequence of a synthetic organism. It translates to a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'A strange code appears in the footer of a document you print from the lab computer. It\'s a quote${this.genAuthor()}${langtext}, encoded in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'Someone taped a piece of paper with this sequence onto the back of a trophy from last year\'s Science Olympiad. It\'s a quote${this.genAuthor()}${langtext}, written using ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}',
-            'A coded message appears after you shine a UV light on a classroom poster. It turns out to be a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}',
-            'This code is found written in chalk on the sidewalk outside the science building. It\'s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}'
-        ];
+            'Your microscope slide prep strangely revealed this ${fixedName} ciphertext message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            "Found inside a dissected frog's stomach (plastic, don’t worry): this ${fixedName} ciphertext note${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
+            "A message in a bottle washed up in the school's decorative fountain—decode this ${fixedName} ciphertext${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}",
+            'Your lava lamp started bubbling in ${fixedName} ciphertext code${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}',
+            'A message flashes briefly on a malfunctioning computer screen. It turns out to be a quote${this.genAuthor()}${langtext} written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "Archaeologists unearth a stone tablet inscribed with a message. It's a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'You intercept a mysterious radio signal. Decoding it reveals a quote${this.genAuthor()}${langtext} encrypted as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "A message was left on the whiteboard after science club. It's a quote${this.genAuthor()}${langtext} encoded using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'While repairing an old telescope, you find a note hidden in the tube. The message is a quote${this.genAuthor()}${langtext} written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "Someone left this coded message in the school lab. You are told it's a quote${this.genAuthor()}${langtext} encoded with ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "A fragment of text is discovered in a time capsule from 1965. It's a quote${this.genAuthor()}${langtext} encrypted as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'The message below was intercepted from an experimental satellite transmission. It contains a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "You open a forgotten email draft saved in the school's computer system. It holds a quote${this.genAuthor()}${langtext} encoded in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'A weathered note is found inside an old science textbook. The writing appears to be a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "A riddle is discovered taped under a chemistry lab bench. It's a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "You get an anonymous text message containing a coded passage. It's said to be a quote${this.genAuthor()}${langtext}, encrypted with ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "An explorer's journal mentions a “hidden truth” encoded below. It turns out to be a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "While analyzing the background noise from a physics experiment, you detect this pattern. It's a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "You stumble across this encoded text on an old floppy disk labeled “Project Discovery.” It's a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'A note falls out of a borrowed library book. The message is a quote${this.genAuthor()}${langtext}, written as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "Someone left a paper with the message below on the copy machine in the office. It's a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "Astronomers notice this repeating sequence in deep-space data. It's actually a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "You find this encoded line written in invisible ink on a lab safety poster. It's a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'A coded message is discovered inside a fortune cookie. It turns out to be a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "While debugging a program, you find this hidden in the comments. It's a quote${this.genAuthor()}${langtext}, encrypted with ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "Your science fair project logs contain a mysterious string of letters. It's a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "Someone has left a coded message on the classroom 3D printer's display. You’re told it's a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "You uncover this encoded note tucked behind a microscope slide. It's a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "This coded passage was discovered in the margin of a physics exam from years ago. It's a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'During a field trip, you notice these strange markings on a metal plaque. They represent a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "You find an encoded message in the test tube rack, written on masking tape. It's a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "This coded note is discovered inside a sealed envelope labeled “Confidential.” It's a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'You receive this puzzling text during a live science broadcast. It contains a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "Someone left this encrypted quote scribbled on the chalkboard before class began. It's a quote${this.genAuthor()}${langtext}, written as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'This string of symbols appears on the display of a malfunctioning calculator. It hides a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            'A mysterious postcard arrives from an unknown sender. It contains a coded quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "An old robot prototype suddenly prints this encoded text. It's a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'You find a coded sequence scratched into the surface of a lab stool. It turns out to be a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "The janitor found this strange paper strip under a Bunsen burner. It's a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "Your lab partner discovered this pattern on the back of a graphing calculator. It's a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "You receive this cryptic message from the future through an online time capsule. It's a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'The encoded message below was inserted into the DNA sequence of a synthetic organism. It translates to a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "A strange code appears in the footer of a document you print from the lab computer. It's a quote${this.genAuthor()}${langtext}, encoded in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            "Someone taped a piece of paper with this sequence onto the back of a trophy from last year's Science Olympiad. It's a quote${this.genAuthor()}${langtext}, written using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+            'A coded message appears after you shine a UV light on a classroom poster. It turns out to be a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}',
+            "This code is found written in chalk on the sidewalk outside the science building. It's a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}",
+        ]
 
         for (questionTemplate of questionTemplates) {
             if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
@@ -2291,13 +2300,13 @@ export class CipherEncoder extends CipherHandler {
 
         if (hinttext !== '') {
             if (this.state.operation === 'keyword') {
-                questionTemplate = 'Solve this ${fixedName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}';
+                questionTemplate = 'Solve this ${fixedName} cipher${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}';
                 if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
                     qOptions.push(this.fillTemplate(questionTemplate, values));
                 }
             }
             else {
-                questionTemplate = 'Solve this ${fixedName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}';
+                questionTemplate = 'Solve this ${fixedName} cipher ${this.genAuthor()}${langtext}${operationtext2}.${hinttext}';
                 if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
                     qOptions.push(this.fillTemplate(questionTemplate, values));
                 }
@@ -2306,31 +2315,31 @@ export class CipherEncoder extends CipherHandler {
         }
         if (this.state.author !== undefined && this.state.author !== '' && !/unknown/i.test(this.state.author.trim())) {
             questionTemplates = [
-                '${this.state.author} has been heard to say the following phrase that has been encoded using the ${fixedName} Cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
-                '${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                '${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                '${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'Upon searching a room, the following were found on scraps of paper. You are told it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'You came across the following written on a wall in a cave. You are told that it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'You found the following carved into the bark of a hollow log. You are told that it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'You intercepted this transmission from a rogue weather balloon. Decode the ${fixedName} version${langtext} of ${this.state.author}\'s famous words${operationtext2}.${hinttext}${operationtext}',
-                'A laser-etched message on the inside of a geodes crystal reads: solve this ${fixedName} version${langtext} of ${this.state.author}\'s wisdom${operationtext2}.${hinttext}${operationtext}',
-                'Found inside a hollowed-out periodic table book: this ${fixedName} Cipher${langtext} hides ${this.state.author}\'s insight${operationtext2}.${hinttext}${operationtext}',
-                'A glitchy hologram in the school planetarium displays this ${fixedName} version${langtext} of ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
-                'Written in glow-in-the-dark ink on the ceiling of the bio lab, uncover this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'Frozen inside an ice core sample from Antarctica: this ${fixedName} message${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'A mysterious app update added this ${fixedName} lock screen${langtext}—it\'s actually ${this.state.author}\'s quote${operationtext2}.${hinttext}${operationtext}',
-                'Projected by a broken laser pointer during physics class, solve this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'The school\'s ancient overhead projector flickered and burned this ${fixedName} Cipher message${langtext} onto the screen—decode the quote from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'Your solar-powered calculator started flashing this ${fixedName} sequence${langtext}—it\'s ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
-                'Etched into the bottom of the cafeteria\'s mystery-cookie tray: this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'Hidden in the margin of a library book on black holes: decode this ${fixedName} version${langtext} of ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'The gym\'s scoreboard glitched during dodgeball to show this ${fixedName} Cipher${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'Your school-issued Chromebook\'s login screen hijacked itself with this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-                'The marching band\'s sheet music rearranged itself into this ${fixedName} pattern${langtext}—it\'s a quote by ${this.state.author} encoded${operationtext2}.${hinttext}${operationtext}',
-                'You discover a scrap of paper tucked inside an old lab notebook. It contains a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'You find this encoded quote written inside the cover of a chemistry reference book. It\'s attributed to ${this.state.author}, encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            ];
+                'The world-renowned ${this.state.author} has been heard to say the following phrase that has been encoded using the ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'The world-famous ${this.state.author} was often heard to say the following phrase that has been encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Internationally known ${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Known around the world, ${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                "After a thorough search of a room, the following were found on scraps of paper. You are told it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}",
+                "The wall of a cave has some interesting marks etched on it. You are told that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}",
+                "A hollow log has something carved into the bark. You are told that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}",
+                "You intercepted this transmission from a rogue weather balloon. Decode the ${fixedName} ciphertext version${langtext} of ${this.state.author}'s famous words${operationtext2}.${hinttext}${operationtext}",
+                "A laser-etched message on the inside of a geode's crystal reads: solve this ${fixedName} version${langtext} of ${this.state.author}'s wisdom${operationtext2}.${hinttext}${operationtext}",
+                "Found inside a hollowed-out periodic table book: ${cipherAorAn} ${fixedName} cipher${langtext} hides ${this.state.author}'s insight${operationtext2}.${hinttext}${operationtext}",
+                "A glitchy hologram in the school planetarium displays this ${fixedName} version${langtext} of ${this.state.author}'s words${operationtext2}.${hinttext}${operationtext}",
+                'Written in glow-in-the-dark ink on the ceiling of the bio lab, uncover this ${fixedName} ciphertext quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Frozen inside an ice core sample from Antarctica: ${cipherAorAn} ${fixedName} ciphertext message${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                "A mysterious app update added this ${fixedName} lock screen${langtext}—it's actually ${this.state.author}'s quote${operationtext2}.${hinttext}${operationtext}",
+                'Projected by a broken laser pointer during physics class, solve this ${fixedName} ciphertext quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                "The school's ancient overhead projector flickered and burned this ${fixedName} ciphertext message${langtext} onto the screen—decode the words from ${this.state.author}${operationtext2}.${hinttext}${operationtext}",
+                "Your solar-powered calculator started flashing this ${fixedName} ciphertext sequence${langtext}—it's ${this.state.author}'s words${operationtext2}.${hinttext}${operationtext}",
+                "Etched into the bottom of the cafeteria's mystery-cookie tray: ${cipherAorAn} ${fixedName} ciphertext quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}",
+                'Hidden in the margin of a library book on black holes: decode this ${fixedName} ciphertext version${langtext} of ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                "The gym's scoreboard glitched during dodgeball to show this ${fixedName} cipher${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}",
+                "Your school-issued Chromebook's login screen hijacked itself with this ${fixedName} ciphertext quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}",
+                "The marching band's sheet music rearranged itself into a weird pattern${langtext}—it's a quote by ${this.state.author} encoded${operationtext2}.${hinttext}${operationtext}",
+                'You discover a scrap of paper tucked inside an old lab notebook. It contains a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                "You find this encoded quote written inside the cover of a chemistry reference book. It's attributed to ${this.state.author}, encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}",
+            ]
             for (questionTemplate of questionTemplates) {
                 if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
                     qOptions.push(this.fillTemplate(questionTemplate, values));
@@ -2339,9 +2348,9 @@ export class CipherEncoder extends CipherHandler {
         }
         else {
             questionTemplates = [
-                'Upon searching a room, the following were found on scraps of paper. You realize it\'s encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'You came across the following written on a wall in a cave. You notice that it\'s encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-                'You found the following carved into the bark of a hollow log. You recognize that it\'s encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Upon searching a room, the following were found on scraps of paper. You realize it\'s encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'You came across the following written on a wall in a cave. You notice that it\'s encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'You found the following carved into the bark of a hollow log. You recognize that it\'s encoded as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
             ];
             for (questionTemplate of questionTemplates) {
                 if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {
@@ -2351,8 +2360,8 @@ export class CipherEncoder extends CipherHandler {
         }
 
         // DEBUG: Dump questions to a downloaded file
-        let content = '';
         /*
+        let content = '';
         for (let questionIndex = 0; questionIndex < qOptions.length; questionIndex++) {
             content += qOptions[questionIndex] + '\n';
         }
@@ -2417,8 +2426,6 @@ export class CipherEncoder extends CipherHandler {
         return found;
     }
 
-
-
     /**
      * Update the GUI with a list of suggestions for questions
      * @param qcount Number of questions to find
@@ -2429,7 +2436,6 @@ export class CipherEncoder extends CipherHandler {
     public searchForQuestions(qcount: number, action: (count: number, question: string, warnlevel: string) => boolean, warnlevel: string): number {
         const lang = 'en';
 
-        const picked: BoolMap = {}
         let qOptions: string[] = [];
         this.plainQuestionOptions = [];
 
@@ -2477,10 +2483,6 @@ export class CipherEncoder extends CipherHandler {
             this.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn, warnlevel);
         }
 
-        let testUsage = this.cipherName;
-        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
-        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
-
         // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
         let found = 0
 
@@ -2488,40 +2490,53 @@ export class CipherEncoder extends CipherHandler {
         if (this.questionSearchText !== undefined && this.questionSearchText.length > 0) {
             for (let i = 0; found < qcount && i < qOptions.length; i++) {
                 const question = qOptions[i];
-                if (this.removeHtml(question).toLowerCase().indexOf(this.questionSearchText.toLowerCase()) != -1) {
-                    picked[question] = true;
+                const questionKey = this.makeQuestionKey(question);
+                if (
+                    this.removeHtml(question)
+                        .toLowerCase()
+                        .indexOf(this.questionSearchText.toLowerCase()) != -1 &&
+                    !this.questionsUsed.has(questionKey)
+                ) {
                     if (action(found, question, warnlevel)) {
-                        found++;
+                        found++
                     }
                 }
+                // else {
+                //     console.log(`1.Already used ${this.removeHtml(question)}`)
+                // }
             }
         }
 
         // Lead off with a plain question so that the first suggestion never has a story around it
         if (found < qcount && this.plainQuestionOptions.length > 0) {
             const question = this.plainQuestionOptions[Math.floor(Math.random() * this.plainQuestionOptions.length)];
-            if (picked[question] !== true) {
-                picked[question] = true;
+            const questionKey = this.makeQuestionKey(question);
+            if (!this.questionsUsed.has(questionKey)) {
                 if (action(found, question, warnlevel)) {
-                    found++;
+                    found++
                 }
             }
+            // else {
+            //     console.log(`2.Already used ${this.removeHtml(question)}`)
+            // }
         }
 
         for (let tval = 0; found < qcount && tval < 50; tval++) {
             // Pick a random number from the set of choices
             let slot = Math.floor(Math.random() * (qOptions.length));
             // And figure out which slot it is in as well as the pattern that gets us to the slot
+            const question = qOptions[slot];
+            const questionKey = this.makeQuestionKey(question);
 
-            let question = qOptions[slot];
-
-            if (picked[question] !== true) {
-                picked[question] = true;
+            if (!this.questionsUsed.has(questionKey)) {
                 // We have a keyword, so let them process it (if they can)
                 if (action(found, question, warnlevel)) {
                     found++
                 }
             }
+            // else {
+            //     console.log(`3.Already used ${this.removeHtml(question)}`)
+            // }
         }
         this.attachHandlers()
         return found
@@ -2629,6 +2644,8 @@ export class CipherEncoder extends CipherHandler {
         // Mark it so that they know it has been updated.
         delete this.state.placeholder
         this.setQuestionText(text)
+        // Remember this question was already used
+        this.questionsUsed.add(this.makeQuestionKey(text))
         $('#SampleQText').foundation('close')
         this.updateOutput()
     }

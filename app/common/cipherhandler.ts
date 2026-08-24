@@ -1051,6 +1051,9 @@ export class CipherHandler {
     public cloudEditMode = false;
     public cloudEditExtId = '';
 
+    // Container for used questions
+    public questionsUsed = new Set<string>();
+
     constructor() {
         this.storage = InitStorage();
         this.detectCloudEditMode();
@@ -4001,6 +4004,15 @@ export class CipherHandler {
             }
         }
         th.classList.add(dir);
+    }
+
+    /**
+     * Make a 'key' out of question text so questions that are already used are not suggested for the same test
+     * @param question text to take the first n (12) characters of
+     * @param len 12 characters ensure uniqueness with our current set of question templates.
+     */
+    public makeQuestionKey(question: string, len: number = 12): string{
+        return this.removeHtml(question).replace(/[^\p{L}\p{N}]/gu, '').substring(0, len).toLowerCase();
     }
 
     /**

@@ -951,7 +951,7 @@ export class CipherEncoder extends CipherHandler {
                 'number',
                 'points',
                 this.state.points,
-                'small-12 medium-4 large-4',
+                'small-12 medium-5 large-4',
                 suggestpButton
             )
         );
@@ -966,7 +966,7 @@ export class CipherEncoder extends CipherHandler {
                     'checkbox',
                     'spbonus',
                     this.state.specialbonus,
-                    'small-12 medium-8 large-8'
+                    'small-12 medium-7 large-8'
                 )
             );
         }

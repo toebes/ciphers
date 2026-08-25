@@ -8,8 +8,12 @@ import {
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import {
+    buildCubeRootProblemString,
+    buildDivisionProblemString,
     buildFormulaSet,
     buildLegal,
+    buildMultiplicationProblemString,
+    buildSquareRootProblemString,
     cryptarithmForumlaItem,
     cryptarithmParsed,
     cryptarithmResult,
@@ -23,7 +27,9 @@ import {
     tryFormulaLevel,
 } from '../common/cryptarithm';
 import { JTButtonItem, JTButtonGroup } from '../common/jtbuttongroup';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
@@ -41,10 +47,32 @@ interface ICryptarithmState extends IEncoderState {
 }
 
 type ITemplateType = 'add' | 'mul' | 'div' | 'root';
+/** The numeric layout problem kinds (multiplication/division/roots) */
+type numericKindId = 'mul' | 'div' | 'sqrt' | 'cbrt';
 
 interface ITemplate {
     type: ITemplateType,
     template: string,
+}
+/**
+ * This tracks where we are in the iread.it style operand word search so we
+ * can take breaks and let the UI update.  The search runs an odometer over
+ * every digit assignment of the operand letters, tallying the word list
+ * words which match the result of each assignment.
+ */
+interface numericSearchState {
+    startTime: number           // Time that we started for tracking performance
+    op: numericKindId           // Operator being searched
+    w1: string                  // First operand word
+    w2: string                  // Second operand word ('' for the root searches)
+    letters: string[]           // Distinct letters of the operand words
+    choice: number[]            // Digit currently assigned to each letter (-1 for none)
+    depth: number               // Letter currently being advanced
+    used: boolean[]             // Digits currently taken
+    digitOf: NumberMap          // Current letter to digit assignment
+    nonzero: BoolMap            // Letters which can't be zero (leading letters)
+    leaves: number              // Number of complete assignments processed
+    tally: { [index: string]: { count: number, mapping: NumberMap } }  // Result word solution counts
 }
 /**
  * This template identifies what a parsed string would execute as
@@ -130,12 +158,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         { type: 'add', template: "C-A-A=B" },
         // // { type: 'add', template: "A+B=C; D+E=F" },  // TODO: Need to support multiple operations
         // { type: 'add', template: "A+B=C; D-E=F" },  // TODO: Need to support multiple operations
-        // { type: 'mul', template: "A*B=C" },
-        // { type: 'mul', template: "A*B=?" },  // TODO: Need to be able to specify the result
-        // { type: 'div', template: "A/B=C" },
-        // { type: 'div', template: "A/B=?" },  // TODO: Need to be able to specify the result
     ]
-
     // For now we pre-define the parsed templates.  Eventually we need to write code
     // that takes the string and parses it into the correponding template
     public parsedTemplates: { [index: string]: parsedTemplate } = {
@@ -176,16 +199,19 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public base = 10;
     public generatemode = false;
     public doingSearch = false;
+    /** Limit of problems to output for a numeric search so we don't flood the list */
+    public readonly numericFoundCap = 40;
+    /** Operand words entered for the numeric (multiplication/division/root) search */
+    public numword1 = '';
+    public numword2 = '';
+    /** Operator selected for the numeric search */
+    public numop: numericKindId = 'mul';
+    /** Which generator is shown: false for +/-, true for the * / √ one */
+    public numericGenMode = false;
     private searchTimer: NodeJS.Timeout = undefined;
     /** Tracker for the general solution search (backtrack count and solution mapping) */
     private searchTracker: cryptarithmSearchTracker = undefined;
     public state: ICryptarithmState = cloneObject(this.defaultstate) as ICryptarithmState;
-
-    public searchButton: JTButtonItem = {
-        title: 'Search',
-        class: 'findprobs',
-        color: 'primary',
-    };
 
     public stopSearchButton: JTButtonItem = {
         title: 'Stop Searching',
@@ -208,7 +234,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     };
 
     public problemButtons: JTButtonItem[] = [
-        this.searchButton,
         this.stopSearchButton,
         this.relatedWordsButton,
         this.doCipherButton,
@@ -367,6 +392,14 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         super.updateOutput();
         $('#wordlist').val(this.wordlist.join('\n'))
         $('#soltext').val(this.state.soltext);
+        $('#numword1').val(this.numword1);
+        $('#numword2').val(this.numword2);
+        $('#numop').val(this.numop);
+        if (this.numop === 'sqrt' || this.numop === 'cbrt') {
+            $('#numword2grp').hide()
+        } else {
+            $('#numword2grp').show()
+        }
 
         this.showMapping(false);
 
@@ -374,6 +407,15 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         if (this.generatemode) {
             $('.probwork').show()
             $('.cipherwork').hide()
+            // Show only the generator (+/- or */√) selected on the top bar
+            if (this.numericGenMode) {
+                $('.addsubwork').hide()
+                $('.numericwork').show()
+            } else {
+                $('.addsubwork').show()
+                $('.numericwork').hide()
+            }
+            JTRadioButtonSet('genoptype', this.numericGenMode ? 'numeric' : 'addsub')
         } else {
             $('.probwork').hide()
             $('.cipherwork').show()
@@ -902,8 +944,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 .append($('<a/>', { class: 'tall button' }).text('All'))
                 .append($('<a/>', { class: 'tnone button' }).text('None'))
                 .append($('<a/>', { class: 'taddsub button' }).text('+/-'))
-            // .append($('<a/>', { class: 'tmul button' }).text('*'))  // TODO When we have multiplication
-            // .append($('<a/>', { class: 'tdiv button' }).text('/'))  // TODO When we have division
         )
         for (const i in this.templates) {
             const inputgroup = $('<div/>', { class: 'input-group' });
@@ -937,7 +977,15 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         cipherwork.append($('<div/>', { class: 'grid-x' })
             .append(JTFLabeledInput("Problem", "text", "toencode", this.state.cipherString, 'auto', generateButton))
         )
-        result.append($('<div/>', { class: 'callout secondary probwork' })
+        // A bar to switch between the addition/subtraction generator and the
+        // completely separate multiplication/division/root generator
+        const genradiobuttons = [
+            { id: 'gaddsub', value: 'addsub', title: '+ -' },
+            { id: 'gnumeric', value: 'numeric', title: '* / √' },
+        ];
+        result.append($('<div/>', { class: 'probwork' })
+            .append(JTRadioButton(6, 'genoptype', genradiobuttons, this.numericGenMode ? 'numeric' : 'addsub')))
+        result.append($('<div/>', { class: 'callout secondary probwork addsubwork' })
             .append($('<div/>', { class: 'grid-x grid-margin-x' })
                 .append($('<div/>', { class: 'cell small-6 medium-3 large-3' })
                     .append($('<div/>', { class: 'toptitle' }).text('Words to Try'))
@@ -949,7 +997,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                         })
                     ))
                 .append(this.genProblemStyleList())
-            ))
+            )
+            .append($('<a/>', { type: 'button', class: 'button primary tight findprobs' }).text('Search'))
+        )
         // Build the mapping table
         const table = new JTTable({
             class: 'cell shrink tfreq cmap',
@@ -978,8 +1028,37 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 ))
         )
 
+        const suggestSolButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestsol" }).text("Suggest Solution Text")
         cipherwork.append($('<div/>', { class: 'grid-x' })
-            .append(JTFLabeledInput("Solution", "text", "soltext", this.state.soltext, 'auto'))
+            .append(JTFLabeledInput("Solution", "text", "soltext", this.state.soltext, 'auto', suggestSolButton))
+        )
+        result.append(this.createSuggestSolTextDlg())
+        // The numeric (multiplication/division/root) problems get their own
+        // iread.it style search, separate from the addition/subtraction word
+        // combinations: enter the operand word(s) and an operator and the
+        // result words are searched for
+        const opchoices = $('<select/>', { id: 'numop', class: 'input-group-field' })
+        opchoices.append($('<option/>', { value: 'mul' }).text('×'))
+        opchoices.append($('<option/>', { value: 'div' }).text('÷'))
+        opchoices.append($('<option/>', { value: 'sqrt' }).text('√'))
+        opchoices.append($('<option/>', { value: 'cbrt' }).text('∛'))
+        result.append($('<div/>', { class: 'callout secondary probwork numericwork' })
+            .append($('<div/>', { class: 'grid-x grid-margin-x' })
+                .append($('<div/>', { class: 'cell small-12 medium-5 large-4' })
+                    .append(JTFLabeledInput('Word', 'text', 'numword1', this.numword1, 'auto'))
+                    .append($('<div/>', { class: 'input-group' })
+                        .append($('<span/>', { class: 'input-group-label' }).text('op'))
+                        .append(opchoices))
+                    .append($('<div/>', { id: 'numword2grp' })
+                        .append(JTFLabeledInput('Word', 'text', 'numword2', this.numword2, 'auto')))
+                    .append($('<a/>', { type: 'button', class: 'button primary tight findnumeric' }).text('Search'))
+                )
+                .append($('<div/>', { class: 'cell small-12 medium-7 large-8' })
+                    .append($('<h4/>').text('Create'))
+                    .append($('<p/>').text('Given two words, A and B, this searches the word list for a word C where A*B=C or A÷B=C has a unique solution.'))
+                    .append($('<p/>').text('For √ and ∛, enter the word the root equals and it searches for a word B where √B = A or ∛B = A has a unique solution.'))
+                )
+            )
         )
         result.append(
             $('<div/>', { class: 'probwork' })
@@ -991,9 +1070,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('1', 'checkbox', 'd1', true, '', 'difchk')))
             .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('2', 'checkbox', 'd2', true, '', 'difchk')))
             .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('3', 'checkbox', 'd3', true, '', 'difchk')))
-            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('4', 'checkbox', 'd4', false, '', 'difchk')))
-            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('5', 'checkbox', 'd5', false, '', 'difchk')))
-            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('6', 'checkbox', 'd6', false, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('4', 'checkbox', 'd4', true, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('5', 'checkbox', 'd5', true, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('6', 'checkbox', 'd6', true, '', 'difchk')))
 
         result.append($('<div/>', { class: 'callout secondary probwork' })
 
@@ -1003,6 +1082,183 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .append($('<div/>', { class: 'findout', id: 'findout' })))
 
         return result;
+    }
+    /**
+     * Generate the dialog which shows words that can be spelled with the
+     * letters in the problem so they can be combined into a solution phrase
+     */
+    public createSuggestSolTextDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+        dlgContents.append($('<div/>', { id: 'solcur' })
+            .append($('<b/>').text('Current Solution: '))
+            .append($('<span/>', { id: 'solcurtext' })))
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestSolTextopts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button', id: 'solgenbtn' }).text('Generate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Done'
+                    )
+                )
+        );
+        const suggestSolTextDlg = JTFDialog('suggestSolTextDLG', 'Suggest Solution Text', dlgContents);
+        return suggestSolTextDlg;
+    }
+    /**
+     * Determine the distinct letters available for the solution text.  These
+     * are the letters which have digit mappings when the mapping is valid,
+     * otherwise the letters which appear in the problem itself.
+     * @returns String of the unique letters found
+     */
+    public getProblemLetters(): string {
+        let source = this.minimizeString(this.state.cipherString);
+        if (this.state.validmapping) {
+            source = Object.keys(this.state.mapping).join('');
+        }
+        let letters = '';
+        for (const c of source) {
+            if (this.lettermask[c] !== undefined && !letters.includes(c)) {
+                letters += c;
+            }
+        }
+        return letters;
+    }
+    /**
+     * Start the dialog for suggesting solution text words.  We need to make
+     * sure the language dictionary is loaded before opening it.
+     */
+    public suggestSolText(): void {
+        this.loadLanguageDictionary('en').then(() => {
+            $('#suggestSolTextDLG').foundation('open');
+            this.populateSolTextSuggestions();
+        })
+    }
+    /**
+     * Populate the dialog with a set of words which only use the letters
+     * found in the problem.  Clicking Use on a word appends it to the
+     * solution text so several words can be combined into a phrase.
+     */
+    public populateSolTextSuggestions(): void {
+        const lang = 'en';
+        $('#solgenbtn').text('Regenerate')
+        $('#solcurtext').text(this.state.soltext)
+        const result = $('#suggestSolTextopts');
+        result.empty();
+
+        const letters = this.getProblemLetters();
+        if (letters === '') {
+            result.append($('<div/>', { class: 'callout warning' })
+                .text('There are no letters in the problem yet.  Enter or generate a problem first.'));
+            return;
+        }
+        const allowedMask = this.genMask(letters);
+
+        // For Division A and B we use even less of the words than for Division C
+        // in order to get language appropriate choices
+        const testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        let range = 1.0
+        if (usedOnA) {
+            range = 0.25
+        } else if (usedOnB) {
+            range = 0.5
+        }
+
+        // Don't suggest any of the words which appear in the problem itself
+        const usedWords: BoolMap = {};
+        for (const word of this.state.cipherString.toUpperCase().split(/[^A-Z]+/)) {
+            if (word !== '') {
+                usedWords[word] = true;
+            }
+        }
+
+        // Gather every word in the dictionary which can be spelled with just
+        // the problem letters (repeats are fine since each letter simply
+        // decodes to its digit)
+        const candidates: [string, number][] = [];
+        for (const pat of Object.keys(this.Frequent[lang])) {
+            // A pattern with more unique letters than we have available can never match
+            if (this.undupeString(pat).length > letters.length) {
+                continue;
+            }
+            for (const entry of this.Frequent[lang][pat]) {
+                const word = entry[0];
+                if (word.length < 2 || word.includes("'") || usedWords[word] === true) {
+                    continue;
+                }
+                if ((this.genMask(word) & ~allowedMask) === 0) {
+                    candidates.push([word, entry[1]]);
+                }
+            }
+        }
+        result.append($('<p/>')
+            .append('These words only use the problem letters ')
+            .append($('<b/>').text(letters.split('').join(' ')))
+            .append('.  Click Use to add a word to the Solution so you can combine them into a phrase.'))
+        if (candidates.length === 0) {
+            result.append($('<div/>', { class: 'callout warning' })
+                .text('No words could be made from the letters in the problem.'));
+            return;
+        }
+        // Sort by how common the words are so the range limit for the
+        // younger divisions keeps us to the more common words
+        candidates.sort((a, b) => a[1] - b[1]);
+        const kwcount = 42;
+        const maxWord = Math.max(Math.min(candidates.length, kwcount), Math.trunc(candidates.length * range));
+        const picked: BoolMap = {};
+        const toShow: string[] = [];
+        if (candidates.length <= kwcount) {
+            // Few enough choices that we just show them all
+            for (const entry of candidates) {
+                toShow.push(entry[0]);
+            }
+        } else {
+            // Pick a random sampling, favoring nothing in particular
+            for (let pass = 0; pass < kwcount * 20 && toShow.length < kwcount; pass++) {
+                const slot = Math.trunc(maxWord * Math.random());
+                const choice = candidates[slot][0];
+                if (picked[choice] !== true) {
+                    picked[choice] = true;
+                    toShow.push(choice);
+                }
+            }
+        }
+        // Show the longer words first since they are generally more interesting
+        toShow.sort((a, b) => b.length - a.length || (a < b ? -1 : 1));
+
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cells: JQuery<HTMLElement>[] = []
+        for (let cellCount = 0; cellCount < 3; cellCount++) {
+            const cell = $('<div/>', { class: 'cell auto' })
+            cells.push(cell)
+            divAll.append(cell)
+        }
+        result.append(divAll)
+        const percell = Math.ceil(toShow.length / cells.length)
+        for (let i = 0; i < toShow.length; i++) {
+            cells[Math.trunc(i / percell)].append(this.genUseKey(toShow[i], 'solset'))
+        }
+        this.attachHandlers()
+    }
+    /**
+     * Append a suggested word to the solution text, leaving the dialog open
+     * so that more words can be added to build up a phrase
+     * @param elem Use button which was clicked
+     */
+    public useSolWord(elem: HTMLElement): void {
+        const word = $(elem).attr('data-key');
+        if (word === undefined || word === '') {
+            return;
+        }
+        let soltext = this.state.soltext.trim();
+        soltext = soltext === '' ? word : soltext + ' ' + word;
+        this.markUndo('soltext');
+        if (this.setSoltext(soltext)) {
+            this.updateOutput();
+        }
+        $('#solcurtext').text(this.state.soltext)
     }
     /**
      *
@@ -1065,6 +1321,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         this.doingSearch = doingSearch
         if (doingSearch) {
             $('.findprobs').attr('disabled', 'disabled')
+            $('.findnumeric').attr('disabled', 'disabled')
             $('#stopsearch').removeAttr('disabled')
             $('#docipher').attr('disabled', 'disabled')
         } else {
@@ -1073,6 +1330,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 this.searchTimer = undefined
             }
             $('.findprobs').removeAttr('disabled')
+            $('.findnumeric').removeAttr('disabled')
             $('#stopsearch').attr('disabled', 'disabled')
             $('#docipher').removeAttr('disabled')
         }
@@ -1289,7 +1547,388 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     }
 
     /**
-     * 
+     * Start the iread.it style search: given the operand word(s) and the
+     * operator, look for word list words z such that the cryptarithm
+     * x×y=z (or x÷y=z, x×x=z, x×x×x=z) has exactly one solution.
+     */
+    public findNumericStart() {
+        const op = this.numop
+        const isRoot = op === 'sqrt' || op === 'cbrt'
+        const w1 = this.minimizeString(this.numword1)
+        const w2 = isRoot ? '' : this.minimizeString(this.numword2)
+        if (w1 === '') {
+            this.setSearchResult('Please enter the first word to build the problem from.', 'alert')
+            return
+        }
+        if (!isRoot && w2 === '') {
+            this.setSearchResult('Please enter the second word (or pick the √/∛ operator to search with a single word).', 'alert')
+            return
+        }
+        // Gather the distinct letters which need digit assignments
+        const letters: string[] = []
+        for (const c of w1 + w2) {
+            if (!letters.includes(c)) {
+                letters.push(c)
+            }
+        }
+        if (letters.length > this.base) {
+            this.setSearchResult(`"${w1}" and "${w2}" have ${letters.length} different letters, but only ${this.base} digits are available.`, 'alert')
+            return
+        }
+        // Make sure a result word could exist (the word list goes up to 14 letters)
+        let resultLen = 0
+        if (op === 'mul') {
+            resultLen = w1.length + w2.length - 1
+        } else if (op === 'sqrt') {
+            resultLen = 2 * w1.length - 1
+        } else if (op === 'cbrt') {
+            resultLen = 3 * w1.length - 2
+        }
+        if (resultLen > 14) {
+            this.setSearchResult('The words are too long.  The result would be longer than any word in the word list.', 'alert')
+            return
+        }
+        if (op === 'div' && w1.length < w2.length) {
+            this.setSearchResult('For division the first word (the dividend) needs to be at least as long as the second word (the divisor).', 'alert')
+            return
+        }
+        // The first letter of a multi letter number can't be zero
+        const nonzero: BoolMap = {}
+        if (w1.length > 1) {
+            nonzero[w1.substring(0, 1)] = true
+        }
+        if (w2.length > 1) {
+            nonzero[w2.substring(0, 1)] = true
+        }
+        // The result words come out of the same dictionary the Suggest
+        // Keyword buttons use, so make sure it is loaded first
+        this.loadLanguageDictionary('en').then(() => {
+            $("#findout").empty();
+            this.setSearching(true)
+            const state: numericSearchState = {
+                startTime: new Date().getTime(),
+                op: op,
+                w1: w1,
+                w2: w2,
+                letters: letters,
+                choice: makeFilledArray(letters.length, -1) as number[],
+                depth: 0,
+                used: makeFilledArray(this.base, false) as boolean[],
+                digitOf: {},
+                nonzero: nonzero,
+                leaves: 0,
+                tally: {},
+            }
+            this.findNumericProblems(state)
+        })
+    }
+    /**
+     * Compute the numeric value of a word under a digit mapping
+     */
+    public wordValue(word: string, mapping: NumberMap): number {
+        let v = 0
+        for (const c of word) {
+            v = v * this.base + mapping[c]
+        }
+        return v
+    }
+    /**
+     * Format the equation for display the way iread.it does (x × y = z)
+     */
+    public numericEquationText(w1: string, w2: string, op: numericKindId, z: string = '?'): string {
+        switch (op) {
+            case 'mul':
+                return `${w1} × ${w2} = ${z}`
+            case 'div':
+                return `${w1} ÷ ${w2} = ${z}`
+            case 'sqrt':
+                return `√${z} = ${w1}`
+            case 'cbrt':
+                return `∛${z} = ${w1}`
+        }
+    }
+    /**
+     * Process one complete digit assignment of the operand letters: compute
+     * the result value and tally every word list word which matches its digit
+     * pattern under the assignment.  A word tallied exactly once over the
+     * whole search is a cryptarithm with exactly one solution.
+     */
+    public processNumericLeaf(state: numericSearchState) {
+        state.leaves++
+        const X = this.wordValue(state.w1, state.digitOf)
+        let zval = 0
+        if (state.op === 'mul') {
+            zval = X * this.wordValue(state.w2, state.digitOf)
+        } else if (state.op === 'div') {
+            const Y = this.wordValue(state.w2, state.digitOf)
+            if (Y === 0 || X % Y !== 0) {
+                return
+            }
+            zval = X / Y
+        } else if (state.op === 'sqrt') {
+            zval = X * X
+        } else {
+            zval = X * X * X
+        }
+        if (zval <= 0) {
+            return
+        }
+        const digits = String(zval)
+        if (digits.length > 14) {
+            return
+        }
+        // The bijective letter mapping means the result word has to have
+        // exactly the same repetition pattern as the digits, which is how the
+        // dictionary happens to be indexed
+        const patSet = this.Frequent['en'][this.makeUniquePattern(digits, 1)]
+        if (patSet === undefined) {
+            return
+        }
+        // Which letter each digit is currently assigned to
+        const letterOf: string[] = []
+        for (const c of state.letters) {
+            letterOf[state.digitOf[c]] = c
+        }
+        for (const elem of patSet) {
+            // Skip words with a frequency of 1 to avoid the really obscure ones
+            if (elem[2] <= 1) {
+                continue
+            }
+            const z = elem[0].toUpperCase()
+            if (z === state.w1 || z === state.w2 || z.match(/^[A-Z]+$/) === null) {
+                continue
+            }
+            let ok = true
+            for (let i = 0; i < digits.length; i++) {
+                const c = z.substring(i, i + 1)
+                const d = parseInt(digits.substring(i, i + 1), 10)
+                if (letterOf[d] !== undefined) {
+                    // The digit already belongs to an operand letter, so the
+                    // word must use that letter here
+                    if (letterOf[d] !== c) {
+                        ok = false
+                        break
+                    }
+                } else if (state.digitOf[c] !== undefined) {
+                    // The letter is taken by a different digit
+                    ok = false
+                    break
+                }
+            }
+            if (!ok) {
+                continue
+            }
+            const seen = state.tally[z]
+            if (seen === undefined) {
+                const mapping: NumberMap = Object.assign({}, state.digitOf)
+                for (let i = 0; i < digits.length; i++) {
+                    mapping[z.substring(i, i + 1)] = parseInt(digits.substring(i, i + 1), 10)
+                }
+                state.tally[z] = { count: 1, mapping: mapping }
+            } else {
+                seen.count++
+            }
+        }
+    }
+    /**
+     * Main loop of the iread.it style search.  Advances the digit assignment
+     * odometer for a slice of time then takes a break so the UI can update.
+     * @param state State structure holding the current place in the search
+     */
+    public findNumericProblems(state: numericSearchState) {
+        this.searchTimer = undefined
+        if (!this.doingSearch) {
+            this.setSearchResult(`Search Stopped after trying ${state.leaves} digit assignments`, 'warning')
+            this.countHidden();
+            return
+        }
+        const k = state.letters.length
+        const endTime = new Date().getTime() + 40
+        let steps = 0
+        for (; ;) {
+            // The individual steps are tiny, so only look at the clock occasionally
+            if ((++steps & 0x3FF) === 0 && new Date().getTime() >= endTime) {
+                break
+            }
+            const c = state.letters[state.depth]
+            let d = state.choice[state.depth]
+            if (d >= 0) {
+                // Release the digit this letter had
+                state.used[d] = false
+                delete state.digitOf[c]
+            }
+            d++
+            if (d === 0 && state.nonzero[c] === true) {
+                d = 1
+            }
+            while (d < this.base && state.used[d]) {
+                d++
+            }
+            if (d >= this.base) {
+                // This letter has tried every digit, back up to the previous one
+                state.choice[state.depth] = -1
+                state.depth--
+                if (state.depth < 0) {
+                    this.finishNumericSearch(state)
+                    return
+                }
+                continue
+            }
+            state.choice[state.depth] = d
+            state.used[d] = true
+            state.digitOf[c] = d
+            if (state.depth === k - 1) {
+                this.processNumericLeaf(state)
+            } else {
+                state.depth++
+            }
+        }
+        // Rough progress estimate from the digits tried for the first letters
+        let pct = 0
+        let scale = 100 / this.base
+        for (let i = 0; i < 3 && i < k; i++) {
+            pct += Math.max(0, state.choice[i]) * scale
+            scale /= this.base
+        }
+        this.setSearchResult(
+            `${pct.toFixed(1)}% Complete - Searching for ${this.numericEquationText(state.w1, state.w2, state.op)} problems. ${Object.keys(state.tally).length} candidate words so far.`,
+            'secondary');
+        this.searchTimer = setTimeout(() => { this.findNumericProblems(state) }, 1)
+    }
+    /**
+     * Every digit assignment has been tried: the result words which were
+     * matched by exactly one assignment are the valid cryptarithms, so output
+     * them with Use buttons.
+     * @param state State structure for the completed search
+     */
+    public finishNumericSearch(state: numericSearchState) {
+        this.setSearching(false)
+        let found = 0
+        let candidates = 0
+        const uniques: string[] = []
+        for (const z in state.tally) {
+            candidates++
+            if (state.tally[z].count === 1) {
+                uniques.push(z)
+            }
+        }
+        const unique = uniques.length
+        // Shuffle the results so the list samples the whole range of values
+        // instead of showing the smallest digit assignments first
+        for (let i = uniques.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1))
+            const t = uniques[i]
+            uniques[i] = uniques[j]
+            uniques[j] = t
+        }
+        // For the root searches every result word for a given root value uses
+        // the same digits, so only show one word for each value to get a
+        // variety of digits in the list
+        const isRoot = state.op === 'sqrt' || state.op === 'cbrt'
+        const seenValue: BoolMap = {}
+        for (const z of uniques) {
+            if (found >= this.numericFoundCap) {
+                break
+            }
+            if (isRoot && seenValue[this.wordValue(state.w1, state.tally[z].mapping)] === true) {
+                continue
+            }
+            // The problem gets put in as the full worked layout with all the
+            // intermediate steps filled in.  The work lines can use digits
+            // which aren't in the words, so those digits get unused letters
+            const tmap = state.tally[z].mapping
+            const assigned: string[] = []
+            for (const c in tmap) {
+                assigned[tmap[c]] = c
+            }
+            const fills = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter((c) => tmap[c] === undefined)
+            let digitToLetter = ''
+            for (let d = 0; d < this.base; d++) {
+                digitToLetter += assigned[d] !== undefined ? assigned[d] : fills.shift()
+            }
+            const val1 = this.wordValue(state.w1, tmap)
+            let problemText: string
+            if (state.op === 'mul') {
+                problemText = buildMultiplicationProblemString(val1, this.wordValue(state.w2, tmap), digitToLetter, this.base)
+                if (problemText === undefined) {
+                    // No clean worked layout (such as a zero digit or single
+                    // letter multiplier), so use the plain equation
+                    problemText = `${state.w1}*${state.w2}=${z}`
+                }
+            } else if (state.op === 'div') {
+                problemText = buildDivisionProblemString(val1, this.wordValue(state.w2, tmap), this.wordValue(z, tmap), digitToLetter, this.base)
+                if (problemText === undefined) {
+                    // No clean worked long division (such as a zero digit or
+                    // single letter quotient), so use the plain equation
+                    problemText = `${state.w1}/${state.w2}=${z}`
+                }
+            } else if (state.op === 'sqrt') {
+                problemText = buildSquareRootProblemString(val1 * val1, val1, digitToLetter, this.base)
+            } else {
+                problemText = buildCubeRootProblemString(val1 * val1 * val1, val1, digitToLetter, this.base)
+            }
+            if (problemText === undefined) {
+                // The numbers don't make a clean worked root layout (such as
+                // a zero digit in the root), so pass on this one
+                continue
+            }
+            // Double check the problem end to end with the regular solver,
+            // which also rates its difficulty
+            const parsed = parseCryptarithm(problemText, this.base)
+            const res = solveCryptarithm(parsed, this.base, 500000)
+            if (res.count !== 1) {
+                continue
+            }
+            // Use the solver's mapping so the letters the worked layouts add
+            // for their intermediate steps are included in the answer key
+            const mapping = res.mapping
+            const letterOf: string[] = []
+            for (const c in mapping) {
+                letterOf[mapping[c]] = c
+            }
+            let replacements = ''
+            for (let i = 0; i < this.base; i++) {
+                replacements += letterOf[i] === undefined ? '?' : letterOf[i]
+            }
+            const difficulty = difficulty_conv(res.backtracks)
+            const X = this.wordValue(state.w1, mapping)
+            const Z = this.wordValue(z, mapping)
+            let valueText: string
+            if (state.op === 'mul') {
+                valueText = `${X} × ${this.wordValue(state.w2, mapping)} = ${Z}`
+            } else if (state.op === 'div') {
+                valueText = `${X} ÷ ${this.wordValue(state.w2, mapping)} = ${Z}`
+            } else if (state.op === 'sqrt') {
+                valueText = `√${Z} = ${X}`
+            } else {
+                valueText = `∛${Z} = ${X}`
+            }
+            const displayText = `${this.numericEquationText(state.w1, state.w2, state.op, z)} [${valueText}] Difficulty:${difficulty}`
+            this.addFoundEntry(problemText, valueText, replacements, difficulty, '', displayText)
+            if (isRoot) {
+                seenValue[X] = true
+            }
+            found++
+        }
+        this.attachHandlers();
+        const interval = (new Date().getTime()) - state.startTime
+        if (candidates === 0) {
+            this.setSearchResult(`Search Complete: no words in the word list make ${this.numericEquationText(state.w1, state.w2, state.op)} a valid cryptarithm.  Try different words.`, 'warning')
+        } else {
+            let showing = ''
+            if (unique > found) {
+                showing = `, showing a random ${found} of them`
+                if (isRoot) {
+                    showing = `, showing one word for each of ${found} random values`
+                }
+            }
+            this.setSearchResult(`Search Complete: ${unique} of ${candidates} candidate words give exactly one solution${showing} (${(interval / 1000).toFixed(2)} Seconds)`, found > 0 ? 'success' : 'warning')
+        }
+        this.countHidden();
+    }
+
+    /**
+     *
      * @param parsed Parsed Cryptarithm to generate output for
      * @returns HTML representation of output
      */
@@ -1578,13 +2217,18 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * @param valueText The problem with the numeric values substituted in
      * @param replacements Replacement string where the letter at index N maps to digit N
      * @param difficulty Difficulty rating of the problem
+     * @param soltext Optional solution text to set when the problem is used
+     * @param displayText Optional override for the text shown in the found list
      */
-    public addFoundEntry(problemText: string, valueText: string, replacements: string, difficulty: number) {
-        const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': problemText, 'data-sol': replacements, 'data-dif': difficulty }).text('Use')
+    public addFoundEntry(problemText: string, valueText: string, replacements: string, difficulty: number, soltext: string = '', displayText: string = '') {
+        const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': problemText, 'data-sol': replacements, 'data-dif': difficulty, 'data-soltext': soltext }).text('Use')
+        if (displayText === '') {
+            displayText = problemText + " [" + valueText + "] Difficulty:" + String(difficulty)
+        }
         // Add a class so we can hide/show it
         let difflevel = String(Math.min(6, difficulty))
         let sclass = "CD" + difflevel
-        const x = $('<div/>', { class: sclass }).text(" " + problemText + " [" + valueText + "] Difficulty:" + String(difficulty))
+        const x = $('<div/>', { class: sclass }).text(" " + displayText)
             .prepend(usebutton)
         $("#findout").append(x)
         if (!$('#d' + difflevel).is(':checked')) {
@@ -1866,14 +2510,21 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         const problem = $(elem).attr('data-prob')
         const replacement = $(elem).attr('data-sol')
         const difficulty = parseInt($(elem).attr('data-dif'))
+        const soltext = $(elem).attr('data-soltext')
         this.setCipherString(problem)
         this.state.difficulty = difficulty
+        if (soltext !== undefined && soltext !== '') {
+            this.setSoltext(soltext)
+        }
         // We need to set the replacements
 
         this.state.validmapping = true;
         this.state.mapping = {};
         for (let i = 0; i < replacement.length; i++) {
-            this.state.mapping[replacement.substring(i, i + 1)] = i
+            const c = replacement.substring(i, i + 1)
+            if (c !== '?') {
+                this.state.mapping[c] = i
+            }
         }
         this.doCipher()
     }
@@ -1928,6 +2579,41 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .on('click', () => {
                 this.findProblems()
             })
+        $('.findnumeric')
+            .off('click')
+            .on('click', () => {
+                this.findNumericStart()
+            })
+        $('[name="genoptype"]')
+            .off('click')
+            .on('click', (e) => {
+                $(e.target)
+                    .siblings()
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
+                this.numericGenMode = ($(e.target).val() as string) === 'numeric';
+                this.updateOutput();
+            })
+        $('#numword1')
+            .off('input')
+            .on('input', (e) => {
+                this.numword1 = $(e.target).val() as string;
+            })
+        $('#numword2')
+            .off('input')
+            .on('input', (e) => {
+                this.numword2 = $(e.target).val() as string;
+            })
+        $('#numop')
+            .off('change')
+            .on('change', (e) => {
+                this.numop = $(e.target).val() as numericKindId;
+                if (this.numop === 'sqrt' || this.numop === 'cbrt') {
+                    $('#numword2grp').hide()
+                } else {
+                    $('#numword2grp').show()
+                }
+            })
         $('.updmap')
             .off('click')
             .on('click', () => {
@@ -1955,6 +2641,21 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     }
                 }
             });
+        $('#suggestsol')
+            .off('click')
+            .on('click', () => {
+                this.suggestSolText();
+            })
+        $('#solgenbtn')
+            .off('click')
+            .on('click', () => {
+                this.populateSolTextSuggestions();
+            })
+        $('.solset')
+            .off('click')
+            .on('click', (e) => {
+                this.useSolWord(e.target);
+            })
         $('#stopsearch')
             .off('click')
             .on('click', () => {

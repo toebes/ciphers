@@ -902,6 +902,35 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
     // Lastly get rid of all white space
     str = str.replace(new RegExp("[\r\n ]+", "g"), "");
     str = str.replace(/[√∛]([A-Za-z']+)=/g, "$1^");
+    // A simple chained product with no work shown (A*B*C=D, such as the cube
+    // A*A*A=B) can't go through the state machine below which only handles
+    // two factors, so build the layout for it directly
+    const chain = str.toUpperCase().match(/^([A-Z]+)((?:\*[A-Z]+){2,})=([A-Z]+)$/);
+    if (chain !== null) {
+        const factors = [chain[1], ...chain[2].substring(1).split("*")];
+        const product = chain[3];
+        let formula = factors[0];
+        for (let i = 1; i < factors.length; i++) {
+            formula = "(" + formula + "*" + factors[i] + ")";
+        }
+        for (const word of [...factors, product]) {
+            for (const c of word) {
+                result.usedletters[c] = true;
+            }
+            if (word.length > 1) {
+                result.nonzeros[word.substring(0, 1)] = true;
+            }
+            if (word.length > result.maxwidth) {
+                result.maxwidth = word.length;
+            }
+        }
+        result.lineitems.push({ prefix: "", indent: 0, content: factors[0], class: "", formula: "", expected: factors[0] });
+        for (let i = 1; i < factors.length; i++) {
+            result.lineitems.push({ prefix: "*", indent: 0, content: factors[i], class: "", formula: "", expected: factors[i] });
+        }
+        result.lineitems.push({ prefix: "", indent: 0, content: product, class: "ovl", formula: formula, expected: product });
+        return result;
+    }
     // Now tokenize the string so we can parse it
     let tokens = str.toUpperCase().split(/([;=+ \^\/\*\.\-])/g);
     let state: buildState = buildState.Initial;
@@ -2231,6 +2260,124 @@ export function buildSquareRootProblemString(radicand: number, root: number, dig
         return undefined;
     }
     return result;
+}
+
+/**
+ * Build the cube root cryptarithm string (∛RAD'ICA'ND=RT-...)
+ * for an exact cube radicand = root * root * root.
+ * @param radicand Radicand value (a perfect cube)
+ * @param root Cube root value
+ * @param digitToLetter String where the letter at index N is the letter for digit N
+ * @param base Number base to work in
+ * @returns The problem string, or undefined if the numbers don't produce a
+ *          clean layout
+ */
+export function buildCubeRootProblemString(radicand: number, root: number, digitToLetter: string, base: number = 10): string {
+    if (root * root * root !== radicand || root < base) {
+        return undefined;
+    }
+    const L = (val: number): string => {
+        let out = "";
+        for (const ch of basedStr(val, base)) {
+            out += digitToLetter.substring(parseInt(ch, base), parseInt(ch, base) + 1);
+        }
+        return out;
+    };
+    const rstr = basedStr(radicand, base);
+    const rootstr = basedStr(root, base);
+    // Split the radicand into triples of digits from the right
+    const groups: string[] = [];
+    let pos = rstr.length;
+    while (pos > 0) {
+        const start = Math.max(0, pos - 3);
+        groups.unshift(rstr.substring(start, pos));
+        pos = start;
+    }
+    if (groups.length !== rootstr.length) {
+        return undefined;
+    }
+    // Emit the radicand with quote grouping between the triples
+    let quoted = "";
+    for (const g of groups) {
+        let gl = "";
+        for (const ch of g) {
+            gl += digitToLetter.substring(parseInt(ch, base), parseInt(ch, base) + 1);
+        }
+        if (quoted === "") {
+            quoted = gl;
+        } else {
+            quoted += "'" + gl;
+        }
+    }
+    let result = "∛" + quoted + "=" + L(root);
+    let acc = parseInt(groups[0], base);
+    let found = 0;
+    for (let i = 0; i < rootstr.length; i++) {
+        const rd = parseInt(rootstr.substring(i, i + 1), base);
+        if (rd === 0) {
+            // A zero root digit needs the skip-a-column layout, so pass on it
+            return undefined;
+        }
+        // ((10y+d)^3 - (10y)^3) = 300y²d + 30yd² + d³ generalized to the base
+        const sub = i === 0 ? rd * rd * rd :
+            ((3 * found * found * base * base) + (3 * found * rd * base) + (rd * rd)) * rd;
+        if (sub > acc) {
+            return undefined;
+        }
+        result += "-" + L(sub);
+        acc -= sub;
+        found = found * base + rd;
+        if (i < rootstr.length - 1) {
+            const groupval = parseInt(groups[i + 1], base);
+            if (acc === 0 && groupval < base * base) {
+                // The next working value would be written with a leading zero
+                // dropped, which misaligns the layout
+                return undefined;
+            }
+            acc = acc * base * base * base + groupval;
+            result += "=" + L(acc);
+        }
+    }
+    if (acc !== 0) {
+        return undefined;
+    }
+    return result;
+}
+
+/**
+ * Build the worked long multiplication cryptarithm string
+ * (A*B=P1+P2...=C) with the partial products listed from the least
+ * significant multiplier digit up, matching the parser's worked
+ * multiplication syntax.
+ * @param multiplicand Multiplicand value
+ * @param multiplier Multiplier value (must be at least two digits)
+ * @param digitToLetter String where the letter at index N is the letter for digit N
+ * @param base Number base to work in
+ * @returns The problem string, or undefined if the numbers don't produce a
+ *          clean layout
+ */
+export function buildMultiplicationProblemString(multiplicand: number, multiplier: number, digitToLetter: string, base: number = 10): string {
+    if (multiplicand < base || multiplier < base) {
+        return undefined;
+    }
+    const L = (val: number): string => {
+        let out = "";
+        for (const ch of basedStr(val, base)) {
+            out += digitToLetter.substring(parseInt(ch, base), parseInt(ch, base) + 1);
+        }
+        return out;
+    };
+    const bstr = basedStr(multiplier, base);
+    const partials: string[] = [];
+    for (let i = bstr.length - 1; i >= 0; i--) {
+        const d = parseInt(bstr.substring(i, i + 1), base);
+        if (d === 0) {
+            // A zero multiplier digit needs the skip-a-line layout, so pass on it
+            return undefined;
+        }
+        partials.push(L(multiplicand * d));
+    }
+    return L(multiplicand) + "*" + L(multiplier) + "=" + partials.join("+") + "=" + L(multiplicand * multiplier);
 }
 
 /**

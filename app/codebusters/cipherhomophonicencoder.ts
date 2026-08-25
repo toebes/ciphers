@@ -1935,6 +1935,9 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const charset = this.getSourceCharset()
         for (let rownum = 0; rownum < HOMOPHONE_COUNT; rownum++) {
             let kwchar = keyword[rownum] ?? '?';
+            if (kwchar === 'J') {
+                kwchar = 'I';
+            }
             let kwindex = charset.indexOf(kwchar);
             if (keyword !== '' && rownum >= keyword.length) {
                 break

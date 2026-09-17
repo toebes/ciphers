@@ -778,11 +778,17 @@ export class CipherTest extends CipherEncoder {
         }
         withCloudSyncSuppressed(() => {
             // Reset the scratch namespace and import the exact cloud contents.
+            // Force new cipher entries so every question on the cloud test gets
+            // its own entry.  Without this, identical questions (such as several
+            // freshly created placeholders of the same cipher type) would be
+            // deduplicated into a single shared entry and editing one would
+            // change all of them.
             this.setTestCount(0);
             this.setCipherCount(0);
-            const idx = this.processTestXML(source, false, true, false);
+            const idx = this.processTestXML(source, false, true, true);
             if (idx >= 0) {
                 const test = this.getTestEntry(idx);
+                this.splitSharedQuestions(test);
                 test.cloudExtId = this.cloudEditExtId;
                 test.cloudRevision = cloud.revision;
                 test.cloudSyncBaseline = cloud.payload;
@@ -791,6 +797,43 @@ export class CipherTest extends CipherEncoder {
         });
         this.setConfigString(CipherHandler.CLOUD_LOADED_KEY, this.cloudEditExtId);
         return true;
+    }
+    /**
+     * Make sure no two slots on a test (timed or numbered) point at the same
+     * cipher entry.  Cloud tests saved before identical questions were kept
+     * separate can reference one entry from several slots, which makes editing
+     * any of them change all of them.  Each extra reference gets its own copy
+     * of the cipher so the slots become independent questions again.
+     * @param test Test to repair (modified in place, not saved)
+     * @returns true when any slot was given a fresh copy
+     */
+    public splitSharedQuestions(test: ITest): boolean {
+        const seen = new Set<number>();
+        let changed = false;
+        const claim = (entry: number): number => {
+            if (entry === -1) {
+                return entry;
+            }
+            if (!seen.has(entry)) {
+                seen.add(entry);
+                return entry;
+            }
+            const state = this.getFileEntry(entry);
+            if (state === null) {
+                return entry;
+            }
+            const copy = cloneObject(state) as IState;
+            delete copy.editEntry;
+            const newEntry = this.setFileEntry(-1, copy);
+            seen.add(newEntry);
+            changed = true;
+            return newEntry;
+        };
+        test.timed = claim(test.timed);
+        for (let i = 0; i < test.questions.length; i++) {
+            test.questions[i] = claim(test.questions[i]);
+        }
+        return changed;
     }
     /**
      * Convert the current test information to a map which can be saved/restored later

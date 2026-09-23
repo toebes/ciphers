@@ -985,6 +985,8 @@ export class CipherHandler {
     public usesMorseTable = false;
     /** Indicates that the cipher uses a Porta code table */
     public usesPortaTable = false;
+    /** Indicates that the cipher uses a Baconian table */
+    public usesBaconianTable = false;
     /** Indicates that the cipher uses a Vigenere code table */
     public usesVigenereTable = false;
     /** Indicates that the cipher uses a Dancing Men Table */
@@ -4011,7 +4013,7 @@ export class CipherHandler {
      * @param question text to take the first n (12) characters of
      * @param len 12 characters ensure uniqueness with our current set of question templates.
      */
-    public makeQuestionKey(question: string, len: number = 12): string{
+    public makeQuestionKey(question: string, len: number = 12): string {
         return this.removeHtml(question).replace(/[^\p{L}\p{N}]/gu, '').substring(0, len).toLowerCase();
     }
 

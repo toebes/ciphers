@@ -104,6 +104,7 @@ export class CipherTestPrint extends CipherTest {
         let usesVigenereTable = false;
         let usesDancingMenTable = false;
         let usesStandardGalacticAlphabetTable = false;
+        let usesBaconianTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         let specialBonusTypes: BoolMap<ICipherType> = {}
@@ -287,6 +288,9 @@ export class CipherTestPrint extends CipherTest {
             if (cipherhandler.usesPortaTable) {
                 usesPortaTable = true;
             }
+            if (cipherhandler.usesBaconianTable) {
+                usesBaconianTable = true;
+            }
             if (cipherhandler.usesVigenereTable) {
                 usesVigenereTable = true;
             }
@@ -371,6 +375,14 @@ export class CipherTestPrint extends CipherTest {
             $('.portatable').show();
         } else {
             $('.portatable').hide();
+        }
+        /**
+         * See if we need to show/hide the Baconian Code Table
+         */
+        if (usesBaconianTable) {
+            $('.baconiantable').show();
+        } else {
+            $('.baconiantable').hide();
         }
         /**
          * See if we need to show/hide the Vigenere Code Table

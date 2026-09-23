@@ -172,6 +172,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         ITestType.cstate,
         ITestType.bregional,
         ITestType.bstate,
+        ITestType.aregional,
+        ITestType.astate,
     ];
     public defaultstate: IBaconianState = {
         cipherString: '',
@@ -188,6 +190,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         autoSolverScore: undefined,
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
+    public usesBaconianTable = true;
 
     public suggestABButton: JTButtonItem = {
         title: 'Suggest AB',
@@ -232,6 +235,28 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setTextb(this.state.textb);
         this.getFontClass();
         this.setOperation(this.state.operation);
+    }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division B, only decode is allowed
+     * Cryptanalysis is only allowed at the state level
+     *   decode - cregional/cstate/bregional/bstate
+     *   encode - cregional/cstate
+     *   crypt - cstate/bstate
+     * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
+        let result = super.CheckAppropriate(testType, anyOperation);
+        if (!result) {
+            if (!anyOperation) {
+                if ((testType === ITestType.aregional || testType === ITestType.astate) && this.state.operation !== 'let4let') {
+                    return 'Not valid for ' + this.getTestTypeName(testType);
+                }
+            }
+        }
+        return result;
     }
     /**
      * Create a Canvas for setting up images

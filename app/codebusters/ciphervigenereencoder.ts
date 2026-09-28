@@ -1484,9 +1484,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public setMappedKeyword(solvingdata: ISolverData, keyword: string, solved: string): void {
         solvingdata.keyword = [];
         solvingdata.known = [];
+        solved = solved.toUpperCase()
 
         for (let i = 0; i < keyword.length; i++) {
-            let keyc = keyword[i]
+            let keyc = keyword[i].toUpperCase()
             let solvec = solved.includes(keyc) ? keyc : '?'
             solvingdata.keyword.push(keyc)
             solvingdata.known.push(keyc === solvec)

@@ -630,6 +630,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
     }
     public validateSpecialKeyword(): void {
         if (this.state.operation === 'keyword') {
+            if (this.state.keyword === undefined || this.state.keyword.trim() === '') {
+                this.setErrorMsg('No keyword has been entered. ', 'dq');
+                $('#validatekey').text('Invalid keyword').removeClass('primary success').addClass('alert');
+                $('#validatekey').attr('disabled', 'disabled');
+                return;
+            }
             this.stopGenerating = false;
             this.isLoading = true
             this.loadLanguageDictionary(this.state.curlang).then(async () => {

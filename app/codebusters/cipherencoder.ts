@@ -903,7 +903,7 @@ export class CipherEncoder extends CipherHandler {
         } else {
             let msg = '';
             this.setErrorMsg(msg, 'vq');
-                msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
+            msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
             this.setErrorMsg(msg, 'pq');
         }
         // Show the update frequency values
@@ -2415,6 +2415,7 @@ export class CipherEncoder extends CipherHandler {
             params.grade = [-Infinity, 12]
         }
         let quotes = await DatabaseManager.getRandomEntriesWithRanges(lang, params, {}, 7)
+
         quotes.forEach((quote) => {
             if (action(found, quote.quote, quote.author)) {
                 found++
@@ -2611,7 +2612,7 @@ export class CipherEncoder extends CipherHandler {
     }
 
     public genQuoteSuggestions() {
-        let output = $("#quoteopts");
+        let output = $("#quoteopts").attr("class", "callout primary");
         const divAll = $("<div/>")
         output.empty().append(divAll)
 
@@ -2629,6 +2630,15 @@ export class CipherEncoder extends CipherHandler {
             )
             // divAll.append(div);
             return true;
+        }).then((found) => {
+            if (found == 0) {
+                output.attr("class", "callout alert");
+                let divNew = $("<div/>")
+                    .html('Quote manager empty. ')
+                    .append('<a href="QuoteManager.html">Import quotes here.</a>');
+                divAll.replaceWith(divNew);
+            }
+
         })
         this.attachHandlers()
     }

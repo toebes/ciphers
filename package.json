@@ -82,7 +82,7 @@
         "@types/es6-shim": "^0.31.41",
         "@types/jquery": "^3.5.5",
         "@types/katex": "^0.11.0",
-        "basic-ftp": "^6.0.1",
+        "basic-ftp": "^6.2.1",
         "charmap": "^1.1.6",
         "ckeditor5": "^48.0.1",
         "datatables": "^1.10.18",

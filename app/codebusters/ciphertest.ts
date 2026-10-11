@@ -343,6 +343,11 @@ export class CipherTest extends CipherEncoder {
         }
     }
     /**
+     * Load the test data.  We don't have to actually do anything for the test clases
+     * because they output in a different manner
+     */
+    public load(): void { }
+    /**
      * Create the tab buttons on the top of the page
      * @param testdisp Default state for this page
      * @returns JQuery elements for managing the state

@@ -1,5 +1,5 @@
 import { cloneObject, makeCallout } from '../common/ciphercommon';
-import { IEncodeType, IOperationType, IState, ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
+import { IOperationType, IState, ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { htmlToElement } from '../common/htmldom';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -625,12 +625,11 @@ export class CipherTestBuild extends CipherTest {
                 if (needed === 0) {
                     break;
                 }
-                // We need more entries, so run through the list again
+                // We need more entries, so run through the list again.
+                // Note that we want to go through the entire list even if we have them all because we
+                // are doing random weights and a later entry might replace one already in the list
                 for (let entry of possibilities) {
-                    let groupData = groups[entry.group]
-                    if (groupData.needed > groupData.questions.length) {
-                        this.AssignEntryToGroup(entry, groupData)
-                    }
+                    this.AssignEntryToGroup(entry, groups[entry.group])
                 }
             }
 

@@ -240,19 +240,6 @@ export class QuestionTypes {
             group: 3, weight: 0.5, cipherType: ICipherType.CompleteColumnar,
         },
         {
-            title: "Complete Columnar",
-            guidance: '[45-90 Characters]',
-            len: [45, 90],
-            group: 3, weight: 0.5, cipherType: ICipherType.CompleteColumnar,
-        },
-        {
-            title: "Cryptarithm",
-            guidance: '[Addition formula with a carry to make 1 or 2 digits obvious]',
-            default: 'EFFORT+PROJECT=ATTEMPT',
-            msg: "Use the Cryptarithm generator for formulas",
-            group: 3, weight: 0.5, cipherType: ICipherType.Cryptarithm,
-        },
-        {
             title: "Cryptarithm",
             guidance: '[Addition formula with a carry to make 1 or 2 digits obvious]',
             default: 'EFFORT+PROJECT=ATTEMPT',
@@ -309,25 +296,11 @@ export class QuestionTypes {
             operation: 'decode'
         },
         {
-            title: "Checkerboard Decode",
-            guidance: '[55-75 characters]',
-            len: [55, 75], chi2: [20, Infinity],
-            group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
-            operation: 'decode'
-        },
-        {
             title: "Checkerboard Cryptanalysis",
             guidance: '[55-75 characters]',
             len: [55, 75], chi2: [20, Infinity],
             group: 3, weight: 0.65, cipherType: ICipherType.Checkerboard,
             operation: 'crypt'
-        },
-        {
-            title: "Nihilist Decode",
-            guidance: '[40-55 characters]',
-            len: [40, 55],
-            group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
-            operation: 'decode'
         },
         {
             title: "Nihilist Decode",

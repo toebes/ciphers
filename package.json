@@ -61,7 +61,7 @@
         "postcss-loader": "^6.2.1",
         "prettier": "^2.3.1",
         "python": "^0.0.4",
-        "qs": "^6.15.2",
+        "qs": "^6.16.0",
         "style-loader": "^2.0.0",
         "svg-inline-loader": "^0.8.2",
         "ts-loader": "^9.2.3",
@@ -70,8 +70,8 @@
         "uglify-js": "^3.13.9",
         "webpack": "^5.106.2",
         "webpack-bundle-analyzer": "^4.4.2",
-        "webpack-cli": "^7.0.2",
-        "webpack-dev-server": "^5.2.6",
+        "webpack-cli": "^7.2.3",
+        "webpack-dev-server": "^6.0.0",
         "webpack-shell-plugin-next": "^2.2.2"
     },
     "dependencies": {

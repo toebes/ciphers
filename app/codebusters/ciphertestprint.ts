@@ -241,7 +241,7 @@ export class CipherTestPrint extends CipherTest {
                 const msg = 'Something went wrong generating the Timed Question.' + ' Error =' + e;
                 page.append($('<h1>').text(msg));
             }
-            qcount = 99;
+            qcount = 1;
             if (cipherhandler.state.specialbonus) {
                 SpecialBonusCount++;
                 errors.push(`The timed question can not be a special bonus question.`)

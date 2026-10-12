@@ -76,7 +76,7 @@
     },
     "dependencies": {
         "@azure/msal-browser": "^2.14.2",
-        "@capacitor/android": "^6.1.2",
+        "@capacitor/android": "^6.2.2",
         "@capacitor/core": "^6.1.2",
         "@shopify/draggable": "*",
         "@types/es6-shim": "^0.31.41",

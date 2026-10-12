@@ -121,7 +121,7 @@ export class CipherTestPrint extends CipherTest {
         const pagesize = this.ComputePageHeight();
         const result = $('<div/>');
         elem.append(result);
-        console.log('Page Height is ' + pagesize + ' pixels.');
+        // console.log('Page Height is ' + pagesize + ' pixels.');
         $('.testtitle').text(test.title);
         const dt = new Date();
         // If we are at the end of the year, display the following year for tests.
@@ -244,12 +244,10 @@ export class CipherTestPrint extends CipherTest {
             qcount = 99;
             if (cipherhandler.state.specialbonus) {
                 SpecialBonusCount++;
-                if (specialBonusTypes[cipherhandler.state.cipherType]) {
-                    errors.push(`More than one special bonus question is the same ${getCipherTitle(cipherhandler.state.cipherType)} type cipher.`)
-                }
+                errors.push(`The timed question can not be a special bonus question.`)
                 specialBonusTypes[cipherhandler.state.cipherType] = true;
-
             }
+
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
             if (test.testtype === ITestType.aregional) {
@@ -280,6 +278,10 @@ export class CipherTestPrint extends CipherTest {
             }
             if (cipherhandler.state.specialbonus) {
                 SpecialBonusCount++;
+                if (specialBonusTypes[cipherhandler.state.cipherType]) {
+                    errors.push(`More than one special bonus question is the same ${getCipherTitle(cipherhandler.state.cipherType)} type cipher.`)
+                }
+                specialBonusTypes[cipherhandler.state.cipherType] = true;
             }
             /* Does this cipher involve morse code? */
             if (cipherhandler.usesMorseTable) {

@@ -1187,9 +1187,9 @@ export class CipherTestBuild extends CipherTest {
         const isSpecial = Array<boolean>(finalData.length).fill(false);
         if (finalData.length > 10) {
             // First we pick 3 of the legal ciphers that we will choose from
-            // For the 2025-2026 season we want to ensure that one of them is a Checkerboard
+            // We need to make sure that at least one of them is the required special bonus cipher
             const specialChoices = pickRandom(Object.keys(specialCandidates), 3);
-            // If we didn't pick a checkerboard, and there is one available, then force it to be one of the three
+            // If we didn't pick the required special bonus cipher, and there is one available, then force it to be one of the three
             if (specialChoices.findIndex((val) => val === this.requiredSpecialBonusCipher) < 0 &&
                 specialCandidates[this.requiredSpecialBonusCipher] !== undefined) {
                 specialChoices[2] = this.requiredSpecialBonusCipher;
@@ -1312,11 +1312,28 @@ export class CipherTestBuild extends CipherTest {
     }
     /**
      * Determine if an entry is high enough weight to put into a given group.
+     * We also have to ensure that the required special bonus cipher is included and
+     * is never bumped from the group.
      * @param entry Cipher entry to check
      * @param groupData Group to check into
      */
     public AssignEntryToGroup(entry: QuestionType, groupData: GroupData) {
-        const weight = entry.weight + Math.random();
+        let weight = entry.weight + Math.random();
+        let specialBonusCount = 0;
+        let maxWeight = 0;
+        for (let groupEntry of groupData.questions) {
+            if (groupEntry.entry.cipherType === this.requiredSpecialBonusCipher) {
+                specialBonusCount++;
+            }
+            if (groupEntry.weight > maxWeight) {
+                maxWeight = groupEntry.weight;
+            }
+        }
+        // If the entry is the required special bonus cipher and there's not already in the group, we
+        // want to force it to be included
+        if (entry.cipherType === this.requiredSpecialBonusCipher && specialBonusCount === 0) {
+            weight = maxWeight + entry.weight; // Ensure the special bonus cipher is always included
+        }
         if (groupData.needed > groupData.questions.length) {
             // We don't have enough questions, so add it to the group
             groupData.questions.push({ weight: weight, entry: entry });
@@ -1330,7 +1347,9 @@ export class CipherTestBuild extends CipherTest {
                 let groupEntry = groupData.questions[index];
                 // Find the slot that corresponds to the 
                 let thisWeight = groupEntry.weight
-                if (groupEntry.weight === groupData.minWeight) {
+                if (groupEntry.weight === groupData.minWeight &&
+                    groupEntry.entry.cipherType !== this.requiredSpecialBonusCipher) {
+                    // Make sure we aren't pushing out the special bonus cipher
                     thisWeight = weight;
                     groupData.questions[index].weight = weight;
                     groupData.questions[index].entry = entry;

@@ -209,6 +209,9 @@ export class CipherTestGenerator extends CipherTest {
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
                 if (qstate.specialbonus) {
+                    if (entry === -1) {
+                        errors.push(`The timed question can not be a special bonus question.`)
+                    }
                     if (specialBonusTypes[qstate.cipherType]) {
                         errors.push(`More than one special bonus question is the same ${getCipherTitle(qstate.cipherType)} type cipher.`)
                     }

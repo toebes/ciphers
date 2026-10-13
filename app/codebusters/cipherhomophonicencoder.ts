@@ -595,12 +595,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     }
     public checkHint(): void {
         let emsg = ''
+        const testUsage = this.getTestUsage();
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
         if (this.state.operation === 'decode') {
             // Make sure all of the hint characters occur exactly once in the crib
-            const testUsage = this.getTestUsage();
-            const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
-            let hintText = this.minimizeString(this.state.hint)
-            let keyText = this.minimizeString(this.state.keyword)
+            const hintText = this.minimizeString(this.state.hint)
+            const keyText = this.minimizeString(this.state.keyword)
             const minHint = usedOnB ? 3 : 2
             if (hintText.length < minHint) {
                 emsg = `There needs to be at least ${minHint} hint characters provided`
@@ -620,6 +620,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     }
                     seen[c] = true
                 }
+            }
+        } else if (this.state.operation === 'crypt') {
+            const cribText = this.minimizeString(this.state.crib)
+            const minCrib = usedOnB ? 3 : 2
+            if (cribText.length < minCrib) {
+                emsg = `There needs to be at least ${minCrib} crib characters provided`
             }
         }
         this.setErrorMsg(emsg, 'hint');

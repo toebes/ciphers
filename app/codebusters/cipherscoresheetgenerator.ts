@@ -372,7 +372,7 @@ export default class CipherScoreSheetGenerator {
             scoreEntrySheet['!merges'] = [];
         }
 
-        const numberOfTeamsEntryCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 5, c: questionSheetData.length + 4 + templateColNumberAdjustment });
+        const numberOfTeamsEntryCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 5, c: questionSheetData.length + 5 });
 
         // add the directions and number of teams
         if (!isTemplate) {
@@ -787,7 +787,6 @@ export default class CipherScoreSheetGenerator {
                 } else {
                     const baseTab = "'Score Entry'!";
                     cell.f = `IF(ROW() - 4 <= ${baseTab}${numberOfTeamsEntryCellAddress}, INDEX(${baseTab}A:A,ROW()), "")`;
-                    console.log(`${i}: ${cell.f}`);
                 }
 
                 cell.s = this.getHeaderCellStyle(

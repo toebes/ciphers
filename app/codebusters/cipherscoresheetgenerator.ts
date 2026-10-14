@@ -782,7 +782,14 @@ export default class CipherScoreSheetGenerator {
                 );
             }
             else {
-                cell.f = `IF(ROW() - 4 <= ${!isTemplate ? "" : "'Score Entry'!"}${numberOfTeamsEntryCellAddress}, "${testDivision}" & (ROW() - 4), "")`;
+                if (!isTemplate) {
+                    cell.f = `IF(ROW() - 4 <= ${numberOfTeamsEntryCellAddress}, "${testDivision}" & (ROW() - 4), "")`;
+                } else {
+                    const baseTab = "'Score Entry'!";
+                    cell.f = `IF(ROW() - 4 <= ${baseTab}${numberOfTeamsEntryCellAddress}, INDEX(${baseTab}A:A,ROW()), "")`;
+                    console.log(`${i}: ${cell.f}`);
+                }
+
                 cell.s = this.getHeaderCellStyle(
                     this.getStyledBorder((i === (this.MAX_TEAMS + 3)) ? [BorderType.Right, BorderType.Bottom] : [BorderType.Right]),
                     Alignment.Center,
@@ -1208,7 +1215,7 @@ export default class CipherScoreSheetGenerator {
                 tiebreakerCell.s = headerCellStyle;
             }
             else {
-                teamNumberCell.f = teamNumberConditionFormulaInject(`"${testDivision}" & (ROW() - 1)`);
+                teamNumberCell.f = teamNumberConditionFormulaInject(`INDEX('Score Entry'!A:A,ROW()+3)`);
 
                 // Calculate the final score and rank
                 const scoreCalcFinalScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: i + 3, c: numQuestions + 4 });

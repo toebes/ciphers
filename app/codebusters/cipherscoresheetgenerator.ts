@@ -126,6 +126,11 @@ export default class CipherScoreSheetGenerator {
      * @default 5
      */
     private static QUESTION_COL_WIDTH: number = 5;
+    /**
+     * Width of the question column in the score sheet.
+     * @default 7
+     */
+    private static SUMMARY_COL_WIDTH: number = 7;
 
     /**
      * The dark gray color used in the score sheet.
@@ -1180,21 +1185,29 @@ export default class CipherScoreSheetGenerator {
     private static generateScoreSummarySheet(testType: ITestType, numQuestions: number): WorkSheetDataResponse {
         const scoreSummarySheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
 
+
+        // Should be:
+        //  0     1      2      3        4      5       6       7       8         9     10
+        //                     Base    Timed  Special  Bonus
+        //  ID   Score  Rank   Score   Bonus  Bonus    Score   Tie   Tiebreaker       ID-Rank(Score)
+        //  61    61     61     61      61     61        61    43       75        1     163
+
+
         const testDivision = this.calculateTestDivision(testType);
 
         // Set the column widths
         scoreSummarySheet['!cols'] = [];
-        scoreSummarySheet['!cols'][0] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][1] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][2] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][3] = { wch: 1 };
-        scoreSummarySheet['!cols'][4] = { wch: this.TIMED_QUESTION_COL_WIDTH * 5 };
-        scoreSummarySheet['!cols'][5] = { wch: 1 };
-        scoreSummarySheet['!cols'][6] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][7] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][8] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][9] = { wch: this.TIMED_QUESTION_COL_WIDTH };
-        scoreSummarySheet['!cols'][10] = { wch: this.QUESTION_COL_WIDTH * 2 };
+        scoreSummarySheet['!cols'][0] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][1] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][2] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][3] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][4] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][5] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][6] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][7] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][8] = { wch: this.SUMMARY_COL_WIDTH };
+        scoreSummarySheet['!cols'][9] = { wch: 1 };
+        scoreSummarySheet['!cols'][10] = { wch: this.SUMMARY_COL_WIDTH * 2 };
 
         const numberOfTeamsEntryCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 5, c: numQuestions + this.SCORE_ENTRY_EXTRA });
         const teamNumberConditionFormulaInject = (formula: string): string =>
@@ -1202,15 +1215,28 @@ export default class CipherScoreSheetGenerator {
 
         // Loop through each team from 0 to MAX_TEAMS
         for (let i = 0; i <= this.MAX_TEAMS; i++) {
-            const teamNumberCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 0 });
-            const teamFinalScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 1 });
-            const teamRankCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 2 });
-            const teamRankDisplayCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 4 });
-            const baseScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 6 });
-            const timedBonusScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 7 });
-            const specialBonusCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 8 });
-            const bonusScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 9 });
-            const tiebreakerCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 10 });
+
+            const TEAM_NUMBER_COL = 0;
+            const FINAL_SCORE_COL = 1;
+            const RANK_COL = 2;
+            const BASE_SCORE_COL = 3
+            const TIMED_BONUS_COL = 4;
+            const SPECIAL_BONUS_COL = 5;
+            const BONUS_SCORE_COL = 6;
+            const TIE_INDICATOR_COL = 7;
+            const TIEBREAKER_COL = 8;
+
+            const teamNumberCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: TEAM_NUMBER_COL });
+            const teamFinalScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: FINAL_SCORE_COL });
+            const teamRankCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: RANK_COL });
+            const baseScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: BASE_SCORE_COL });
+            const timedBonusScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: TIMED_BONUS_COL });
+            const specialBonusCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: SPECIAL_BONUS_COL });
+            const bonusScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: BONUS_SCORE_COL });
+            const tieIndicatorCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: TIE_INDICATOR_COL });
+            const tiebreakerCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: TIEBREAKER_COL });
+
+            const teamRankDisplayCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 10 });
 
             // Check if the team exists
             if (!scoreSummarySheet[teamNumberCellAddress]) {
@@ -1237,6 +1263,9 @@ export default class CipherScoreSheetGenerator {
             if (!scoreSummarySheet[bonusScoreCellAddress]) {
                 scoreSummarySheet[bonusScoreCellAddress] = {};
             }
+            if (!scoreSummarySheet[tieIndicatorCellAddress]) {
+                scoreSummarySheet[tieIndicatorCellAddress] = {};
+            }
             if (!scoreSummarySheet[tiebreakerCellAddress]) {
                 scoreSummarySheet[tiebreakerCellAddress] = {};
             }
@@ -1250,6 +1279,7 @@ export default class CipherScoreSheetGenerator {
             const timedBonusScoreCell = scoreSummarySheet[timedBonusScoreCellAddress];
             const specialBonusCell = scoreSummarySheet[specialBonusCellAddress];
             const bonusScoreCell = scoreSummarySheet[bonusScoreCellAddress];
+            const tieIndicatorCell = scoreSummarySheet[tieIndicatorCellAddress];
             const tiebreakerCell = scoreSummarySheet[tiebreakerCellAddress];
 
             // If this is the header, set the header style
@@ -1262,7 +1292,8 @@ export default class CipherScoreSheetGenerator {
                 timedBonusScoreCell.v = 'Timed Bonus';
                 specialBonusCell.v = 'Special Bonus';
                 bonusScoreCell.v = 'Bonus Score';
-                tiebreakerCell.v = 'Tiebreaker';
+                tieIndicatorCell.v = 'Tie';
+                tiebreakerCell.v = 'Tie Breaker';
 
                 const headerCellStyle = this.getHeaderCellStyle(
                     this.getStyledBorder([BorderType.Bottom, BorderType.Right]),
@@ -1278,34 +1309,43 @@ export default class CipherScoreSheetGenerator {
                 timedBonusScoreCell.s = headerCellStyle;
                 specialBonusCell.s = headerCellStyle;
                 bonusScoreCell.s = headerCellStyle;
+                tieIndicatorCell.s = headerCellStyle;
                 tiebreakerCell.s = headerCellStyle;
-            }
-            else {
+            } else {
                 teamNumberCell.f = teamNumberConditionFormulaInject(`INDEX('Score Entry'!A:A,ROW()+3)`);
 
                 // Calculate the final score and rank
-                const scoreCalcFinalScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: i + 3, c: numQuestions + 4 });
-                const noShowCondition = `TRIM('Score Calculation'!${scoreCalcFinalScoreAddress}) <> "NS"`;
-                const participationCondition = `TRIM('Score Calculation'!${scoreCalcFinalScoreAddress}) <> "P"`;
-                const disqualificationCondition = `TRIM('Score Calculation'!${scoreCalcFinalScoreAddress}) <> "DQ"`;
-                const otherCondition = `TRIM(${tiebreakerCellAddress}) <> ""`;
-                const scoreAndTiebreakerPresentCalc = `AND(${noShowCondition}, ${participationCondition}, ${disqualificationCondition}, ${otherCondition})`;
-                const scoreWithTiebreakerCalc = `SUM('Score Calculation'!${scoreCalcFinalScoreAddress}, ${tiebreakerCellAddress})`;
+                const scoreCalcFinalScoreAddress = XLSX_STYLE.utils.encode_cell({
+                    r: i + 3,
+                    c: numQuestions + 4
+                });
+
+                const score = `'Score Calculation'!${scoreCalcFinalScoreAddress}`;
+                const tiebreaker = tiebreakerCellAddress;
+                const tiebreakerCol = XLSX_STYLE.utils.encode_col(TIEBREAKER_COL);
+                const tiebreakerRange = `${tiebreakerCol}:${tiebreakerCol}`;
+
+                const tiebreakerCalc =
+                    `IF(ISNUMBER(${tiebreaker}),` +
+                    `(MAX(${tiebreakerRange})-${tiebreaker})/MAX(10,MAX(${tiebreakerRange})),0)`;
+
                 teamFinalScoreCell.f = teamNumberConditionFormulaInject(
-                    `IF(${scoreAndTiebreakerPresentCalc}, ${scoreWithTiebreakerCalc}, 'Score Calculation'!${scoreCalcFinalScoreAddress})`
+                    `IF(ISNUMBER(${score}),SUM(${score},${tiebreakerCalc}),${score})`
                 );
 
                 // Calculate the rank
-                const teamMinFinalScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 1, c: 1 });
-                const teamMaxFinalScoreCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS, c: 1 });
+                const teamMinFinalScoreCellAddress = XLSX_STYLE.utils.encode_cell({ r: 1, c: 1 });
+                const teamMaxFinalScoreCellAddress = XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS, c: 1 });
+
                 const scoreRange = `${teamMinFinalScoreCellAddress}:${teamMaxFinalScoreCellAddress}`;
-                const lastPlaceRank = `COUNTA(${scoreRange})`;
-                const rankCalc = `RANK(${teamFinalScoreCellAddress}, ${scoreRange})`;
-                const rankCalcWithDq = `IF(TRIM(${teamFinalScoreCellAddress})="DQ", ${lastPlaceRank} + 2, ${rankCalc})`;
-                const rankCalcWithNsAndDq = `IF(TRIM(${teamFinalScoreCellAddress})="NS", ${lastPlaceRank} + 1, ${rankCalcWithDq})`;
-                teamRankCell.f = teamNumberConditionFormulaInject(
-                    `IF(TRIM(${teamFinalScoreCellAddress})="P", ${lastPlaceRank}, ${rankCalcWithNsAndDq})`
-                );
+                const score2 = teamFinalScoreCellAddress;
+
+                const rankCalc =
+                    `IF(ISNUMBER(${score2}),` +
+                    `RANK(${score2},${scoreRange}),` +
+                    `COUNTA(${scoreRange})+MATCH(TRIM(${score2}),{"P","NS","DQ"},0)-1)`;
+
+                teamRankCell.f = teamNumberConditionFormulaInject(rankCalc);
 
                 // Calculate the rank display
                 const minTeamRankDisplayCellAddress = XLSX_STYLE.utils.encode_cell({ r: 1, c: 3 }); // D2
@@ -1335,6 +1375,13 @@ export default class CipherScoreSheetGenerator {
                 specialBonusCell.f = teamNumberConditionFormulaInject(`'Score Calculation'!${scoreCalcSpecialBonusScoreAddress}`);
                 bonusScoreCell.f = teamNumberConditionFormulaInject(`SUM(${timedBonusScoreCellAddress}:${specialBonusCellAddress})`);
                 tiebreakerCell.v = " ";
+                tieIndicatorCell.v = " ";
+
+                const tnscoreRange = `${XLSX_STYLE.utils.encode_col(FINAL_SCORE_COL)}:${XLSX_STYLE.utils.encode_col(FINAL_SCORE_COL)}`;
+
+                tieIndicatorCell.f = teamNumberConditionFormulaInject(
+                    `IF(COUNTIF(${tnscoreRange},${teamFinalScoreCellAddress})>1,"--TIE--","")`
+                );
 
                 // Set the team number, final score, rank, base score, timed/special bonus scores and tiebreaker cell styles
                 teamNumberCell.s = this.getHeaderCellStyle(this.getStyledBorder([BorderType.Bottom, BorderType.Top]));
@@ -1356,6 +1403,7 @@ export default class CipherScoreSheetGenerator {
                 timedBonusScoreCell.s = getScoreCellStyle([BorderType.Bottom, BorderType.Top]);
                 specialBonusCell.s = getScoreCellStyle([BorderType.Bottom, BorderType.Top]);
                 bonusScoreCell.s = getScoreCellStyle([BorderType.Bottom, BorderType.Top]);
+                tieIndicatorCell.s = getScoreCellStyle([BorderType.Bottom, BorderType.Top]);
                 tiebreakerCell.s = getScoreCellStyle([BorderType.Bottom, BorderType.Top, BorderType.Right]);
             }
         }

@@ -93,7 +93,7 @@ enum SheetType {
     ScoreCalculation = "Score Calculation",
     ScoreSummary = "Score Summary",
     ScoreAnalysis = "Score Analysis",
-    SuccessCorrelationAnalysis = "Success CorrelationAnalysis",
+    SuccessCorrelationAnalysis = "Success Correlation Analysis",
     AttemptCorrelationAnalysis = "Attempt Correlation Analysis",
     CorrelationSummary = "Correlation Summary",
     ScoreCalcSummary = "Score Calc Summary",
@@ -204,8 +204,10 @@ export default class CipherScoreSheetGenerator {
     private static readonly STYLE_GRAY = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BOLD_GRAY_FMTTIME = this.makeStyle("NONE", { bold: true, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "hh:mm" });
     private static readonly STYLE_BORDER_RL_GREY = this.makeStyle("RL", { fillColor: this.LIGHT_GRAY_COLOR });
+    private static readonly STYLE_BORDER_RL_GREY_FMT3DEC = this.makeStyle("RL", { fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0.000" });
     private static readonly STYLE_BORDER_BRL_GREY = this.makeStyle("BRL", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_TB_GRAY = this.makeStyle("TB", { fillColor: this.LIGHT_GRAY_COLOR });
+    private static readonly STYLE_BORDER_NONE_GRAY = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_TBL_GRAY = this.makeStyle("TBL", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_TBR_GRAY = this.makeStyle("TBR", { fillColor: this.LIGHT_GRAY_COLOR });
 
@@ -316,56 +318,77 @@ export default class CipherScoreSheetGenerator {
             SheetType.ScoreAnalysis
         );
 
+        const { worksheet: SuccessCorrelationAnalysis } = this.generateSuccessCorrelationAnalysisSheet(questionSheetData, maxQuestionTypeWidth, testDivision);
+
+        XLSX_STYLE.utils.book_append_sheet(
+            workbook,
+            SuccessCorrelationAnalysis,
+            SheetType.SuccessCorrelationAnalysis
+        );
+        // AttemptCorrelationAnalysis = "Attempt Correlation Analysis",
+        // CorrelationSummary = "Correlation Summary",
+        // ScoreCalcSummary = "Score Calc Summary",
+        // TimedBonus = "Timed Bonus",
+        // ScoreClusters = "Score Clusters",
+        // TimedDifferential = "Timed Differential",
         // A custom object defining the sheets, their frozen panes, and corresponding xml sheet
 
         const xmlInjectionDataMap: Map<string, XMLInjectionData> = new Map<string, XMLInjectionData>([
-            [
-                SheetType.TestQuestions,
-                {
-                    frozenPane: {
-                        ySplit: 1,
-                        topLeftCell: "A2",
-                        activePane: "bottomLeft"
-                    },
-                    xmlSheetPath: "xl/worksheets/sheet1.xml"
-                }
-            ],
-            [
-                SheetType.ScoreEntry,
-                {
-                    frozenPane: {
-                        xSplit: 2,
-                        ySplit: 4,
-                        topLeftCell: "C5",
-                        activePane: "bottomRight"
-                    },
-                    xmlSheetPath: "xl/worksheets/sheet2.xml"
-                }
-            ],
-            [
-                SheetType.ScoreCalculation,
-                {
-                    frozenPane: {
-                        xSplit: 1,
-                        ySplit: 4,
-                        topLeftCell: "B5",
-                        activePane: "bottomRight"
-                    },
-                    xmlSheetPath: "xl/worksheets/sheet3.xml"
-                }
-            ],
-            [
-                SheetType.ScoreSummary,
-                {
-                    frozenPane: {
-                        xSplit: 1,
-                        ySplit: 1,
-                        topLeftCell: "B2",
-                        activePane: "bottomRight"
-                    },
-                    xmlSheetPath: "xl/worksheets/sheet4.xml"
-                }
-            ],
+            [SheetType.TestQuestions, {
+                frozenPane: {
+                    ySplit: 1,
+                    topLeftCell: "A2",
+                    activePane: "bottomLeft"
+                },
+                xmlSheetPath: "xl/worksheets/sheet1.xml"
+            }],
+            [SheetType.ScoreEntry, {
+                frozenPane: {
+                    xSplit: 2, ySplit: 4,
+                    topLeftCell: "C5",
+                    activePane: "bottomRight"
+                },
+                xmlSheetPath: "xl/worksheets/sheet2.xml"
+            }],
+            [SheetType.ScoreCalculation, {
+                frozenPane: {
+                    xSplit: 1, ySplit: 4,
+                    topLeftCell: "B5",
+                    activePane: "bottomRight"
+                },
+                xmlSheetPath: "xl/worksheets/sheet3.xml"
+            }],
+            [SheetType.ScoreSummary, {
+                frozenPane: {
+                    xSplit: 2, ySplit: 4,
+                    topLeftCell: "C5",
+                    activePane: "bottomRight"
+                },
+                xmlSheetPath: "xl/worksheets/sheet4.xml"
+            }],
+            [SheetType.ScoreAnalysis, {
+                frozenPane: {
+                    xSplit: 2, ySplit: 4,
+                    topLeftCell: "C5",
+                    activePane: "bottomRight"
+                },
+                xmlSheetPath: "xl/worksheets/sheet5.xml"
+            }],
+            [SheetType.SuccessCorrelationAnalysis, {
+                frozenPane: {
+                    ySplit: 4,
+                    topLeftCell: "A5",
+                    activePane: "bottomLeft"
+                },
+                xmlSheetPath: "xl/worksheets/sheet6.xml"
+            }],
+
+            // AttemptCorrelationAnalysis = "Attempt Correlation Analysis",
+            // CorrelationSummary = "Correlation Summary",
+            // ScoreCalcSummary = "Score Calc Summary",
+            // TimedBonus = "Timed Bonus",
+            // ScoreClusters = "Score Clusters",
+            // TimedDifferential = "Timed Differential",
         ]);
 
         await this.generateAndInjectXmlAsync(workbook, xmlInjectionDataMap, testTitle);
@@ -623,9 +646,12 @@ export default class CipherScoreSheetGenerator {
                 scoreCalcCell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, ${targetScoreAddress}, "")`;
                 timedCell.v = '';
                 timedCell.t = "n";
+                cell.t = "s";
             } else {
                 const baseTab = "'Score Entry'!";
                 cell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, INDEX(${baseTab}A:A,ROW()), "")`;
+                cell.v = '';
+                cell.t = "s";
             }
 
             cell.s = (team === (teams - 1)) ? this.STYLE_HEADER_BORDER_BR : this.STYLE_HEADER_BORDER_R
@@ -842,13 +868,11 @@ export default class CipherScoreSheetGenerator {
     private static generateScoreSummarySheet(testDivision: string, numQuestions: number): WorkSheetDataResponse {
         const scoreSummarySheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
 
-
         // Should be:
         //  0     1      2      3        4      5       6       7       8         9     10
         //                     Base    Timed  Special  Bonus
         //  ID   Score  Rank   Score   Bonus  Bonus    Score   Tie   Tiebreaker       ID-Rank(Score)
         //  61    61     61     61      61     61        61    43       75        1     163
-
 
         // Set the column widths
         for (let col = 0; col < 9; col++) {
@@ -1088,6 +1112,94 @@ export default class CipherScoreSheetGenerator {
 
         return {
             worksheet: ScoreAnalysisSheet,
+        };
+    }
+
+    /**
+ * Generate a worksheet containing the Success Correlation Analysis data
+ * @param questionSheetData The question data to generate the score sheet from
+ * @param maxQuestionTypeWidth The maximum width of the "Type" column
+ * @param testDivision The test division to generate the score sheet for
+ * @returns {WorkSheetDataResponse} An object containing the worksheet
+ */
+    private static generateSuccessCorrelationAnalysisSheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string): WorkSheetDataResponse {
+
+        // Use score entry sheet as a template
+        const SuccessCorrelationAnalysisSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, this.MAX_TEAMS, false).worksheet;
+        const pointsRange: string = `${XLSX_STYLE.utils.encode_cell({ r: 2, c: 2 })}:${XLSX_STYLE.utils.encode_cell({ r: 2, c: questionSheetData.length + 1 })}`;
+        const maxPointsAddress: string = XLSX_STYLE.utils.encode_cell({ r: 16, c: 1 });
+        const maxPossibleAddress: string = XLSX_STYLE.utils.encode_cell({ r: 17, c: 1 });
+        const topTeamScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: 18, c: 1 });
+        const extraPoints = testDivision === "A" ? 0 : (60 * 10 * 2) + 750;
+        const actualScoreRange: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: 4, c: questionSheetData.length + 4 })}:${XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS + 4, c: questionSheetData.length + 4 })}`
+
+
+        // this.writeCellTable(ScoreAnalysisSheet, 4, 0, headerTable);
+        // this.setColumnWidth(ScoreAnalysisSheet, 0, 28);
+        this.mergeCells(SuccessCorrelationAnalysisSheet, 0, 0, 3, 0);
+        for (let q = 0; q <= questionSheetData.length; q++) {
+            const col = q + 2;
+            const destCol = (q === questionSheetData.length) ? col + 2 : col;
+            const destStartRow = 4;
+            const destColLetter = XLSX_STYLE.utils.encode_col(destCol);
+            const destCalculation = `'Score Calculation'!$${destColLetter}$${destStartRow + 1}:INDEX('Score Calculation'!$${destColLetter}:$${destColLetter},NumberOfTeams+${destStartRow})`;
+            for (let team = 0; team < this.MAX_TEAMS; team++) {
+                let row = team + 4;
+                const destCell = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: row, c: destCol })}`
+                const cell = this.getCell(SuccessCorrelationAnalysisSheet, row, col);
+                cell.f = `IF(ROW()-${this.HEADER_ROWS}<= NumberOfTeams,RANK(${destCell},${destCalculation}),"")`
+                cell.v = 0
+                cell.t = "n";
+                if (q === questionSheetData.length) {
+                    cell.s = this.STYLE_BORDER_NONE_GRAY;
+                }
+            }
+        }
+
+        let col = questionSheetData.length + 2;
+
+        const headers: string[] = ["Final Score", "", "Question", "Type", "Correlation"];
+        for (let i = 0; i < headers.length; i++) {
+            if (headers[i] !== "") {
+                const headerTable: TableCell[][] = [
+                    [{ v: headers[i], s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
+                    [{ v: ' ', s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
+                    [{ v: ' ', s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
+                ];
+                this.writeCellTable(SuccessCorrelationAnalysisSheet, 1, col + i, headerTable);
+                this.mergeCells(SuccessCorrelationAnalysisSheet, 1, col + i, 3, col + i);
+            }
+        }
+        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 1, 1);
+        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 2, 8);
+        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 3, 25);
+        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 4, 10);
+
+        col = questionSheetData.length + 4;
+        let destColLetter = XLSX_STYLE.utils.encode_col(questionSheetData.length + 2);
+        const finalCorrelRange = `$${destColLetter}$${this.HEADER_ROWS + 1}:INDEX($${destColLetter}:$${destColLetter},NumberOfTeams+${this.HEADER_ROWS + 1})`;
+        for (let q = 0; q < questionSheetData.length; q++) {
+            const row = this.HEADER_ROWS + q;
+            const destCol = q + 2;
+            destColLetter = XLSX_STYLE.utils.encode_col(destCol);
+            const qRange = `$${destColLetter}$${this.HEADER_ROWS + 1}:INDEX($${destColLetter}:$${destColLetter},NumberOfTeams+${this.HEADER_ROWS + 1})`;
+            const rowTable: TableCell[][] = [
+                [{ v: '', f: `${XLSX_STYLE.utils.encode_cell({ r: 3, c: destCol })}`, s: this.STYLE_BORDER_RL_GREY },
+                { v: '', f: `${XLSX_STYLE.utils.encode_cell({ r: 0, c: destCol })}`, s: this.STYLE_BORDER_RL_GREY },
+                { v: '', f: `=CORREL(${qRange},${finalCorrelRange} )`, s: this.STYLE_BORDER_RL_GREY_FMT3DEC }
+                ]
+            ];
+            this.writeCellTable(SuccessCorrelationAnalysisSheet, row, col, rowTable);
+        }
+
+        // Define the final dimensions
+        const maxRowIndex: number = this.MAX_TEAMS + 4;
+        const maxColIndex: number = questionSheetData.length + 7;
+
+        this.setSheetSize(SuccessCorrelationAnalysisSheet, maxRowIndex, maxColIndex);
+
+        return {
+            worksheet: SuccessCorrelationAnalysisSheet,
         };
     }
     // #endregion

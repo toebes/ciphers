@@ -30,6 +30,7 @@ type QuestionData = {
 type TableCell = {
     v?: string;
     s?: CellStyle;
+    f?: string;
 };
 
 type BorderStyle = {
@@ -181,45 +182,32 @@ export default class CipherScoreSheetGenerator {
     private static readonly STYLE_HEADER_BORDER_BR_VBOT_WRAP = this.makeStyle("BR", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
     private static readonly STYLE_HEADER_BORDER_NONE_VBOT_WRAP = this.makeStyle("NONE", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
     private static readonly STYLE_HEADER_BORDER_R_VBOT_WRAP = this.makeStyle("R", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
-    private static readonly STYLE_HEADER_BORDER_B_VBOT_WRAP = this.makeStyle("B", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
     private static readonly STYLE_HEADER_BORDER_TBL = this.makeStyle("TBL", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_TRL = this.makeStyle("TRL", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_RL = this.makeStyle("RL", { bold: true, fillColor: this.DARK_GRAY_COLOR });
+    private static readonly STYLE_HEADER_BORDER_HRIGHT_TL = this.makeStyle("TL", { horizontal: Alignment.Right, bold: true, fillColor: this.DARK_GRAY_COLOR });
+    private static readonly STYLE_HEADER_BORDER_HRIGHT_L = this.makeStyle("L", { horizontal: Alignment.Right, bold: true, fillColor: this.DARK_GRAY_COLOR });
+    private static readonly STYLE_HEADER_BORDER_HRIGHT_BL = this.makeStyle("BL", { horizontal: Alignment.Right, bold: true, fillColor: this.DARK_GRAY_COLOR });
     private static readonly STYLE_HEADER_BORDER_TBR = this.makeStyle("TBR", { bold: true, fillColor: this.DARK_GRAY_COLOR });
     private static readonly STYLE_HEADER_BORDER_TB = this.makeStyle("TB", { bold: true, fillColor: this.DARK_GRAY_COLOR });
     private static readonly STYLE_HEADER_BORDER_ALL_HLEFT = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR, horizontal: Alignment.Left });
     private static readonly STYLE_HEADER_BORDER_ALL_HRIGHT = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR, horizontal: Alignment.Right });
 
 
-    private static readonly STYLE_BORDER_B_HLEFT = this.makeStyle("B", { horizontal: Alignment.Left });
-    private static readonly STYLE_BORDER_BR_HLEFT = this.makeStyle("BR", { horizontal: Alignment.Left });
     private static readonly STYLE_BORDER_ALL_GRAY = this.makeStyle("ALL", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_ALL_BOLD_GRAY = this.makeStyle("ALL", { bold: true, fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_ALL_HLEFT_BOLD_GRAY = this.makeStyle("ALL", { horizontal: Alignment.Left, bold: true, fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY = this.makeStyle("ALL", { horizontal: Alignment.Right, bold: true, fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_ALL = this.makeStyle("ALL");
-    private static readonly STYLE_BORDER_ALL_HLEFT = this.makeStyle("ALL", { horizontal: Alignment.Left });
-    private static readonly STYLE_BORDER_ALL_HRIGHT = this.makeStyle("ALL", { horizontal: Alignment.Right });
-    private static readonly STYLE_BORDER_ALL_WRAP = this.makeStyle("ALL", { wrapText: true });
-    private static readonly STYLE_BORDER_B_VBOT_WRAP = this.makeStyle("B", { vertical: Alignment.Bottom, wrapText: true });
-    private static readonly STYLE_BORDER_BR_VBOT_WRAP = this.makeStyle("BR", { vertical: Alignment.Bottom, wrapText: true });
-    private static readonly STYLE_BORDER_BR_WRAP = this.makeStyle("BR", { wrapText: true });
-    private static readonly STYLE_BORDER_BR_BOLD = this.makeStyle("BR", { bold: true });
     private static readonly STYLE_RED = this.makeStyle("NONE", { fillColor: this.DULL_LIGHT_RED_COLOR });
     private static readonly STYLE_GRAY_FMT0 = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0" });
+    private static readonly STYLE_BORDER_TR_HRIGHT_GRAY_FMT0 = this.makeStyle("TR", { horizontal: Alignment.Right, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0" });
+    private static readonly STYLE_BORDER_R_HRIGHT_GRAY = this.makeStyle("R", { horizontal: Alignment.Right, fillColor: this.LIGHT_GRAY_COLOR });
+    private static readonly STYLE_BORDER_BR_HRIGHT_GRAY_FMTPCT = this.makeStyle("BR", { horizontal: Alignment.Right, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0.00%" });
     private static readonly STYLE_GRAY = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BOLD_GRAY_FMTTIME = this.makeStyle("NONE", { bold: true, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "hh:mm" });
-    private static readonly STYLE_BORDER_R = this.makeStyle("R");
-    private static readonly STYLE_BORDER_R_VBOT_WRAP = this.makeStyle("R", { vertical: Alignment.Bottom, wrapText: true });
-    private static readonly STYLE_BORDER_R_BOLD = this.makeStyle("R", { bold: true });
-    private static readonly STYLE_BORDER_RL_WRAP = this.makeStyle("RL", { wrapText: true });
+    private static readonly STYLE_BORDER_RL_GREY = this.makeStyle("RL", { fillColor: this.LIGHT_GRAY_COLOR });
+    private static readonly STYLE_BORDER_BRL_GREY = this.makeStyle("BRL", { fillColor: this.LIGHT_GRAY_COLOR });
     private static readonly STYLE_BORDER_TB_GRAY = this.makeStyle("TB", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_TB = this.makeStyle("TB");
     private static readonly STYLE_BORDER_TBL_GRAY = this.makeStyle("TBL", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_TBL = this.makeStyle("TBL");
     private static readonly STYLE_BORDER_TBR_GRAY = this.makeStyle("TBR", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_TBR = this.makeStyle("TBR");
-    private static readonly STYLE_BORDER_TRL_WRAP = this.makeStyle("TRL", { wrapText: true });
 
     /**
      * Generates a score sheet based on the given test data.
@@ -280,7 +268,7 @@ export default class CipherScoreSheetGenerator {
 
         // Generates Score Entry Sheet
 
-        const { worksheet: scoreEntrySheet } = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, true);
+        const { worksheet: scoreEntrySheet } = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, this.MAX_TEAMS, true);
         // add attendance column
         const numberOfTeamsCol = questionSheetData.length + this.SCORE_ENTRY_EXTRA + 1;
         const numberOfTeamsRow = 5;
@@ -428,6 +416,23 @@ export default class CipherScoreSheetGenerator {
             hpt: height
         };
     }
+    /**
+ * Set the worksheet's used range, starting at cell A1 (0,0).
+ *
+ * @param sheet Worksheet to update
+ * @param maxRow Zero-based index of the last row (inclusive)
+ * @param maxCol Zero-based index of the last column (inclusive)
+ */
+    private static setSheetSize(
+        sheet: XLSX_STYLE.WorkSheet,
+        maxRow: number,
+        maxCol: number
+    ): void {
+        sheet['!ref'] = XLSX_STYLE.utils.encode_range({
+            s: { r: 0, c: 0 },
+            e: { r: maxRow, c: maxCol }
+        });
+    }
 
     /**
  * Write a two-dimensional table of string values and styles to a worksheet.
@@ -455,12 +460,17 @@ export default class CipherScoreSheetGenerator {
                 );
 
                 if (source.v !== undefined) {
-                    cell.v = source.v;
-                    cell.t = "s";
-                }
+                    const value = source.v.trim();
+                    const isNumeric = value !== "" && Number.isFinite(Number(value));
 
+                    cell.v = isNumeric ? Number(value) : source.v;
+                    cell.t = isNumeric ? "n" : "s";
+                }
                 if (source.s !== undefined) {
                     cell.s = source.s;
+                }
+                if (source.f !== undefined) {
+                    cell.f = source.f;
                 }
             });
         });
@@ -539,7 +549,7 @@ export default class CipherScoreSheetGenerator {
      *   false = Score Calculation Sheet
      * @returns {WorkSheetDataResponse} An object containing the worksheet
      */
-    private static generateScoreEntrySheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string, isScoreEntry: boolean = true): WorkSheetDataResponse {
+    private static generateScoreEntrySheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string, teams: number, isScoreEntry: boolean = true): WorkSheetDataResponse {
 
 
         // For score entry it should be
@@ -600,7 +610,7 @@ export default class CipherScoreSheetGenerator {
         }
 
         // Generate the team number column information as well as the timed column formatting
-        for (let team = 0; team < this.MAX_TEAMS; team++) {
+        for (let team = 0; team < teams; team++) {
             const row = team + this.HEADER_ROWS;
 
             const cell = this.getCell(scoreEntrySheet, row, 0);
@@ -611,12 +621,14 @@ export default class CipherScoreSheetGenerator {
                 const targetScoreAddress: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: row, c: questionSheetData.length + 4 })}`;
                 const scoreCalcCell = this.getCell(scoreEntrySheet, row, 1);
                 scoreCalcCell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, ${targetScoreAddress}, "")`;
+                timedCell.v = '';
+                timedCell.t = "n";
             } else {
                 const baseTab = "'Score Entry'!";
                 cell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, INDEX(${baseTab}A:A,ROW()), "")`;
             }
 
-            cell.s = (team === (this.MAX_TEAMS - 1)) ? this.STYLE_HEADER_BORDER_BR : this.STYLE_HEADER_BORDER_R
+            cell.s = (team === (teams - 1)) ? this.STYLE_HEADER_BORDER_BR : this.STYLE_HEADER_BORDER_R
             timedCell.s = this.STYLE_BOLD_GRAY_FMTTIME;
         }
         let col = timedColumn - 1;
@@ -651,15 +663,11 @@ export default class CipherScoreSheetGenerator {
 
         // Define the final dimensions
         // Since we iterate from r = 0 up to maxTeams + 3
-        const maxRowIndex: number = this.MAX_TEAMS + this.HEADER_ROWS - 1;
+        const maxRowIndex: number = teams + this.HEADER_ROWS - 1;
         // Col A (0) and Col B (1) are skipped in the question loop, starting at C (2) from Timed  - Last Question, then add 3 for directions columns
         const maxColIndex: number = questionSheetData.length + 5 + timedColumn;
 
-        // Manually set the range of the data on the sheet property
-        scoreEntrySheet['!ref'] = XLSX_STYLE.utils.encode_range({
-            s: { r: 0, c: 0 },
-            e: { r: maxRowIndex, c: maxColIndex }
-        });
+        this.setSheetSize(scoreEntrySheet, maxRowIndex, maxColIndex);
 
         return {
             worksheet: scoreEntrySheet,
@@ -722,7 +730,7 @@ export default class CipherScoreSheetGenerator {
     private static generateScoreCalculationSheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string): WorkSheetDataResponse {
 
         // Use score entry sheet as a template
-        const scoreCalculationSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, false).worksheet;
+        const scoreCalculationSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, this.MAX_TEAMS, false).worksheet;
 
         // Create the Timed Bonus/Special Bonus/Final Score merged columns
         const headers: string[] = ["Timed Bonus", "Special Bonus", "Final Score"];
@@ -818,11 +826,7 @@ export default class CipherScoreSheetGenerator {
         const maxRowIndex: number = this.MAX_TEAMS + 3;
         // Col A (0) and Col B (1) are skipped in the question loop, starting at C (2)
         const maxColIndex: number = questionSheetData.length + 4;
-
-        scoreCalculationSheet['!ref'] = XLSX_STYLE.utils.encode_range({
-            s: { r: 0, c: 0 },
-            e: { r: maxRowIndex, c: maxColIndex }
-        });
+        this.setSheetSize(scoreCalculationSheet, maxRowIndex, maxColIndex);
 
         return {
             worksheet: scoreCalculationSheet,
@@ -895,39 +899,6 @@ export default class CipherScoreSheetGenerator {
             // const tieIndicatorCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: TIE_INDICATOR_COL });
             const tiebreakerCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: TIEBREAKER_COL });
 
-            // const teamRankDisplayCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: i, c: 10 });
-
-            // // Check if the team exists
-            // if (!scoreSummarySheet[teamNumberCellAddress]) {
-            //     scoreSummarySheet[teamNumberCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[teamFinalScoreCellAddress]) {
-            //     scoreSummarySheet[teamFinalScoreCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[teamRankCellAddress]) {
-            //     scoreSummarySheet[teamRankCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[teamRankDisplayCellAddress]) {
-            //     scoreSummarySheet[teamRankDisplayCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[baseScoreCellAddress]) {
-            //     scoreSummarySheet[baseScoreCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[timedBonusScoreCellAddress]) {
-            //     scoreSummarySheet[timedBonusScoreCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[specialBonusCellAddress]) {
-            //     scoreSummarySheet[specialBonusCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[bonusScoreCellAddress]) {
-            //     scoreSummarySheet[bonusScoreCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[tieIndicatorCellAddress]) {
-            //     scoreSummarySheet[tieIndicatorCellAddress] = {};
-            // }
-            // if (!scoreSummarySheet[tiebreakerCellAddress]) {
-            //     scoreSummarySheet[tiebreakerCellAddress] = {};
-            // }
 
             // Get the team number, final score, rank, base score, timed bonus, special bonus, bonus score and tiebreaker cells
             const teamNumberCell = this.getCell(scoreSummarySheet, i, TEAM_NUMBER_COL);
@@ -1031,10 +1002,7 @@ export default class CipherScoreSheetGenerator {
         const maxRowIndex: number = this.MAX_TEAMS;
         const maxColIndex: number = 10;
 
-        scoreSummarySheet['!ref'] = XLSX_STYLE.utils.encode_range({
-            s: { r: 0, c: 0 },
-            e: { r: maxRowIndex, c: maxColIndex }
-        });
+        this.setSheetSize(scoreSummarySheet, maxRowIndex, maxColIndex);
 
         return {
             worksheet: scoreSummarySheet,
@@ -1051,20 +1019,72 @@ export default class CipherScoreSheetGenerator {
     private static generateScoreAnalysisSheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string): WorkSheetDataResponse {
 
         // Use score entry sheet as a template
-        const ScoreAnalysisSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, false).worksheet;
+        const ScoreAnalysisSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, 0, false).worksheet;
+        const pointsRange: string = `${XLSX_STYLE.utils.encode_cell({ r: 2, c: 2 })}:${XLSX_STYLE.utils.encode_cell({ r: 2, c: questionSheetData.length + 1 })}`;
+        const maxPointsAddress: string = XLSX_STYLE.utils.encode_cell({ r: 16, c: 1 });
+        const maxPossibleAddress: string = XLSX_STYLE.utils.encode_cell({ r: 17, c: 1 });
+        const topTeamScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: 18, c: 1 });
+        const extraPoints = testDivision === "A" ? 0 : (60 * 10 * 2) + 750;
+        const actualScoreRange: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: 4, c: questionSheetData.length + 4 })}:${XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS + 4, c: questionSheetData.length + 4 })}`
+
+        const headerTable: TableCell[][] = [
+            [{ v: "Full Credit", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Partial Credit", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Untouched", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Attempted", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Fully Solved", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Attempted but not solved", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Partial", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
+            [{ v: "Actual Attempts", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_BRL_GREY }],
+            [{ v: "" }],
+            [{ v: "" }],
+            [{ v: "Average solve time", s: this.STYLE_HEADER_BORDER_HRIGHT_TL }, { f: `average(${pointsRange})`, s: this.STYLE_BORDER_TR_HRIGHT_GRAY_FMT0 }],
+            [{ v: "Average question score", s: this.STYLE_HEADER_BORDER_HRIGHT_L }, { f: `average(${pointsRange})`, s: this.STYLE_BORDER_R_HRIGHT_GRAY }],
+            [{ v: "Max points/questions", s: this.STYLE_HEADER_BORDER_HRIGHT_L }, { f: `sum(${pointsRange})`, s: this.STYLE_BORDER_R_HRIGHT_GRAY }],
+            [{ v: "Max Score+Bonus+Timed", s: this.STYLE_HEADER_BORDER_HRIGHT_L }, { f: `${maxPointsAddress}+${extraPoints}`, s: this.STYLE_BORDER_R_HRIGHT_GRAY }],
+            [{ v: "Top Team Score", s: this.STYLE_HEADER_BORDER_HRIGHT_L }, { f: `max(${actualScoreRange})`, s: this.STYLE_BORDER_R_HRIGHT_GRAY }],
+            [{ v: "Top Team Score Pct of max", s: this.STYLE_HEADER_BORDER_HRIGHT_BL }, { f: `${topTeamScoreAddress}/${maxPossibleAddress}`, s: this.STYLE_BORDER_BR_HRIGHT_GRAY_FMTPCT }],
+        ];
+
+        this.writeCellTable(ScoreAnalysisSheet, 4, 0, headerTable);
+        this.setColumnWidth(ScoreAnalysisSheet, 0, 28);
+        this.mergeCells(ScoreAnalysisSheet, 0, 0, 3, 0);
+        for (let q = 0; q < questionSheetData.length; q++) {
+            const col = q + 2;
+            const destCol = col;
+            const destStartRow = 4;
+            const destEntryCol = col + 2;
+
+            const destColLetter = XLSX_STYLE.utils.encode_col(destCol);
+            const destEntryColLetter = XLSX_STYLE.utils.encode_col(destEntryCol);
+            const destCalculation = `'Score Calculation'!$${destColLetter}${destStartRow + 1}:INDEX('Score Calculation'!$${destColLetter}:$${destColLetter},NumberOfTeams+4)`;
+            const destEntry = `'Score Entry'!$${destEntryColLetter}${destStartRow + 1}:INDEX('Score Entry'!$${destEntryColLetter}:$${destEntryColLetter},NumberOfTeams+4)`;
+            const fullScoreRef = XLSX_STYLE.utils.encode_cell({ r: 2, c: col })
+            const fullCreditRef = XLSX_STYLE.utils.encode_cell({ r: 4, c: col })
+            const attemptedRef = XLSX_STYLE.utils.encode_cell({ r: 7, c: col })
+            const fullySolvedRef = XLSX_STYLE.utils.encode_cell({ r: 8, c: col })
+            const attemptedNotSolvedRef = XLSX_STYLE.utils.encode_cell({ r: 9, c: col })
+            const partialRef = XLSX_STYLE.utils.encode_cell({ r: 10, c: col })
+
+            const formulaTable: TableCell[][] = [
+                [{ v: "0", f: `COUNTIF(${destCalculation},${fullScoreRef})` }],
+                [{ v: "0", f: `COUNTIF(${destCalculation},">0")-${fullCreditRef}` }],
+                [{ v: "0", f: `COUNTBLANK(${destEntry})` }],
+                [{ v: "0", f: `COUNTIF(${destEntry},">0")` }],
+                [{ v: "0", f: `COUNTIF(${destEntry},"=0")` }],
+                [{ v: "0", f: `COUNTIF(${destEntry},"=99")` }],
+                [{ v: "0", f: `${attemptedRef}-${attemptedNotSolvedRef}` }],
+                [{ v: "0", f: `${partialRef}+${attemptedNotSolvedRef}+${fullySolvedRef}` }],
+
+            ]
+            this.writeCellTable(ScoreAnalysisSheet, 4, col, formulaTable);
+        }
 
         // Define the final dimensions
-        const maxRowIndex: number = this.MAX_TEAMS;
+        const maxRowIndex: number = this.MAX_TEAMS + 4;
         const maxColIndex: number = questionSheetData.length + 3;
 
-        // Manually set the !ref property
-        ScoreAnalysisSheet['!ref'] = XLSX_STYLE.utils.encode_range({
-            // Start at A1 (r:0, c:0)
-            s: { r: 0, c: 0 },
-
-            // End at the maximum used row and column
-            e: { r: maxRowIndex, c: maxColIndex }
-        });
+        this.setSheetSize(ScoreAnalysisSheet, maxRowIndex, maxColIndex);
 
         return {
             worksheet: ScoreAnalysisSheet,
@@ -1283,90 +1303,6 @@ export default class CipherScoreSheetGenerator {
         // Use the custom utility to trigger the file download from the correct Blob
         this.downloadFileBlob(finalContent, `${testTitle}.xlsx`);
     }
-
-    /**
-     * Returns a Border object with the specified types, style and color.
-     * @param {BorderType[]} types - The types of borders to generate. Defaults to no border types.
-     * @returns {Border} - The generated Border object.
-     */
-    private static getStyledBorder(types: BorderType[] = []): Border {
-        return Object.fromEntries(
-            types.map(type => [
-                type,
-                { style: "medium", color: { rgb: "FF000000" } }
-            ])
-        ) as Border;
-    }
-
-    /**
-     * Generates a CellStyle object with the specified border, alignment, text rotation, wrapping, boldness, and fill color.
-     * @param {Border} [border=this.getStyledBorder([BorderType.Top, BorderType.Left, BorderType.Bottom, BorderType.Right])] - The border style to apply to the cell. Defaults to all borders.
-     * @param {HorizontalAlignment} [horizontalAlignment=Alignment.Center] - The horizontal alignment to apply to the cell. Defaults to center.
-     * @param {VerticalAlignment} [verticalAlignment=Alignment.Center] - The vertical alignment to apply to the cell. Defaults to center.
-     * @param {boolean} [wrapText=false] - Whether to wrap the text in the cell. Defaults to false.
-     * @param {number} [textRotation=undefined] - The text rotation to apply to the cell. Defaults to undefined.
-     * @param {boolean} [bold=true] - Whether to make the text in the cell bold. Defaults to true.
-     * @param {string} [fillColor="FFA5A5A5"] - The fill color to apply to the cell. Defaults to "FFA5A5A5".
-     * @returns {CellStyle} - The generated CellStyle object. 
-     */
-    private static getHeaderCellStyle(
-        border: Border = this.getStyledBorder([BorderType.Top, BorderType.Left, BorderType.Bottom, BorderType.Right]),
-        horizontalAlignment: HorizontalAlignment | undefined = Alignment.Center,
-        verticalAlignment: VerticalAlignment | undefined = Alignment.Center,
-        wrapText: boolean | undefined = false,
-        textRotation: number | undefined = undefined,
-        bold: boolean | undefined = true,
-        fillColor: string = this.DARK_GRAY_COLOR,
-    ): CellStyle {
-        return this.getCellStyle(border, horizontalAlignment, verticalAlignment, textRotation, wrapText, bold, fillColor);
-    }
-
-    /**
-     * Generates a CellStyle object with the specified border, alignment, text rotation, wrapping, boldness, fill color, and number format.
-     * @param {Border} [border=undefined] - The border style to apply to the cell. Defaults to no border.
-     * @param {HorizontalAlignment} [horizontalAlignment=Alignment.Center] - The horizontal alignment to apply to the cell. Defaults to center.
-     * @param {VerticalAlignment} [verticalAlignment=Alignment.Center] - The vertical alignment to apply to the cell. Defaults to center.
-     * @param {number} [textRotation=undefined] - The text rotation to apply to the cell. Defaults to undefined.
-     * @param {boolean} [wrapText=false] - Whether to wrap the text in the cell. Defaults to false.
-     * @param {boolean} [bold=false] - Whether to make the text in the cell bold. Defaults to false.
-     * @param {string} [fillColor=undefined] - The fill color to apply to the cell. Defaults to undefined.
-     * @param {string} [numFmt=undefined] - The number format to apply to the cell. Defaults to undefined.
-     * @returns {CellStyle} - The generated CellStyle object.
-     */
-    private static getCellStyle(
-        border: Border | undefined,
-        horizontalAlignment: HorizontalAlignment | undefined = Alignment.Center,
-        verticalAlignment: VerticalAlignment | undefined = Alignment.Center,
-        textRotation: number | undefined = undefined,
-        wrapText: boolean | undefined = false,
-        bold: boolean | undefined = false,
-        fillColor: string | undefined = undefined,
-        numFmt: string | undefined = undefined
-    ): CellStyle {
-        return {
-            font: (bold ? { bold } : undefined),
-            alignment: (horizontalAlignment || verticalAlignment || wrapText || textRotation ?
-                {
-                    horizontal: horizontalAlignment,
-                    vertical: verticalAlignment,
-                    textRotation,
-                    wrapText
-                }
-                : undefined
-            ),
-            fill: (fillColor ?
-                {
-                    fgColor: {
-                        rgb: fillColor
-                    }
-                }
-                : undefined
-            ),
-            border,
-            numFmt,
-        };
-    }
-
 
     //
     // Border and style helpers

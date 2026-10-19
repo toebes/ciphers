@@ -476,9 +476,14 @@ export class CipherHomophonicEncoder extends CipherEncoder {
      * @returns Total number of questions found
      */
     public searchForQuestions(qcount: number, action: (count: number, question: string, warnlevel: string) => boolean, _warnlevel: string): number {
-        const normalCount = Math.ceil(qcount / 2);
-        const warningCount = Math.floor(qcount / 2);
-        return super.searchForQuestions(normalCount, action, "") + super.searchForQuestions(warningCount, action, "warning");
+        if (this.state.operation == 'decode') {
+            const normalCount = Math.ceil(qcount / 2);
+            const warningCount = Math.floor(qcount / 2);
+            return super.searchForQuestions(normalCount, action, "") + super.searchForQuestions(warningCount, action, "warning");
+        }
+        else {
+            return super.searchForQuestions(qcount, action, "");
+        }
     }
     /**
      * This function identifies the crib placement for cryptanalysis and returns question text describing the placement.

@@ -271,7 +271,9 @@ export default class CipherScoreSheetGenerator {
         const AttemptCorrelationAnalysis = this.generateAttemptCorrelationAnalysisSheet();
         XLSX_STYLE.utils.book_append_sheet(workbook, AttemptCorrelationAnalysis, SheetType.AttemptCorrelationAnalysis);
 
-        // AttemptCorrelationAnalysis = "Attempt Correlation Analysis",
+        const CorrelationSummary = this.generateCorrelationSummarySheet();
+        XLSX_STYLE.utils.book_append_sheet(workbook, CorrelationSummary, SheetType.CorrelationSummary);
+
         // CorrelationSummary = "Correlation Summary",
         // ScoreCalcSummary = "Score Calc Summary",
         // TimedBonus = "Timed Bonus",
@@ -336,8 +338,16 @@ export default class CipherScoreSheetGenerator {
                 },
                 xmlSheetPath: "xl/worksheets/sheet7.xml"
             }],
+            [SheetType.CorrelationSummary, {
+                frozenPane: {
+                    ySplit: 2,
+                    topLeftCell: "A3",
+                    activePane: "bottomLeft"
+                },
+                xmlSheetPath: "xl/worksheets/sheet8.xml"
+            }],
 
-            // CorrelationSummary = "Correlation Summary",
+            //  = "Correlation Summary",
             // ScoreCalcSummary = "Score Calc Summary",
             // TimedBonus = "Timed Bonus",
             // ScoreClusters = "Score Clusters",
@@ -1621,6 +1631,95 @@ export default class CipherScoreSheetGenerator {
             Math.max(MAX_TEAMS + HEADER_ROWS - 1, HEADER_ROWS + numQuestions - 1),
             SUMMARY_COL + 2
         );
+
+        return sheet;
+    }
+
+    private generateCorrelationSummarySheet(): XLSX_STYLE.WorkSheet {
+        const sheet = XLSX_STYLE.utils.json_to_sheet([]);
+        const numQuestions = this.questionSheetData.length;
+
+        const HEADER_ROWS = 2;
+
+        // Column layout
+        const ATTEMPT_COL = 0;
+        const SUCCESS_COL = 5;
+        const QNUM_OFFSET = 1;
+        const TYPE_OFFSET = 2;
+
+        const lastRow = numQuestions + 4;
+
+        const attemptStartCol = 2 * numQuestions + 5;
+        const successStartCol = numQuestions + 4;
+
+        const attemptFormula =
+            `_xlfn._xlws.SORT('Attempt Correlation Analysis'!$${XLSX_STYLE.utils.encode_col(attemptStartCol)}$5:$${XLSX_STYLE.utils.encode_col(attemptStartCol + 2)}$${lastRow}, 3, -1)`;
+
+        const successFormula =
+            `_xlfn._xlws.SORT('Success Correlation Analysis'!$${XLSX_STYLE.utils.encode_col(successStartCol)}$5:$${XLSX_STYLE.utils.encode_col(successStartCol + 2)}$${lastRow}, 3, -1)`;
+
+        const headersTable: TableCell[][] = [
+            [{ v: "Attempt", s: this.STYLE_HEADER_BORDER_ALL }, { v: "" }, { v: "" }, { v: "" },
+            { v: "" },
+            { v: "Success", s: this.STYLE_HEADER_BORDER_ALL }, { v: "" }, { v: "" }, { v: "" },
+            ],
+            [{ v: "Label", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "#", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Type", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Correlation", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "" },
+            { v: "Label", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "#", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Type", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Correlation", s: this.STYLE_HEADER_BORDER_ALL },
+            ],
+        ];
+        this.writeCellTable(sheet, 0, 0, headersTable);
+        this.mergeCells(sheet, 0, ATTEMPT_COL, 0, ATTEMPT_COL + 3);
+        this.mergeCells(sheet, 0, SUCCESS_COL, 0, SUCCESS_COL + 3);
+
+        const attemptCell = this.getCell(sheet, 2, ATTEMPT_COL + 1);
+        delete attemptCell.v;
+        attemptCell.t = 'n';
+        attemptCell.f = attemptFormula;
+        attemptCell.F = `B3:D${HEADER_ROWS + numQuestions}`;
+        const successCell = this.getCell(sheet, 2, SUCCESS_COL + 1);
+        delete successCell.v;
+        successCell.t = 'n';
+        successCell.f = successFormula;
+        successCell.F = `G3:I${HEADER_ROWS + numQuestions}`;
+
+        // Generate question labels for both correlation tables.
+        for (let row = HEADER_ROWS; row < HEADER_ROWS + numQuestions; row++) {
+            for (const col of [ATTEMPT_COL, SUCCESS_COL]) {
+                this.setColumnWidth(sheet, col, 30);
+                this.setColumnWidth(sheet, col + 1, 6);
+                this.setColumnWidth(sheet, col + 2, 25);
+                this.setColumnWidth(sheet, col + 3, 10);
+
+                const questionCell = this.cellAddress(row, col + QNUM_OFFSET);
+                const typeCell = this.cellAddress(row, col + TYPE_OFFSET);
+                const cell = this.getCell(sheet, row, col)
+
+                cell.t = 's'
+                cell.f = `${questionCell}&"-"&${typeCell}`
+            };
+        }
+        this.setColumnWidth(sheet, 4, 1);
+
+        // Format the correlation values in the spilled SORT results.
+        for (let row = HEADER_ROWS; row < HEADER_ROWS + numQuestions; row++) {
+            for (const col of [ATTEMPT_COL + 3, SUCCESS_COL + 3]) {
+                const cell = this.getCell(sheet, row, col);
+                cell.t = 'z';
+                cell.s = {
+                    ...cell.s,
+                    numFmt: '0.00'
+                };
+            }
+        }
+
+        this.setSheetSize(sheet, HEADER_ROWS + numQuestions + 1, 12);
 
         return sheet;
     }

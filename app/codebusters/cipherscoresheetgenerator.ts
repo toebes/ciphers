@@ -25,6 +25,7 @@ type QuestionData = {
     "Type": string;
     "Special": string;
     "Question": string;
+    "FreeMistakes": number;
 };
 
 type TableCell = {
@@ -38,11 +39,6 @@ type BorderStyle = {
     color: {
         rgb: string;
     }
-};
-
-type WorkSheetDataResponse = {
-    worksheet: XLSX_STYLE.WorkSheet;
-    maxQuestionTypeWidth?: number;
 };
 
 type Border = {
@@ -112,104 +108,79 @@ export default class CipherScoreSheetGenerator {
     private static SCORE_ENTRY_EXTRA: number = 5;
 
     private static HEADER_ROWS: number = 4;
-    /**
-     * Maximum number of teams per test.
-     * @default 100
-     */
+    // Maximum number of teams per test.
     private static MAX_TEAMS: number = 100;
 
-    /**
-     * Deduction per question (depending on the divison, 50 for A, 100 for B/C).
-     * @default 100
-     */
+    // Deduction per question (depending on the divison, 50 for A, 100 for B/C).
     private static MAX_Q_DEDUCTION: number = 100;
 
-    /**
-     * Width of the header column in the score sheet.
-     * @default 15
-     */
+    // Width of the header column in the score sheet.
     private static HEADER_COL_WIDTH: number = 15;
 
-    /**
-     * Width of the timed question column in the score sheet.
-     * @default 16
-     */
+    // Width of the timed question column in the score sheet.
     private static TIMED_QUESTION_COL_WIDTH: number = 16;
 
-    /**
-     * Width of the question column in the score sheet.
-     * @default 5
-     */
+    // Width of the question column in the score sheet.
     private static QUESTION_COL_WIDTH: number = 5;
-    /**
-     * Width of the question column in the score sheet.
-     * @default 7
-     */
+
+    // Width of the question column in the score sheet.
     private static SUMMARY_COL_WIDTH: number = 7;
 
-    /**
-     * The dark gray color used in the score sheet.
-     * @default #A5A5A5
-     */
+    // The dark gray color used in the score sheet.
     private static DARK_GRAY_COLOR: string = "FFA5A5A5";
 
-    /**
-     * The light gray color used in the score sheet.
-     * @default #E5E5E5
-     */
+    // The light gray color used in the score sheet.
     private static LIGHT_GRAY_COLOR: string = "FFE5E5E5";
 
-    /**
-     * The dull light red color used in the score sheet.
-     * @default #FFCCCC
-     */
+    // The dull light red color used in the score sheet.
     private static DULL_LIGHT_RED_COLOR: string = "FFF4CCCC";
 
-    /**
-     * Maximum number of seconds allowed for the timed bonus question.
-     * @default 600 (10 minutes)
-     */
+    // Maximum number of seconds allowed for the timed bonus question.
     private static MAX_SECONDS_FOR_TIMED_BONUS: number = 600;
 
-    private static readonly STYLE_HEADER_BORDER_R = this.makeStyle("R", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_BR = this.makeStyle("BR", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_B_HLEFT = this.makeStyle("B", { horizontal: Alignment.Left, bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_BR_HLEFT = this.makeStyle("BR", { horizontal: Alignment.Left, bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_ALL_ROT45 = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR, textRotation: 45 });
-    private static readonly STYLE_HEADER_BORDER_ALL = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_ALL_VBOT = this.makeStyle("ALL", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_ALL_WRAP = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
-    private static readonly STYLE_HEADER_BORDER_BR_VBOT_WRAP = this.makeStyle("BR", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
-    private static readonly STYLE_HEADER_BORDER_NONE_VBOT_WRAP = this.makeStyle("NONE", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
-    private static readonly STYLE_HEADER_BORDER_R_VBOT_WRAP = this.makeStyle("R", { vertical: Alignment.Bottom, bold: true, fillColor: this.DARK_GRAY_COLOR, wrapText: true });
-    private static readonly STYLE_HEADER_BORDER_TBL = this.makeStyle("TBL", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_HRIGHT_TL = this.makeStyle("TL", { horizontal: Alignment.Right, bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_HRIGHT_L = this.makeStyle("L", { horizontal: Alignment.Right, bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_HRIGHT_BL = this.makeStyle("BL", { horizontal: Alignment.Right, bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_TBR = this.makeStyle("TBR", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_TB = this.makeStyle("TB", { bold: true, fillColor: this.DARK_GRAY_COLOR });
-    private static readonly STYLE_HEADER_BORDER_ALL_HLEFT = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR, horizontal: Alignment.Left });
-    private static readonly STYLE_HEADER_BORDER_ALL_HRIGHT = this.makeStyle("ALL", { bold: true, fillColor: this.DARK_GRAY_COLOR, horizontal: Alignment.Right });
+    private readonly STYLE_HEADER_BORDER_R = CipherScoreSheetGenerator.makeStyle("R", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_BR = CipherScoreSheetGenerator.makeStyle("BR", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_B_HLEFT = CipherScoreSheetGenerator.makeStyle("B", { horizontal: Alignment.Left, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_BR_HLEFT = CipherScoreSheetGenerator.makeStyle("BR", { horizontal: Alignment.Left, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_ALL_ROT45 = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, textRotation: 45 });
+    private readonly STYLE_HEADER_BORDER_ALL = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_ALL_VBOT = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_ALL_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_HEADER_BORDER_BR_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("BR", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_HEADER_BORDER_NONE_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("NONE", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_HEADER_BORDER_R_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("R", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_HEADER_BORDER_TBL = CipherScoreSheetGenerator.makeStyle("TBL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_HRIGHT_TL = CipherScoreSheetGenerator.makeStyle("TL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_HRIGHT_L = CipherScoreSheetGenerator.makeStyle("L", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_HRIGHT_BL = CipherScoreSheetGenerator.makeStyle("BL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_TBR = CipherScoreSheetGenerator.makeStyle("TBR", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_TB = CipherScoreSheetGenerator.makeStyle("TB", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_ALL_HLEFT = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, horizontal: Alignment.Left });
+    private readonly STYLE_HEADER_BORDER_ALL_HRIGHT = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, horizontal: Alignment.Right });
 
 
-    private static readonly STYLE_BORDER_ALL_GRAY = this.makeStyle("ALL", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_ALL_BOLD_GRAY = this.makeStyle("ALL", { bold: true, fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_ALL_HLEFT_BOLD_GRAY = this.makeStyle("ALL", { horizontal: Alignment.Left, bold: true, fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY = this.makeStyle("ALL", { horizontal: Alignment.Right, bold: true, fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_RED = this.makeStyle("NONE", { fillColor: this.DULL_LIGHT_RED_COLOR });
-    private static readonly STYLE_GRAY_FMT0 = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0" });
-    private static readonly STYLE_BORDER_TR_HRIGHT_GRAY_FMT0 = this.makeStyle("TR", { horizontal: Alignment.Right, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0" });
-    private static readonly STYLE_BORDER_R_HRIGHT_GRAY = this.makeStyle("R", { horizontal: Alignment.Right, fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_BR_HRIGHT_GRAY_FMTPCT = this.makeStyle("BR", { horizontal: Alignment.Right, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0.00%" });
-    private static readonly STYLE_GRAY = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BOLD_GRAY_FMTTIME = this.makeStyle("NONE", { bold: true, fillColor: this.LIGHT_GRAY_COLOR, numFmt: "hh:mm" });
-    private static readonly STYLE_BORDER_RL_GREY = this.makeStyle("RL", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_RL_GREY_FMT3DEC = this.makeStyle("RL", { fillColor: this.LIGHT_GRAY_COLOR, numFmt: "0.000" });
-    private static readonly STYLE_BORDER_BRL_GREY = this.makeStyle("BRL", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_TB_GRAY = this.makeStyle("TB", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_NONE_GRAY = this.makeStyle("NONE", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_TBL_GRAY = this.makeStyle("TBL", { fillColor: this.LIGHT_GRAY_COLOR });
-    private static readonly STYLE_BORDER_TBR_GRAY = this.makeStyle("TBR", { fillColor: this.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_ALL_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_ALL_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_ALL_HLEFT_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Left, bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_RED = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.DULL_LIGHT_RED_COLOR });
+    private readonly STYLE_GRAY_FMT0 = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "0" });
+    private readonly STYLE_BORDER_TR_HRIGHT_GRAY_FMT0 = CipherScoreSheetGenerator.makeStyle("TR", { horizontal: Alignment.Right, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "0" });
+    private readonly STYLE_BORDER_R_HRIGHT_GRAY = CipherScoreSheetGenerator.makeStyle("R", { horizontal: Alignment.Right, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_BR_HRIGHT_GRAY_FMTPCT = CipherScoreSheetGenerator.makeStyle("BR", { horizontal: Alignment.Right, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "0.00%" });
+    private readonly STYLE_GRAY = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BOLD_GRAY_FMTTIME = CipherScoreSheetGenerator.makeStyle("NONE", { bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "hh:mm" });
+    private readonly STYLE_BORDER_RL_GREY = CipherScoreSheetGenerator.makeStyle("RL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_RL_GREY_FMT3DEC = CipherScoreSheetGenerator.makeStyle("RL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "0.000" });
+    private readonly STYLE_BORDER_BRL_GREY = CipherScoreSheetGenerator.makeStyle("BRL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_TB_GRAY = CipherScoreSheetGenerator.makeStyle("TB", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_NONE_GRAY = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_TBL_GRAY = CipherScoreSheetGenerator.makeStyle("TBL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_TBR_GRAY = CipherScoreSheetGenerator.makeStyle("TBR", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+
+    public maxQuestionTypeWidth: number = 1;
+    public questionSheetData: QuestionData[] = [];
+    public testDivision: string = "";
 
     /**
      * Generates a score sheet based on the given test data.
@@ -217,7 +188,7 @@ export default class CipherScoreSheetGenerator {
      * @param {sourceTestData} exportTestData - The test data to generate the score sheet from.
      * @returns {Promise<void>} A promise that resolves when the score sheet is generated.
      */
-    public static async generateScoreSheet(exportTestData: sourceTestData, questionOrders: number[]): Promise<void> {
+    public async generateScoreSheet(exportTestData: sourceTestData, questionOrders: number[]): Promise<void> {
 
         // should always be the 1st test object
         const testData: ITest =
@@ -226,11 +197,11 @@ export default class CipherScoreSheetGenerator {
         const testType: ITestType = testData.testtype as ITestType;
 
         if (testType === ITestType.aregional || testType === ITestType.astate) {
-            this.MAX_Q_DEDUCTION = 50;
+            CipherScoreSheetGenerator.MAX_Q_DEDUCTION = 50;
         }
 
         const testTitle: string = `${testData.title} ${testTypeNames[testType]} Score Sheet`;
-        const testDivision: string = this.calculateTestDivision(testType);
+        this.testDivision = this.calculateTestDivision(testType);
 
         const workbook: XLSX_STYLE.WorkBook = XLSX_STYLE.utils.book_new();
         // Initialize workbook metadata and named ranges
@@ -247,20 +218,29 @@ export default class CipherScoreSheetGenerator {
             (question.editEntry === testData.timed ?
                 0 : (questionOrders.indexOf(question.editEntry) + 1)));
 
-        const questionSheetData: QuestionData[] = questionData
+        this.questionSheetData = questionData
             .sort((a, b) => a.editEntry - b.editEntry)
-            .map((question) => ({
-                "Order": `${question.editEntry}`,
-                "Question Number": question.editEntry === 0 ? "Timed" : `${question.editEntry}`,
-                "Points": `${question.points}`,
-                "Type": this.getQuestionType(question),
-                "Special": question.specialbonus ? "★" : "",
-                "Question": question.question.replace(/<[^>]*>/g, ""),
-            }));
+            .map((question) => {
+                const type = this.getQuestionType(question);
+                const lowerType = type.toLowerCase();
+
+                return {
+                    "Order": `${question.editEntry}`,
+                    "Question Number": question.editEntry === 0 ? "Timed" : `${question.editEntry}`,
+                    "Points": `${question.points}`,
+                    "Type": type,
+                    "Special": question.specialbonus ? "★" : "",
+                    "Question": question.question.replace(/<[^>]*>/g, ""),
+                    "FreeMistakes": (
+                        lowerType.includes("cryptarithm") ||
+                        (this.testDivision === "C" && lowerType.includes("keyword"))
+                    ) ? 0 : 2,
+                };
+            });
 
         // Generate Test Questions Sheet
 
-        const { maxQuestionTypeWidth, worksheet: questionsSheet } = this.generateTestQuestionsSheet(questionSheetData);
+        const questionsSheet = this.generateTestQuestionsSheet();
 
         XLSX_STYLE.utils.book_append_sheet(
             workbook,
@@ -269,62 +249,25 @@ export default class CipherScoreSheetGenerator {
         );
 
         // Generates Score Entry Sheet
-
-        const { worksheet: scoreEntrySheet } = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, this.MAX_TEAMS, true);
-        // add attendance column
-        const numberOfTeamsCol = questionSheetData.length + this.SCORE_ENTRY_EXTRA + 1;
-        const numberOfTeamsRow = 5;
-        const numberOfTeamsEntryCellAddress = `$${XLSX_STYLE.utils.encode_col(numberOfTeamsCol)}$${XLSX_STYLE.utils.encode_row(numberOfTeamsRow)}`;
-        workbook.Workbook.Names.push({
-            Name: "NumberOfTeams",
-            Ref: `'Score Entry'!${numberOfTeamsEntryCellAddress}`
-        });
-
-        CipherScoreSheetGenerator.ScoreSheetDirections(scoreEntrySheet, questionSheetData);
-
-        XLSX_STYLE.utils.book_append_sheet(
-            workbook,
-            scoreEntrySheet,
-            SheetType.ScoreEntry
-        );
-
+        const scoreEntrySheet = this.generateScoreEntrySheet(workbook);
+        XLSX_STYLE.utils.book_append_sheet(workbook, scoreEntrySheet, SheetType.ScoreEntry);
         // Generates Score Calculation Sheet
 
-        const { worksheet: scoreCalculationSheet } = this.generateScoreCalculationSheet(questionSheetData, maxQuestionTypeWidth, testDivision);
+        const scoreCalculationSheet = this.generateScoreCalculationSheet();
+        XLSX_STYLE.utils.book_append_sheet(workbook, scoreCalculationSheet, SheetType.ScoreCalculation);
 
-        XLSX_STYLE.utils.book_append_sheet(
-            workbook,
-            scoreCalculationSheet,
-            SheetType.ScoreCalculation
-        );
+        // Generate Score Summary Sheet
+        const scoreSummarySheet = this.generateScoreSummarySheet();
+        XLSX_STYLE.utils.book_append_sheet(workbook, scoreSummarySheet, SheetType.ScoreSummary);
 
-        // Generates Score Summary Sheet
+        // Generate Score Analysis Sheet
+        const scoreAnalysisSheet = this.generateScoreAnalysisSheet();
+        XLSX_STYLE.utils.book_append_sheet(workbook, scoreAnalysisSheet, SheetType.ScoreAnalysis);
 
-        const { worksheet: scoreSummarySheet } = this.generateScoreSummarySheet(testDivision, questionSheetData.length);
+        // Generate Score Correlation Analysis Sheet
+        const SuccessCorrelationAnalysis = this.generateSuccessCorrelationAnalysisSheet();
+        XLSX_STYLE.utils.book_append_sheet(workbook, SuccessCorrelationAnalysis, SheetType.SuccessCorrelationAnalysis);
 
-        XLSX_STYLE.utils.book_append_sheet(
-            workbook,
-            scoreSummarySheet,
-            SheetType.ScoreSummary
-        );
-
-        // Generates Score Summary Sheet
-
-        const { worksheet: scoreAnalysisSheet } = this.generateScoreAnalysisSheet(questionSheetData, maxQuestionTypeWidth, testDivision);
-
-        XLSX_STYLE.utils.book_append_sheet(
-            workbook,
-            scoreAnalysisSheet,
-            SheetType.ScoreAnalysis
-        );
-
-        const { worksheet: SuccessCorrelationAnalysis } = this.generateSuccessCorrelationAnalysisSheet(questionSheetData, maxQuestionTypeWidth, testDivision);
-
-        XLSX_STYLE.utils.book_append_sheet(
-            workbook,
-            SuccessCorrelationAnalysis,
-            SheetType.SuccessCorrelationAnalysis
-        );
         // AttemptCorrelationAnalysis = "Attempt Correlation Analysis",
         // CorrelationSummary = "Correlation Summary",
         // ScoreCalcSummary = "Score Calc Summary",
@@ -403,7 +346,7 @@ export default class CipherScoreSheetGenerator {
      * @param col Zero-based column index
      * @returns Existing or newly initialized cell
      */
-    private static getCell(sheet: XLSX_STYLE.WorkSheet, row: number, col: number): XLSX_STYLE.CellObject {
+    private getCell(sheet: XLSX_STYLE.WorkSheet, row: number, col: number): XLSX_STYLE.CellObject {
         const address = XLSX_STYLE.utils.encode_cell({ r: row, c: col });
         return sheet[address] ??= {} as XLSX_STYLE.CellObject;
     }
@@ -416,7 +359,7 @@ export default class CipherScoreSheetGenerator {
      * @param col Zero-based column index
      * @param width Column width in characters
      */
-    private static setColumnWidth(sheet: XLSX_STYLE.WorkSheet, col: number, width: number): void {
+    private setColumnWidth(sheet: XLSX_STYLE.WorkSheet, col: number, width: number): void {
         sheet['!cols'] ??= [];
         sheet['!cols'][col] = {
             ...sheet['!cols'][col],
@@ -432,7 +375,7 @@ export default class CipherScoreSheetGenerator {
      * @param row Zero-based row index
      * @param height Row height in points
      */
-    private static setRowHeight(sheet: XLSX_STYLE.WorkSheet, row: number, height: number): void {
+    private setRowHeight(sheet: XLSX_STYLE.WorkSheet, row: number, height: number): void {
         sheet['!rows'] ??= [];
         sheet['!rows'][row] = {
             ...sheet['!rows'][row],
@@ -446,7 +389,7 @@ export default class CipherScoreSheetGenerator {
  * @param maxRow Zero-based index of the last row (inclusive)
  * @param maxCol Zero-based index of the last column (inclusive)
  */
-    private static setSheetSize(
+    private setSheetSize(
         sheet: XLSX_STYLE.WorkSheet,
         maxRow: number,
         maxCol: number
@@ -466,7 +409,7 @@ export default class CipherScoreSheetGenerator {
  * @param startCol Zero-based starting column
  * @param table Two-dimensional array of cell values and styles
  */
-    private static writeCellTable(
+    private writeCellTable(
         sheet: XLSX_STYLE.WorkSheet,
         startRow: number,
         startCol: number,
@@ -508,7 +451,7 @@ export default class CipherScoreSheetGenerator {
      * @param endRow Zero-based ending row (inclusive)
      * @param endCol Zero-based ending column (inclusive)
      */
-    private static mergeCells(
+    private mergeCells(
         sheet: XLSX_STYLE.WorkSheet,
         startRow: number,
         startCol: number,
@@ -526,28 +469,26 @@ export default class CipherScoreSheetGenerator {
     /**
      * Generates a worksheet containing the test questions data
      * @param questionData The IState objects containing the test question data
-     * @returns {WorkSheetDataResponse} An object containing the worksheet and the maximum width of the "Type" column
+     * @returns XLSX_STYLE.WorkSheet the generated worksheet
      */
-    private static generateTestQuestionsSheet(questionSheetData: QuestionData[]): WorkSheetDataResponse {
-        let maxQuestionTypeWidth = 0;
-
-        const questionsSheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet(questionSheetData);
-        const headerKeys: string[] = Object.keys(questionSheetData[0]);
+    private generateTestQuestionsSheet(): XLSX_STYLE.WorkSheet {
+        const questionsSheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet(this.questionSheetData);
+        const headerKeys: string[] = Object.keys(this.questionSheetData[0]);
         const columnsToSize: number = headerKeys.length;
         questionsSheet['!cols'] = [];
 
         for (let i = 0; i < columnsToSize; i++) {
             const headerKey: string = headerKeys[i];
-            const width: number = this.calculateColumnWidth<typeof questionSheetData[number]>(
-                questionSheetData,
-                headerKey as keyof typeof questionSheetData[number]
+            const width: number = this.calculateColumnWidth<typeof this.questionSheetData[number]>(
+                this.questionSheetData,
+                headerKey as keyof typeof this.questionSheetData[number]
             );
 
             // Set the width for the column index i
             this.setColumnWidth(questionsSheet, i, width);
 
-            if (headerKey === "Type") {
-                maxQuestionTypeWidth = width;
+            if (headerKey === "Type" && width > this.maxQuestionTypeWidth) {
+                this.maxQuestionTypeWidth = width;
             }
         }
 
@@ -556,152 +497,68 @@ export default class CipherScoreSheetGenerator {
             cell.s = (i === (columnsToSize - 1)) ? this.STYLE_HEADER_BORDER_BR_HLEFT : this.STYLE_HEADER_BORDER_B_HLEFT;
         }
 
-        return {
-            worksheet: questionsSheet,
-            maxQuestionTypeWidth,
-        };
+        return questionsSheet;
     }
 
     /**
      * Generates a score entry sheet based on the given test data
      * @param {QuestionData[]} questionSheetData - The question data to generate the score sheet from
-     * @param {number} maxQuestionTypeWidth - The maximum width of the "Type" column
      * @param {ITestType} testType - The test type to generate the score sheet for
      * @param {boolean} [isScoreEntry=true]  - Whether to generate the score sheet as a template. Defaults to true.
      *   true = Score Entry Sheet
      *   false = Score Calculation Sheet
-     * @returns {WorkSheetDataResponse} An object containing the worksheet
+     * @returns XLSX_STYLE.WorkSheet The generated worksheet
      */
-    private static generateScoreEntrySheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string, teams: number, isScoreEntry: boolean = true): WorkSheetDataResponse {
-
-
-        // For score entry it should be
-        //    +---------+------------+------------+---------------+-------------+-------------+------+
-        //    |         |            |            |               | Q0 Title    | Q1 Title    | ...  |
-        //    |         +------------+------------+---------------+-------------+-------------+------+
-        //    | TEAM    |            |            | Free Mistakes | Q0 Mistakes | Q1 Mistakes | ...  |
-        //    | NUMBER  | Calculated | Attendance +---------------+-------------+-------------+------+
-        //    |         |    Score   |            |      Points   | Q0 Points   | Q1 Points   |  ... |
-        //    |         |            |            +---------------+-------------+-------------+------+
-        //    |         |            |            | Timed Question| Q0 Text     | Q1 Text     |  ... |
-        //    +---------+------------+------------+---------------+-------------+-------------+------+
-        //    + <DIV>1  |  <SCORE>1  |            |               |             |             |      |
-        //    +---------+------------+------------+---------------+-------------+-------------+------+---+-----------------+-----+
-        //    + <DIV>2  |  <SCORE>2  |            |               |             |             |      |   | Number of Teams | <n> |
-        //    +---------+------------+------------+---------------+-------------+-------------+------+---+-----------------+-----+
-        //    + <DIV>n  |  <SCORE>n  |            |               |             |             |      |
-        //    +---------+------------+------------+---------------+-------------+-------------+------+---+-----------------+-----+
-        //
-        //    <DIV>n Formula:   =IF(ROW() - 4 <= AM6, "C" & (ROW() - 4), "")
-        //    <SCORE>n Formula: =IF(ROW() - 4 <= $AM$6, 'Score Calculation'!AK5, "")
-
-        //
-        // For Score Calculation it should be
-        //    +---------+---------------+-------------+-------------+------+---------+---------+---------+
-        //    |         |               | Q0 Title    | Q1 Title    | ...  |         |         |         |
-        //    |         +---------------+-------------+-------------+------+---------+---------+---------+
-        //    | TEAM    | Free Mistakes | Q0 Mistakes | Q1 Mistakes | ...  |         |         |         |
-        //    | NUMBER  |---------------+-------------+-------------+------+         |         |         |
-        //    |         |      Points   | Q0 Points   | Q1 Points   |  ... |  Timed  | Special |  Final  |
-        //    |         |---------------+-------------+-------------+------+  Bonus  |  Bonus  |  Score  |
-        //    |         | Timed Question| Q0 Text     | Q1 Text     |  ... |         |         |         |
-        //    +---------+---------------+-------------+-------------+------+---------+---------+---------+
-        //    + <DIV>1  |    <TQ>1      | <Q0SCORE>1  | <Q1SCORE>1  |  ... |  <TB>1  |  <SB>1  |  <FS>1  |
-        //    +---------+---------------+-------------+-------------+------+---------+---------+---------+
-        //    + <DIV>2  |    <TQ>2      |             |             |      |         |         |         |
-        //    +---------+---------------+-------------+-------------+------+---------+---------+---------+
-        //    + <DIV>n  |    <TQ>n      |             |             |      |         |         |         |
-        //    +---------+---------------+-------------+-------------+------+---------+---------+---------+
-        //
-        //    Score Calculation headers from B1 should use the formula:
-        //             =ARRAYFORMULA('Score Entry'!D1:AJ4) where AJ is the number of questions we have
-        //    <DIV>n Formula:  =IF(ROW() - 4 <= 'Score Entry'!$AL$6, 'Score Entry'!A5, "")
-        //    <TQ>n Formula: =IF(ROW() - 4 <= 'Score Entry'!AM6, IF('Score Entry'!D5 = "", "", 'Score Entry'!D5), "")
-        //    <Q0SCORE>n Formula:=IF(ROW() - 4 <= 'Score Entry'!AM6, IF(TRIM('Score Entry'!E5) <> "", MAX(C3 - MIN(C3, MAX('Score Entry'!E5 - C2, 0) * 100), 0), 0), "")
-        //    <TB>n Formula:=IF(ROW() - 4 <= 'Score Entry'!AM6, IF(TRIM(B5) <> "", MAX(ROUND((1 - (B5 / N(TIME(0, 600, 0)) )) * 600 * 2, 5), 0), 0), "")
-        //    <SB>n Formula: =IF(ROW() - 4 <= 'Score Entry'!AM6, CHOOSE(1 + IF(TEXT(I5, "0.00")=TEXT(I3, "0.00"), 1, 0) + IF(TEXT(R5, "0.00")=TEXT(R3, "0.00"), 1, 0) + IF(TEXT(U5, "0.00")=TEXT(U3, "0.00"), 1, 0), 0, 150, 400, 750), "")
-        //    <FS>n Formula: =IF(ROW() - 4 <= 'Score Entry'!AM6, IF(TRIM('Score Entry'!C5) <> "P", 'Score Entry'!C5, IF(SUM(C5:AJ5) <= 0, "P", SUM(C5:AJ5))), "")
-
-        const scoreEntrySheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
-        const headerRowHeightHpt: number = this.calculateRotatedSingleLineHeight(maxQuestionTypeWidth);
-        const timedColumn = (isScoreEntry ? 4 : 2);
-
-        this.setRowHeight(scoreEntrySheet, 0, headerRowHeightHpt);
-        if (isScoreEntry) {
-            this.setColumnWidth(scoreEntrySheet, 1, this.HEADER_COL_WIDTH);
-            this.setColumnWidth(scoreEntrySheet, 2, this.HEADER_COL_WIDTH);
-        }
-
+    private populateTeamHeaders(sheet: XLSX_STYLE.WorkSheet, baseCol: number) {
+        const NUMTEAMS = CipherScoreSheetGenerator.MAX_TEAMS;
         // Generate the team number column information as well as the timed column formatting
-        for (let team = 0; team < teams; team++) {
-            const row = team + this.HEADER_ROWS;
+        for (let team = 0; team < NUMTEAMS; team++) {
+            const row = team + CipherScoreSheetGenerator.HEADER_ROWS;
 
-            const cell = this.getCell(scoreEntrySheet, row, 0);
-            const timedCell = this.getCell(scoreEntrySheet, row, timedColumn - 1);
-            if (isScoreEntry) {
-                cell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, "${testDivision}" & (ROW() - ${this.HEADER_ROWS}), "")`;
-                // When we are doing the score entry, we need to also put in the formula for the calculated score
-                const targetScoreAddress: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: row, c: questionSheetData.length + 4 })}`;
-                const scoreCalcCell = this.getCell(scoreEntrySheet, row, 1);
-                scoreCalcCell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, ${targetScoreAddress}, "")`;
-                timedCell.v = '';
-                timedCell.t = "n";
-                cell.t = "s";
-            } else {
-                const baseTab = "'Score Entry'!";
-                cell.f = `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, INDEX(${baseTab}A:A,ROW()), "")`;
-                cell.v = '';
-                cell.t = "s";
-            }
+            const cell = this.getCell(sheet, row, 0);
+            const timedCell = this.getCell(sheet, row, baseCol);
+            const baseTab = "'Score Entry'!";
 
-            cell.s = (team === (teams - 1)) ? this.STYLE_HEADER_BORDER_BR : this.STYLE_HEADER_BORDER_R
+            cell.f = `IF(ROW() - ${CipherScoreSheetGenerator.HEADER_ROWS} <= NumberOfTeams, INDEX(${baseTab}A:A,ROW()), "")`;
+            cell.v = '';
+            cell.t = "s";
+            cell.s = (team === (NUMTEAMS - 1)) ? this.STYLE_HEADER_BORDER_BR : this.STYLE_HEADER_BORDER_R
+
             timedCell.s = this.STYLE_BOLD_GRAY_FMTTIME;
         }
-        let col = timedColumn - 1;
-        let questionsHeaderTable: TableCell[][] =
-            [[{ v: "" }],
-            [{ v: "Free Mistakes", s: this.STYLE_HEADER_BORDER_ALL }],
-            [{ v: "Points", s: this.STYLE_HEADER_BORDER_ALL }],
-            [{ v: "Timed Question (Max. 10:00)", s: this.STYLE_HEADER_BORDER_ALL_WRAP }],];
-        this.setColumnWidth(scoreEntrySheet, col, this.TIMED_QUESTION_COL_WIDTH);
-        this.writeCellTable(scoreEntrySheet, 0, col, questionsHeaderTable);
+    }
+
+    private genQuestionHeader(scoreEntrySheet: XLSX_STYLE.WorkSheet, column: number) {
+        const headerRowHeightHpt: number = this.calculateRotatedSingleLineHeight(this.maxQuestionTypeWidth);
+
+        this.setRowHeight(scoreEntrySheet, 0, headerRowHeightHpt);
+
+        let questionsHeaderTable: TableCell[][] = [[{ v: "" }],
+        [{ v: "Free Mistakes", s: this.STYLE_HEADER_BORDER_ALL }],
+        [{ v: "Points", s: this.STYLE_HEADER_BORDER_ALL }],
+        [{ v: "Timed Question (Max. 10:00)", s: this.STYLE_HEADER_BORDER_ALL_WRAP }],];
+        this.setColumnWidth(scoreEntrySheet, column, CipherScoreSheetGenerator.TIMED_QUESTION_COL_WIDTH);
+        this.writeCellTable(scoreEntrySheet, 0, column, questionsHeaderTable);
 
         // fill out questions information on the top 4 rows
-        for (let i = 0; i < questionSheetData.length; i++) {
-            let col = i + timedColumn;
+        for (let i = 0; i < this.questionSheetData.length; i++) {
+            let col = i + column + 1;
 
-            this.setColumnWidth(scoreEntrySheet, col, this.QUESTION_COL_WIDTH);
+            this.setColumnWidth(scoreEntrySheet, col, CipherScoreSheetGenerator.QUESTION_COL_WIDTH);
 
-            const dataItem: QuestionData = questionSheetData[i];
-            let freeMistakes = 2
-            if (dataItem.Type.toLowerCase().includes("cryptarithm") ||
-                (testDivision === "C" && dataItem.Type.toLowerCase().includes("keyword"))) {
-                freeMistakes = 0;
-            }
+            const dataItem: QuestionData = this.questionSheetData[i];
 
             const questionsTable: TableCell[][] = [[{ v: `${dataItem.Type}${dataItem.Special}`, s: this.STYLE_HEADER_BORDER_ALL_ROT45 }],
-            [{ v: `${freeMistakes}`, s: this.STYLE_HEADER_BORDER_ALL }],
+            [{ v: `${dataItem.FreeMistakes}`, s: this.STYLE_HEADER_BORDER_ALL }],
             [{ v: dataItem.Points, s: this.STYLE_HEADER_BORDER_ALL }],
-            [{ v: dataItem["Question Number"], s: this.STYLE_HEADER_BORDER_ALL_VBOT }]]
+            [{ v: dataItem["Question Number"], s: this.STYLE_HEADER_BORDER_ALL_VBOT }]];
 
             this.writeCellTable(scoreEntrySheet, 0, col, questionsTable);
         }
-
-        // Define the final dimensions
-        // Since we iterate from r = 0 up to maxTeams + 3
-        const maxRowIndex: number = teams + this.HEADER_ROWS - 1;
-        // Col A (0) and Col B (1) are skipped in the question loop, starting at C (2) from Timed  - Last Question, then add 3 for directions columns
-        const maxColIndex: number = questionSheetData.length + 5 + timedColumn;
-
-        this.setSheetSize(scoreEntrySheet, maxRowIndex, maxColIndex);
-
-        return {
-            worksheet: scoreEntrySheet,
-        };
     }
 
-    private static ScoreSheetDirections(scoreEntrySheet: XLSX_STYLE.WorkSheet, questionSheetData: QuestionData[]) {
-        this.setColumnWidth(scoreEntrySheet, 1, this.QUESTION_COL_WIDTH * 2);
+    private ScoreSheetDirections(scoreEntrySheet: XLSX_STYLE.WorkSheet) {
+        this.setColumnWidth(scoreEntrySheet, 1, CipherScoreSheetGenerator.QUESTION_COL_WIDTH * 2);
 
         const headersTable: TableCell[][] = [
             [
@@ -719,11 +576,11 @@ export default class CipherScoreSheetGenerator {
             this.mergeCells(scoreEntrySheet, 0, col, headersTable.length - 1, col);
         }
 
-        const directionsCol = questionSheetData.length + this.SCORE_ENTRY_EXTRA;
+        const directionsCol = this.questionSheetData.length + CipherScoreSheetGenerator.SCORE_ENTRY_EXTRA;
 
         this.setColumnWidth(scoreEntrySheet, directionsCol - 1, 1);
-        this.setColumnWidth(scoreEntrySheet, directionsCol, this.QUESTION_COL_WIDTH * 5);
-        this.setColumnWidth(scoreEntrySheet, directionsCol + 1, this.QUESTION_COL_WIDTH * 10);
+        this.setColumnWidth(scoreEntrySheet, directionsCol, CipherScoreSheetGenerator.QUESTION_COL_WIDTH * 5);
+        this.setColumnWidth(scoreEntrySheet, directionsCol + 1, CipherScoreSheetGenerator.QUESTION_COL_WIDTH * 10);
 
         const directionsTable: TableCell[][] = [
             [{ v: "Number of Teams:", s: this.STYLE_HEADER_BORDER_TBL }, { v: "100", s: this.STYLE_BORDER_ALL_BOLD_GRAY },],
@@ -745,23 +602,78 @@ export default class CipherScoreSheetGenerator {
         this.mergeCells(scoreEntrySheet, 7, directionsCol, 7, directionsCol + 1);
         this.mergeCells(scoreEntrySheet, 13, directionsCol, 13, directionsCol + 1);
     }
+    /**
+     * Generate a worksheet containing the score entry sheet
+     * @param workbook
+     * @returns XLSX_STYLE.WorkSheet The generated worksheet
+     */
+    private generateScoreEntrySheet(workbook: XLSX_STYLE.WorkBook) {
+        const sheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
 
+        const baseCol = 3;
+        this.genQuestionHeader(sheet, baseCol);
+
+        // Generate the team number column information as well as the timed column formatting
+        for (let team = 0; team < CipherScoreSheetGenerator.MAX_TEAMS; team++) {
+            const row = team + CipherScoreSheetGenerator.HEADER_ROWS;
+
+            const cell = this.getCell(sheet, row, 0);
+            const scoreCalcCell = this.getCell(sheet, row, 1);
+            const timedCell = this.getCell(sheet, row, baseCol);
+
+            const targetScoreAddress: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: row, c: this.questionSheetData.length + 4 })}`;
+
+            cell.f = `IF(ROW() - ${CipherScoreSheetGenerator.HEADER_ROWS}<=NumberOfTeams,"${this.testDivision}"&(ROW()-${CipherScoreSheetGenerator.HEADER_ROWS}),"")`;
+            cell.t = "s";
+            cell.s = (team === (CipherScoreSheetGenerator.MAX_TEAMS - 1)) ? this.STYLE_HEADER_BORDER_BR : this.STYLE_HEADER_BORDER_R
+
+            scoreCalcCell.f = `IF(ROW() - ${CipherScoreSheetGenerator.HEADER_ROWS} <= NumberOfTeams, ${targetScoreAddress}, "")`;
+
+            timedCell.v = '';
+            timedCell.t = "n";
+            timedCell.s = this.STYLE_BOLD_GRAY_FMTTIME;
+        }
+
+        this.setColumnWidth(sheet, 1, CipherScoreSheetGenerator.HEADER_COL_WIDTH);
+        this.setColumnWidth(sheet, 2, CipherScoreSheetGenerator.HEADER_COL_WIDTH);
+
+        // add attendance column
+        const numberOfTeamsCol = this.questionSheetData.length + CipherScoreSheetGenerator.SCORE_ENTRY_EXTRA + 1;
+        const numberOfTeamsRow = 5;
+        const numberOfTeamsEntryCellAddress = `$${XLSX_STYLE.utils.encode_col(numberOfTeamsCol)}$${XLSX_STYLE.utils.encode_row(numberOfTeamsRow)}`;
+        workbook.Workbook.Names.push({
+            Name: "NumberOfTeams",
+            Ref: `'Score Entry'!${numberOfTeamsEntryCellAddress}`
+        });
+
+        this.ScoreSheetDirections(sheet);
+
+        // Define the final dimensions
+        // Since we iterate from r = 0 up to maxTeams + 3
+        const maxRowIndex: number = CipherScoreSheetGenerator.MAX_TEAMS + CipherScoreSheetGenerator.HEADER_ROWS - 1;
+        // Col A (0) and Col B (1) are skipped in the question loop, starting at C (2) from Timed  - Last Question, then add 3 for directions columns
+        const maxColIndex: number = this.questionSheetData.length + 5 + 4;
+
+        this.setSheetSize(sheet, maxRowIndex, maxColIndex);
+        return sheet;
+    }
     /**
      * Generate a worksheet containing the score calculation data
-     * @param questionSheetData The question data to generate the score sheet from
-     * @param maxQuestionTypeWidth The maximum width of the "Type" column
-     * @param testDivision The test division to generate the score sheet for
-     * @returns {WorkSheetDataResponse} An object containing the worksheet
+     * @returns XLSX_STYLE.WorkSheet The generated worksheet
      */
-    private static generateScoreCalculationSheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string): WorkSheetDataResponse {
+    private generateScoreCalculationSheet(): XLSX_STYLE.WorkSheet {
 
         // Use score entry sheet as a template
-        const scoreCalculationSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, this.MAX_TEAMS, false).worksheet;
+        const sheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
+
+        const baseCol = 1;
+        this.genQuestionHeader(sheet, baseCol);
+        this.populateTeamHeaders(sheet, baseCol);
 
         // Create the Timed Bonus/Special Bonus/Final Score merged columns
         const headers: string[] = ["Timed Bonus", "Special Bonus", "Final Score"];
         for (let i = 0; i < headers.length; i++) {
-            let col = questionSheetData.length + 2 + i;
+            let col = this.questionSheetData.length + 2 + i;
 
             const headerTable: TableCell[][] = [
                 [{ v: headers[i], s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
@@ -769,42 +681,42 @@ export default class CipherScoreSheetGenerator {
                 [{ v: ' ', s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
             ];
 
-            this.writeCellTable(scoreCalculationSheet, 1, col, headerTable);
-            this.mergeCells(scoreCalculationSheet, 1, col, 3, col);
+            this.writeCellTable(sheet, 1, col, headerTable);
+            this.mergeCells(sheet, 1, col, 3, col);
         }
 
         const teamNumberConditionFormulaInject = (formula: string): string =>
-            `IF(ROW() - ${this.HEADER_ROWS} <= NumberOfTeams, ${formula}, "")`;
+            `IF(ROW() - ${CipherScoreSheetGenerator.HEADER_ROWS} <= NumberOfTeams, ${formula}, "")`;
 
         // fill out scores
         // Loop through each team and calculate the score
-        for (let team = 0; team < this.MAX_TEAMS; team++) {
-            const row = team + this.HEADER_ROWS;
+        for (let team = 0; team < CipherScoreSheetGenerator.MAX_TEAMS; team++) {
+            const row = team + CipherScoreSheetGenerator.HEADER_ROWS;
             // Loop through each question and calculate the score
-            for (let q = -1; q < questionSheetData.length + 3; q++) {
+            for (let q = -1; q < this.questionSheetData.length + 3; q++) {
                 const col = q + 2;
                 const translatedCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: row, c: col + 2 });
 
-                const cell = this.getCell(scoreCalculationSheet, row, col)
+                const cell = this.getCell(sheet, row, col)
 
                 if (q === -1) {
                     // If the question is the timed question
                     cell.f = teamNumberConditionFormulaInject(`IF('Score Entry'!${translatedCellAddress} = "", "", 'Score Entry'!${translatedCellAddress})`);
-                } else if (q === questionSheetData.length) {
+                } else if (q === this.questionSheetData.length) {
                     // If the question is the timed bonus
                     // Calculate the timed bonus points
                     const timeCalcCellAddress = XLSX_STYLE.utils.encode_cell({ r: row, c: 1 });
-                    const maxSecondsForTimedBonusAsNumber = `N(TIME(0, ${this.MAX_SECONDS_FOR_TIMED_BONUS}, 0))`;
+                    const maxSecondsForTimedBonusAsNumber = `N(TIME(0, ${CipherScoreSheetGenerator.MAX_SECONDS_FOR_TIMED_BONUS}, 0))`;
                     const actualToBestTimeRatio = `(${timeCalcCellAddress} / ${maxSecondsForTimedBonusAsNumber} )`
-                    const rawTimedBonus = `(1 - ${actualToBestTimeRatio}) * ${this.MAX_SECONDS_FOR_TIMED_BONUS} * 2`;
+                    const rawTimedBonus = `(1 - ${actualToBestTimeRatio}) * ${CipherScoreSheetGenerator.MAX_SECONDS_FOR_TIMED_BONUS} * 2`;
                     const timedBonusRawCalc = `MAX(ROUND(${rawTimedBonus}, 5), 0)`;
                     const timedBonusCalc = `IF(TRIM(${timeCalcCellAddress}) <> "", ${timedBonusRawCalc}, 0)`;
                     cell.f = teamNumberConditionFormulaInject(timedBonusCalc);
                     cell.s = this.STYLE_GRAY_FMT0;
-                } else if (q === (questionSheetData.length + 1)) {
+                } else if (q === (this.questionSheetData.length + 1)) {
                     // If the question is the special bonus
                     // Calculate the special bonus points
-                    const bonusQuestions = questionSheetData.filter(q => q.Special);
+                    const bonusQuestions = this.questionSheetData.filter(q => q.Special);
                     let indexSelector = "1";
                     let indexSelectorValue = ", 0";
                     bonusQuestions.forEach((bonusq, index) => {
@@ -815,7 +727,7 @@ export default class CipherScoreSheetGenerator {
                     });
                     cell.f = teamNumberConditionFormulaInject(`CHOOSE(${indexSelector}${indexSelectorValue})`);
                     cell.s = this.STYLE_GRAY;
-                } else if (q === (questionSheetData.length + 2)) {
+                } else if (q === (this.questionSheetData.length + 2)) {
                     // If the question is the final score
                     // Calculate the final score
                     const attendanceCellAddress = XLSX_STYLE.utils.encode_cell({ r: row, c: 2 });
@@ -838,7 +750,7 @@ export default class CipherScoreSheetGenerator {
                     const mistakeCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 1, c: col });
                     const pointCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 2, c: col });
                     const calcMistakes = `MAX('Score Entry'!${translatedCellAddress} - ${mistakeCellAddress}, 0)`;
-                    const calcMistakePoints = `MIN(${pointCellAddress}, ${calcMistakes} * ${this.MAX_Q_DEDUCTION})`;
+                    const calcMistakePoints = `MIN(${pointCellAddress}, ${calcMistakes} * ${CipherScoreSheetGenerator.MAX_Q_DEDUCTION})`;
                     const safePointCalc = `MAX(${pointCellAddress} - ${calcMistakePoints}, 0)`;
                     cell.f = teamNumberConditionFormulaInject(`IF(TRIM('Score Entry'!${translatedCellAddress}) <> "", ${safePointCalc}, 0)`);
                     cell.s = this.STYLE_RED;
@@ -849,24 +761,23 @@ export default class CipherScoreSheetGenerator {
         // Define the final dimensions
 
         // Since we iterate from r = 0 up to maxTeams + 3
-        const maxRowIndex: number = this.MAX_TEAMS + 3;
+        const maxRowIndex: number = CipherScoreSheetGenerator.MAX_TEAMS + 3;
         // Col A (0) and Col B (1) are skipped in the question loop, starting at C (2)
-        const maxColIndex: number = questionSheetData.length + 4;
-        this.setSheetSize(scoreCalculationSheet, maxRowIndex, maxColIndex);
+        const maxColIndex: number = this.questionSheetData.length + 4;
+        this.setSheetSize(sheet, maxRowIndex, maxColIndex);
 
-        return {
-            worksheet: scoreCalculationSheet,
-        };
+        return sheet;
     }
 
     /**
      * Generate the score summary worksheet.
      * @param {ITestType} testType - The test type.
      * @param {number} numQuestions - The number of questions.
-     * @returns {WorkSheetDataResponse} - The score summary worksheet data.
+     * @returns XLSX_STYLE.WorkSheet - The score summary worksheet data.
      */
-    private static generateScoreSummarySheet(testDivision: string, numQuestions: number): WorkSheetDataResponse {
-        const scoreSummarySheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
+    private generateScoreSummarySheet(): XLSX_STYLE.WorkSheet {
+        const sheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
+        const numQuestions = this.questionSheetData.length;
 
         // Should be:
         //  0     1      2      3        4      5       6       7       8         9     10
@@ -876,10 +787,10 @@ export default class CipherScoreSheetGenerator {
 
         // Set the column widths
         for (let col = 0; col < 9; col++) {
-            this.setColumnWidth(scoreSummarySheet, col, this.SUMMARY_COL_WIDTH)
+            this.setColumnWidth(sheet, col, CipherScoreSheetGenerator.SUMMARY_COL_WIDTH)
         }
-        this.setColumnWidth(scoreSummarySheet, 9, 1)
-        this.setColumnWidth(scoreSummarySheet, 10, this.SUMMARY_COL_WIDTH * 2)
+        this.setColumnWidth(sheet, 9, 1)
+        this.setColumnWidth(sheet, 10, CipherScoreSheetGenerator.SUMMARY_COL_WIDTH * 2)
 
         const teamNumberConditionFormulaInject = (formula: string): string =>
             `IF(ROW() - 1 <= NumberOfTeams, ${formula}, "")`;
@@ -897,10 +808,10 @@ export default class CipherScoreSheetGenerator {
             { v: ' ' },
             { v: 'ID - Rank (Score)', s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
         ];
-        this.writeCellTable(scoreSummarySheet, 0, 0, headerTable);
+        this.writeCellTable(sheet, 0, 0, headerTable);
 
         // Loop through each team from 0 to MAX_TEAMS
-        for (let i = 1; i <= this.MAX_TEAMS; i++) {
+        for (let i = 1; i <= CipherScoreSheetGenerator.MAX_TEAMS; i++) {
 
             const TEAM_NUMBER_COL = 0;
             const FINAL_SCORE_COL = 1;
@@ -925,17 +836,16 @@ export default class CipherScoreSheetGenerator {
 
 
             // Get the team number, final score, rank, base score, timed bonus, special bonus, bonus score and tiebreaker cells
-            const teamNumberCell = this.getCell(scoreSummarySheet, i, TEAM_NUMBER_COL);
-            const teamFinalScoreCell = this.getCell(scoreSummarySheet, i, FINAL_SCORE_COL);
-            const teamRankCell = this.getCell(scoreSummarySheet, i, RANK_COL);
-            const baseScoreCell = this.getCell(scoreSummarySheet, i, BASE_SCORE_COL);
-            const timedBonusScoreCell = this.getCell(scoreSummarySheet, i, TIMED_BONUS_COL);
-            const specialBonusCell = this.getCell(scoreSummarySheet, i, SPECIAL_BONUS_COL);
-            const bonusScoreCell = this.getCell(scoreSummarySheet, i, BONUS_SCORE_COL);
-            const tieIndicatorCell = this.getCell(scoreSummarySheet, i, TIE_INDICATOR_COL);
-            const tiebreakerCell = this.getCell(scoreSummarySheet, i, TIEBREAKER_COL);
-            const teamRankDisplayCell = this.getCell(scoreSummarySheet, i, RANK_DISPLAY_COL);
-
+            const teamNumberCell = this.getCell(sheet, i, TEAM_NUMBER_COL);
+            const teamFinalScoreCell = this.getCell(sheet, i, FINAL_SCORE_COL);
+            const teamRankCell = this.getCell(sheet, i, RANK_COL);
+            const baseScoreCell = this.getCell(sheet, i, BASE_SCORE_COL);
+            const timedBonusScoreCell = this.getCell(sheet, i, TIMED_BONUS_COL);
+            const specialBonusCell = this.getCell(sheet, i, SPECIAL_BONUS_COL);
+            const bonusScoreCell = this.getCell(sheet, i, BONUS_SCORE_COL);
+            const tieIndicatorCell = this.getCell(sheet, i, TIE_INDICATOR_COL);
+            const tiebreakerCell = this.getCell(sheet, i, TIEBREAKER_COL);
+            const teamRankDisplayCell = this.getCell(sheet, i, RANK_DISPLAY_COL);
 
             teamNumberCell.f = teamNumberConditionFormulaInject(`INDEX('Score Entry'!A:A,ROW()+3)`);
 
@@ -960,7 +870,7 @@ export default class CipherScoreSheetGenerator {
 
             // Calculate the rank
             const teamMinFinalScoreCellAddress = XLSX_STYLE.utils.encode_cell({ r: 1, c: 1 });
-            const teamMaxFinalScoreCellAddress = XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS, c: 1 });
+            const teamMaxFinalScoreCellAddress = XLSX_STYLE.utils.encode_cell({ r: CipherScoreSheetGenerator.MAX_TEAMS, c: 1 });
 
             const scoreRange = `${teamMinFinalScoreCellAddress}:${teamMaxFinalScoreCellAddress}`;
             const score2 = teamFinalScoreCellAddress;
@@ -974,8 +884,8 @@ export default class CipherScoreSheetGenerator {
 
             // Calculate the rank display
             const minTeamRankDisplayCellAddress = XLSX_STYLE.utils.encode_cell({ r: 1, c: 3 }); // D2
-            const maxTeamRankDisplayCellAddress = XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS, c: 3 }); // D(MAX_TEAMS+1)
-            const calcRangeAbs = `$A$2:$C$${this.MAX_TEAMS + 1}`;
+            const maxTeamRankDisplayCellAddress = XLSX_STYLE.utils.encode_cell({ r: CipherScoreSheetGenerator.MAX_TEAMS, c: 3 }); // D(MAX_TEAMS+1)
+            const calcRangeAbs = `$A$2:$C$${CipherScoreSheetGenerator.MAX_TEAMS + 1}`;
             const teamRankDisplayFormula =
                 `_xlfn.INDEX(_xlfn.SORT(${calcRangeAbs}, 3, 1), ROW()-1, 1) & " - " & ` +
                 `_xlfn.INDEX(_xlfn.SORT(${calcRangeAbs}, 3, 1), ROW()-1, 3) & " (" & ` +
@@ -1023,33 +933,27 @@ export default class CipherScoreSheetGenerator {
         }
 
         // Define the final dimensions
-        const maxRowIndex: number = this.MAX_TEAMS;
+        const maxRowIndex: number = CipherScoreSheetGenerator.MAX_TEAMS;
         const maxColIndex: number = 10;
 
-        this.setSheetSize(scoreSummarySheet, maxRowIndex, maxColIndex);
+        this.setSheetSize(sheet, maxRowIndex, maxColIndex);
 
-        return {
-            worksheet: scoreSummarySheet,
-        };
+        return sheet;
     }
 
     /**
      * Generate a worksheet containing the score calculation data
-     * @param questionSheetData The question data to generate the score sheet from
-     * @param maxQuestionTypeWidth The maximum width of the "Type" column
-     * @param testDivision The test division to generate the score sheet for
-     * @returns {WorkSheetDataResponse} An object containing the worksheet
+     * @returns XLSX_STYLE.WorkSheet The generated worksheet
      */
-    private static generateScoreAnalysisSheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string): WorkSheetDataResponse {
-
-        // Use score entry sheet as a template
-        const ScoreAnalysisSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, 0, false).worksheet;
-        const pointsRange: string = `${XLSX_STYLE.utils.encode_cell({ r: 2, c: 2 })}:${XLSX_STYLE.utils.encode_cell({ r: 2, c: questionSheetData.length + 1 })}`;
+    private generateScoreAnalysisSheet(): XLSX_STYLE.WorkSheet {
+        const sheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
+        this.genQuestionHeader(sheet, 1)
+        const pointsRange: string = `${XLSX_STYLE.utils.encode_cell({ r: 2, c: 2 })}:${XLSX_STYLE.utils.encode_cell({ r: 2, c: this.questionSheetData.length + 1 })}`;
         const maxPointsAddress: string = XLSX_STYLE.utils.encode_cell({ r: 16, c: 1 });
         const maxPossibleAddress: string = XLSX_STYLE.utils.encode_cell({ r: 17, c: 1 });
         const topTeamScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: 18, c: 1 });
-        const extraPoints = testDivision === "A" ? 0 : (60 * 10 * 2) + 750;
-        const actualScoreRange: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: 4, c: questionSheetData.length + 4 })}:${XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS + 4, c: questionSheetData.length + 4 })}`
+        const extraPoints = this.testDivision === "A" ? 0 : (60 * 10 * 2) + 750;
+        const actualScoreRange: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: 4, c: this.questionSheetData.length + 4 })}:${XLSX_STYLE.utils.encode_cell({ r: CipherScoreSheetGenerator.MAX_TEAMS + 4, c: this.questionSheetData.length + 4 })}`
 
         const headerTable: TableCell[][] = [
             [{ v: "Full Credit", s: this.STYLE_HEADER_BORDER_TBR }, { v: "", s: this.STYLE_BORDER_RL_GREY }],
@@ -1070,10 +974,10 @@ export default class CipherScoreSheetGenerator {
             [{ v: "Top Team Score Pct of max", s: this.STYLE_HEADER_BORDER_HRIGHT_BL }, { f: `${topTeamScoreAddress}/${maxPossibleAddress}`, s: this.STYLE_BORDER_BR_HRIGHT_GRAY_FMTPCT }],
         ];
 
-        this.writeCellTable(ScoreAnalysisSheet, 4, 0, headerTable);
-        this.setColumnWidth(ScoreAnalysisSheet, 0, 28);
-        this.mergeCells(ScoreAnalysisSheet, 0, 0, 3, 0);
-        for (let q = 0; q < questionSheetData.length; q++) {
+        this.writeCellTable(sheet, 4, 0, headerTable);
+        this.setColumnWidth(sheet, 0, 28);
+        this.mergeCells(sheet, 0, 0, 3, 0);
+        for (let q = 0; q < this.questionSheetData.length; q++) {
             const col = q + 2;
             const destCol = col;
             const destStartRow = 4;
@@ -1101,62 +1005,51 @@ export default class CipherScoreSheetGenerator {
                 [{ v: "0", f: `${partialRef}+${attemptedNotSolvedRef}+${fullySolvedRef}` }],
 
             ]
-            this.writeCellTable(ScoreAnalysisSheet, 4, col, formulaTable);
+            this.writeCellTable(sheet, 4, col, formulaTable);
         }
 
         // Define the final dimensions
-        const maxRowIndex: number = this.MAX_TEAMS + 4;
-        const maxColIndex: number = questionSheetData.length + 3;
+        const maxRowIndex: number = CipherScoreSheetGenerator.MAX_TEAMS + 4;
+        const maxColIndex: number = this.questionSheetData.length + 3;
 
-        this.setSheetSize(ScoreAnalysisSheet, maxRowIndex, maxColIndex);
+        this.setSheetSize(sheet, maxRowIndex, maxColIndex);
 
-        return {
-            worksheet: ScoreAnalysisSheet,
-        };
+        return sheet;
     }
 
     /**
- * Generate a worksheet containing the Success Correlation Analysis data
- * @param questionSheetData The question data to generate the score sheet from
- * @param maxQuestionTypeWidth The maximum width of the "Type" column
- * @param testDivision The test division to generate the score sheet for
- * @returns {WorkSheetDataResponse} An object containing the worksheet
- */
-    private static generateSuccessCorrelationAnalysisSheet(questionSheetData: QuestionData[], maxQuestionTypeWidth: number, testDivision: string): WorkSheetDataResponse {
-
+     * Generate a worksheet containing the Success Correlation Analysis data
+     * @returnsXLSX_STYLE.WorkSheet The generated worksheet
+     */
+    private generateSuccessCorrelationAnalysisSheet(): XLSX_STYLE.WorkSheet {
+        const numQuestions = this.questionSheetData.length;
         // Use score entry sheet as a template
-        const SuccessCorrelationAnalysisSheet: XLSX_STYLE.WorkSheet = this.generateScoreEntrySheet(questionSheetData, maxQuestionTypeWidth, testDivision, this.MAX_TEAMS, false).worksheet;
-        const pointsRange: string = `${XLSX_STYLE.utils.encode_cell({ r: 2, c: 2 })}:${XLSX_STYLE.utils.encode_cell({ r: 2, c: questionSheetData.length + 1 })}`;
-        const maxPointsAddress: string = XLSX_STYLE.utils.encode_cell({ r: 16, c: 1 });
-        const maxPossibleAddress: string = XLSX_STYLE.utils.encode_cell({ r: 17, c: 1 });
-        const topTeamScoreAddress: string = XLSX_STYLE.utils.encode_cell({ r: 18, c: 1 });
-        const extraPoints = testDivision === "A" ? 0 : (60 * 10 * 2) + 750;
-        const actualScoreRange: string = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: 4, c: questionSheetData.length + 4 })}:${XLSX_STYLE.utils.encode_cell({ r: this.MAX_TEAMS + 4, c: questionSheetData.length + 4 })}`
+        const sheet: XLSX_STYLE.WorkSheet = XLSX_STYLE.utils.json_to_sheet([]);
+        const baseCol = 1;
+        this.genQuestionHeader(sheet, baseCol);
+        this.populateTeamHeaders(sheet, baseCol);
 
-
-        // this.writeCellTable(ScoreAnalysisSheet, 4, 0, headerTable);
-        // this.setColumnWidth(ScoreAnalysisSheet, 0, 28);
-        this.mergeCells(SuccessCorrelationAnalysisSheet, 0, 0, 3, 0);
-        for (let q = 0; q <= questionSheetData.length; q++) {
+        this.mergeCells(sheet, 0, 0, 3, 0);
+        for (let q = 0; q <= numQuestions; q++) {
             const col = q + 2;
-            const destCol = (q === questionSheetData.length) ? col + 2 : col;
+            const destCol = (q === numQuestions) ? col + 2 : col;
             const destStartRow = 4;
             const destColLetter = XLSX_STYLE.utils.encode_col(destCol);
             const destCalculation = `'Score Calculation'!$${destColLetter}$${destStartRow + 1}:INDEX('Score Calculation'!$${destColLetter}:$${destColLetter},NumberOfTeams+${destStartRow})`;
-            for (let team = 0; team < this.MAX_TEAMS; team++) {
+            for (let team = 0; team < CipherScoreSheetGenerator.MAX_TEAMS; team++) {
                 let row = team + 4;
                 const destCell = `'Score Calculation'!${XLSX_STYLE.utils.encode_cell({ r: row, c: destCol })}`
-                const cell = this.getCell(SuccessCorrelationAnalysisSheet, row, col);
-                cell.f = `IF(ROW()-${this.HEADER_ROWS}<= NumberOfTeams,RANK(${destCell},${destCalculation}),"")`
+                const cell = this.getCell(sheet, row, col);
+                cell.f = `IF(ROW()-${CipherScoreSheetGenerator.HEADER_ROWS}<= NumberOfTeams,RANK(${destCell},${destCalculation}),"")`
                 cell.v = 0
                 cell.t = "n";
-                if (q === questionSheetData.length) {
+                if (q === numQuestions) {
                     cell.s = this.STYLE_BORDER_NONE_GRAY;
                 }
             }
         }
 
-        let col = questionSheetData.length + 2;
+        let col = numQuestions + 2;
 
         const headers: string[] = ["Final Score", "", "Question", "Type", "Correlation"];
         for (let i = 0; i < headers.length; i++) {
@@ -1166,45 +1059,40 @@ export default class CipherScoreSheetGenerator {
                     [{ v: ' ', s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
                     [{ v: ' ', s: this.STYLE_HEADER_BORDER_ALL_WRAP }],
                 ];
-                this.writeCellTable(SuccessCorrelationAnalysisSheet, 1, col + i, headerTable);
-                this.mergeCells(SuccessCorrelationAnalysisSheet, 1, col + i, 3, col + i);
+                this.writeCellTable(sheet, 1, col + i, headerTable);
+                this.mergeCells(sheet, 1, col + i, 3, col + i);
             }
         }
-        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 1, 1);
-        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 2, 8);
-        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 3, 25);
-        this.setColumnWidth(SuccessCorrelationAnalysisSheet, col + 4, 10);
+        this.setColumnWidth(sheet, col + 1, 1);
+        this.setColumnWidth(sheet, col + 2, 8);
+        this.setColumnWidth(sheet, col + 3, 25);
+        this.setColumnWidth(sheet, col + 4, 10);
 
-        col = questionSheetData.length + 4;
-        let destColLetter = XLSX_STYLE.utils.encode_col(questionSheetData.length + 2);
-        const finalCorrelRange = `$${destColLetter}$${this.HEADER_ROWS + 1}:INDEX($${destColLetter}:$${destColLetter},NumberOfTeams+${this.HEADER_ROWS + 1})`;
-        for (let q = 0; q < questionSheetData.length; q++) {
-            const row = this.HEADER_ROWS + q;
+        col = numQuestions + 4;
+        let destColLetter = XLSX_STYLE.utils.encode_col(numQuestions + 2);
+        const finalCorrelRange = `$${destColLetter}$${CipherScoreSheetGenerator.HEADER_ROWS + 1}:INDEX($${destColLetter}:$${destColLetter},NumberOfTeams+${CipherScoreSheetGenerator.HEADER_ROWS + 1})`;
+        for (let q = 0; q < numQuestions; q++) {
+            const row = CipherScoreSheetGenerator.HEADER_ROWS + q;
             const destCol = q + 2;
             destColLetter = XLSX_STYLE.utils.encode_col(destCol);
-            const qRange = `$${destColLetter}$${this.HEADER_ROWS + 1}:INDEX($${destColLetter}:$${destColLetter},NumberOfTeams+${this.HEADER_ROWS + 1})`;
+            const qRange = `$${destColLetter}$${CipherScoreSheetGenerator.HEADER_ROWS + 1}:INDEX($${destColLetter}:$${destColLetter},NumberOfTeams+${CipherScoreSheetGenerator.HEADER_ROWS + 1})`;
             const rowTable: TableCell[][] = [
                 [{ v: '', f: `${XLSX_STYLE.utils.encode_cell({ r: 3, c: destCol })}`, s: this.STYLE_BORDER_RL_GREY },
                 { v: '', f: `${XLSX_STYLE.utils.encode_cell({ r: 0, c: destCol })}`, s: this.STYLE_BORDER_RL_GREY },
                 { v: '', f: `=CORREL(${qRange},${finalCorrelRange} )`, s: this.STYLE_BORDER_RL_GREY_FMT3DEC }
                 ]
             ];
-            this.writeCellTable(SuccessCorrelationAnalysisSheet, row, col, rowTable);
+            this.writeCellTable(sheet, row, col, rowTable);
         }
 
         // Define the final dimensions
-        const maxRowIndex: number = this.MAX_TEAMS + 4;
-        const maxColIndex: number = questionSheetData.length + 7;
+        const maxRowIndex: number = CipherScoreSheetGenerator.MAX_TEAMS + 4;
+        const maxColIndex: number = numQuestions + 7;
 
-        this.setSheetSize(SuccessCorrelationAnalysisSheet, maxRowIndex, maxColIndex);
+        this.setSheetSize(sheet, maxRowIndex, maxColIndex);
 
-        return {
-            worksheet: SuccessCorrelationAnalysisSheet,
-        };
+        return sheet;
     }
-    // #endregion
-
-    // #region Helpers
 
     /**
      * Gets the question type based on the cipher type and encode type.
@@ -1212,7 +1100,7 @@ export default class CipherScoreSheetGenerator {
      * @param {IState} question - The question object.
      * @returns {string} The question type as a string.
      */
-    private static getQuestionType(question: IState): string {
+    private getQuestionType(question: IState): string {
         // Create a reverse map of ICipherType
         // This map will have the values of ICipherType as keys, and the corresponding key as the value
         const cipherTypeReverseMap: { [key: string]: string } = Object.keys(ICipherType).reduce((prev, key) => {
@@ -1242,7 +1130,7 @@ export default class CipherScoreSheetGenerator {
      * @param {keyof T} headerKey - The key to use to get the cell value.
      * @returns {number} The maximum character width for the given column.
      */
-    private static calculateColumnWidth<T>(data: T[], headerKey: keyof T): number {
+    private calculateColumnWidth<T>(data: T[], headerKey: keyof T): number {
         let maxWidth: number = String(headerKey).length; // Start with the header length
 
         // Iterate through all data objects (rows)
@@ -1267,28 +1155,11 @@ export default class CipherScoreSheetGenerator {
      * Returns the division letter for a given test type.
      * @param {ITestType} testType - The test type to get the division letter for.
      * @returns {string} The division letter for the given test type.
+     * Note we count on the base type starting with the letter of the division
      */
-    private static calculateTestDivision(testType: ITestType): string {
-        switch (testType) {
-            case ITestType.cstate:
-            case ITestType.cregional:
-                // Division C test
-                return 'C';
-            case ITestType.bstate:
-            case ITestType.bregional:
-                // Division B test
-                return 'B';
-            case ITestType.aregional:
-            case ITestType.astate:
-                // Division A test
-                return 'A';
-            case ITestType.None:
-            default:
-                // No division (e.g., sample test)
-                return '';
-        }
+    private calculateTestDivision(testType: ITestType): string {
+        return testType.charAt(0).toUpperCase();
     }
-
     /**
      * Helper function to calculate the required row height in points (hpt) for a cell 
      * with a SINGLE LINE of text rotated 45 degrees.
@@ -1297,7 +1168,7 @@ export default class CipherScoreSheetGenerator {
      * @param {number} [fontSizePt=11] - The font size in points (defaults to 11). 
      * @returns {number} The required row height in points (hpt) for the single, rotated line.
      */
-    private static calculateRotatedSingleLineHeight(
+    private calculateRotatedSingleLineHeight(
         columnWidthWch: number,
         fontSizePt: number = 11
     ): number {
@@ -1335,7 +1206,7 @@ export default class CipherScoreSheetGenerator {
      * @param {Blob} blob - The blob object to download.
      * @param {string} filename - The filename to use for the downloaded file.
      */
-    private static downloadFileBlob = (blob: Blob, filename: string) => {
+    private downloadFileBlob = (blob: Blob, filename: string) => {
         // Create a URL for the blob object
         const url: string = URL.createObjectURL(blob);
         // Create a temporary <a> element to trigger the download
@@ -1360,7 +1231,7 @@ export default class CipherScoreSheetGenerator {
      * @param {string} testTitle - The title of the test, used for generating the file name.
      * @returns {Promise<void>} - Resolves when the file download is triggered.
      */
-    public static async generateAndInjectXmlAsync(
+    public async generateAndInjectXmlAsync(
         wb: XLSX_STYLE.WorkBook, xmlInjectionDataMap: Map<string, XMLInjectionData>, testTitle: string
     ): Promise<void> {
         // Output as a base64 string, suitable for JSZip
@@ -1494,7 +1365,4 @@ export default class CipherScoreSheetGenerator {
 
         return style;
     }
-
-    // #endregion
 }
-

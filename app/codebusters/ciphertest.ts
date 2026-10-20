@@ -521,7 +521,8 @@ export class CipherTest extends CipherEncoder {
     public async generateScoreSheet(test: number): Promise<void> {
         const testdata = this.getTestEntry(test);
         const testJson = this.generateTestData(testdata);
-        await CipherScoreSheetGenerator.generateScoreSheet(testJson, testdata.questions);
+        const generator = new CipherScoreSheetGenerator();
+        await generator.generateScoreSheet(testJson, testdata.questions);
     }
     /**
      * Inject the LaTeX warning dialog into the page's main menu area so that

@@ -157,6 +157,23 @@ interface BaconianWordsSolverData {
      * verify pattern candidates (the solver "cheats" by knowing the answer) */
     plainAnswer: string[];
 }
+type SetWrapper = { tag: string; className: string | null; style: string };
+type SetPiece = { text: string; wrappers: SetWrapper[] };
+type SetDecoration = { line: string; color: string };
+type SetRun = {
+    text: string; font: string; size: number; color: string;
+    backgrounds: string[]; decorations: SetDecoration[];
+    shift: number; width: number; ascent: number; descent: number;
+};
+type SetPreparedItem = {
+    reference: HTMLSpanElement;
+    entries: { node: Text; probe: HTMLSpanElement }[];
+};
+type SetFrame = {
+    padding: number; scale: number; height: number;
+    baseline: number; belowBaseline: number;
+};
+
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
  * a Baconian cipher.
@@ -206,6 +223,35 @@ export class CipherBaconianEncoder extends CipherEncoder {
     private workCanvas: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
     private useAltFont: boolean = false;
+    /** Reuse print-resolution images across A/B sets and repeated builds. */
+    private setBitmapCache = new Map<string, string>();
+    private setBitmapCacheScaleKey = '';
+
+    private clearSetBitmapCache(): void {
+        this.setBitmapCache.clear();
+        this.setBitmapCacheScaleKey = '';
+    }
+
+    private getCachedSetBitmap(runs: SetRun[], frame: SetFrame): string {
+        // Check here as well as in setZoom: restored state may bypass its setter.
+        const scaleKey = JSON.stringify([
+            this.state.zoom, frame.scale, this.useAltFont,
+        ]);
+        if (this.setBitmapCacheScaleKey !== scaleKey) {
+            this.clearSetBitmapCache();
+            this.setBitmapCacheScaleKey = scaleKey;
+        }
+
+        // Include the frame: identical letters can have different shared baselines.
+        const key = JSON.stringify([frame, runs]);
+        const cached = this.setBitmapCache.get(key);
+        if (cached !== undefined) return cached;
+
+        const result = this.renderSetBitmap(runs, frame);
+        this.setBitmapCache.set(key, result);
+        return result;
+    }
+
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
      * the realtime answers when the test is being given.
@@ -328,6 +374,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         if (this.state.zoom !== zoom) {
             this.state.zoom = zoom;
+            this.clearSetBitmapCache();
             changed = true;
         }
         return changed;
@@ -637,35 +684,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns Array of strings
      */
     public buildsetbitmap(text: string, doBitmap: boolean): string[] {
-        type Wrapper = {
-            tag: string;
-            className: string | null;
-            style: string;
-        };
-
-        type Piece = {
-            text: string;
-            wrappers: Wrapper[];
-        };
-
-        type Decoration = {
-            line: string;
-            color: string;
-        };
-
-        type Run = {
-            text: string;
-            font: string;
-            size: number;
-            color: string;
-            backgrounds: string[];
-            decorations: Decoration[];
-            shift: number;
-            width: number;
-            ascent: number;
-            descent: number;
-        };
-
+        const items = this.parseSetItems(text);
+        if (doBitmap) {
+            if (items.length === 0) {
+                return [];
+            }
+            return this.buildSetBitmaps(items);
+        }
+        return items.map(item => this.serializeSetItem(item));
+    }
+    private parseSetItems(text: string): SetPiece[][] {
         const parsed = new DOMParser().parseFromString(text, 'text/html');
 
         const formattingTags = new Set([
@@ -687,9 +715,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
         ];
 
         let plainText = '';
-        const formatting: Wrapper[][] = [];
+        const formatting: SetWrapper[][] = [];
 
-        const visit = (node: Node, inherited: Wrapper[]): void => {
+        const visit = (node: Node, inherited: SetWrapper[]): void => {
             if (node.nodeType === Node.TEXT_NODE) {
                 for (const character of node.textContent ?? '') {
                     const value = /[\s\u00a0]/u.test(character)
@@ -762,7 +790,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 )
                 : this.splitGraphemes(plainText);
 
-        const items: Piece[][] = [];
+        const items: SetPiece[][] = [];
         let offset = 0;
 
         for (const grapheme of graphemes) {
@@ -787,6 +815,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
 
+        return items;
+    }
+    private serializeSetItem(item: SetPiece[]): string {
         const escapeText = (value: string): string =>
             value
                 .replace(/\u00a0/g, ' ')
@@ -809,7 +840,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             return ` ${name}="${escaped.replace(/"/g, '&quot;')}"`;
         };
 
-        const serialize = (piece: Piece): string => {
+        const serialize = (piece: SetPiece): string => {
             let html = escapeText(piece.text);
 
             for (let i = piece.wrappers.length - 1; i >= 0; i--) {
@@ -833,246 +864,334 @@ export class CipherBaconianEncoder extends CipherEncoder {
             return html;
         };
 
-        if (!doBitmap) {
-            return items.map(item => item.map(serialize).join(''));
-        }
+        return item.map(serialize).join('');
+    }
+    private makeSetItem(pieces: SetPiece[]): HTMLSpanElement {
+        const container = document.createElement('span');
 
-        // Build DOM nodes separately for computed-style measurement.
-        const makeItem = (pieces: Piece[]): HTMLSpanElement => {
-            const container = document.createElement('span');
+        for (const piece of pieces) {
+            let node: Node = document.createTextNode(piece.text);
 
-            for (const piece of pieces) {
-                let node: Node = document.createTextNode(piece.text);
+            for (let i = piece.wrappers.length - 1; i >= 0; i--) {
+                const wrapper = piece.wrappers[i];
+                const element = document.createElement(wrapper.tag);
 
-                for (let i = piece.wrappers.length - 1; i >= 0; i--) {
-                    const wrapper = piece.wrappers[i];
-                    const element = document.createElement(wrapper.tag);
-
-                    if (wrapper.className !== null) {
-                        element.setAttribute('class', wrapper.className);
-                    }
-
-                    if (wrapper.style) {
-                        element.setAttribute('style', wrapper.style);
-                    }
-
-                    element.appendChild(node);
-                    node = element;
+                if (wrapper.className !== null) {
+                    element.setAttribute('class', wrapper.className);
                 }
 
-                container.appendChild(node);
+                if (wrapper.style) {
+                    element.setAttribute('style', wrapper.style);
+                }
+
+                element.appendChild(node);
+                node = element;
             }
 
-            return container;
+            container.appendChild(node);
+        }
+
+        return container;
+    }
+    private makeSetProbeTemplate(): HTMLSpanElement {
+        const probe = document.createElement('span');
+
+        const properties: Record<string, string> = {
+            display: 'inline-block',
+            width: '0',
+            height: '0',
+            padding: '0',
+            margin: '0',
+            border: '0',
+            'font-size': '0',
+            'line-height': '0',
+            'vertical-align': 'baseline',
+            position: 'static',
+            float: 'none',
+            transform: 'none',
         };
 
-        const defaultSize = 16 * this.state.zoom / 100;
-        const fontFamily = this.useAltFont ? 'juliamono' : 'Courier New';
-        const scale = 600 / 96;
-        const ctx = this.canvasContext;
+        for (const [property, value] of Object.entries(properties)) {
+            probe.style.setProperty(property, value, 'important');
+        }
 
-        const host = document.createElement('div');
+        return probe;
+    }
 
-        Object.assign(host.style, {
-            position: 'fixed',
-            left: '-100000px',
-            top: '0',
-            visibility: 'hidden',
-            pointerEvents: 'none',
-            whiteSpace: 'pre',
-            fontFamily,
-            fontSize: `${defaultSize}px`,
-            color: '#000000',
+    /** Build every item and probe before performing any layout reads. */
+    private prepareSetItems(items: SetPiece[][], host: HTMLElement): SetPreparedItem[] {
+        const template = this.makeSetProbeTemplate();
+        const cloneProbe = (): HTMLSpanElement =>
+            template.cloneNode(false) as HTMLSpanElement;
+        const fragment = document.createDocumentFragment();
+
+        const prepared = items.map(pieces => {
+            const item = this.makeSetItem(pieces);
+            const reference = cloneProbe();
+            item.appendChild(reference);
+
+            // Collect text nodes before inserting probes.
+            const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+            const nodes: Text[] = [];
+            let node: Node | null;
+            while ((node = walker.nextNode())) nodes.push(node as Text);
+
+            const entries = nodes.map(node => {
+                const probe = cloneProbe();
+                node.parentNode!.insertBefore(probe, node.nextSibling);
+                return { node, probe };
+            });
+
+            fragment.appendChild(item);
+            return { reference, entries };
         });
 
-        document.body.appendChild(host);
+        host.appendChild(fragment);
+        return prepared;
+    }
+
+    /** Read styles and positions without changing the connected DOM. */
+    private measureSetItems(
+        prepared: SetPreparedItem[], host: HTMLElement, defaultSize: number,
+    ): SetRun[][] {
+        const ctx = this.canvasContext;
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'left';
+        ctx.direction = 'ltr';
+        const metricsCache = new Map<string, TextMetrics>();
+        const styleCache = new WeakMap<Element, CSSStyleDeclaration>();
+        const getStyle = (element: Element): CSSStyleDeclaration => {
+            let style = styleCache.get(element);
+            if (!style) {
+                style = getComputedStyle(element);
+                styleCache.set(element, style);
+            }
+            return style;
+        };
+        return prepared.map(({ reference, entries }) => {
+            const referenceTop = reference.getBoundingClientRect().top;
+            const runs: SetRun[] = [];
+            for (const { node, probe } of entries) {
+                const parent = node.parentElement!;
+                const css = getStyle(parent);
+                const size = parseFloat(css.fontSize) || defaultSize;
+                const font =
+                    `${css.fontStyle} ${css.fontWeight} ` +
+                    `${size}px ${css.fontFamily}`;
+
+                const backgrounds: string[] = [];
+                const decorations: SetDecoration[] = [];
+                const ancestors: HTMLElement[] = [];
+
+                let ancestor: HTMLElement | null = parent;
+
+                while (ancestor && ancestor !== host) {
+                    ancestors.unshift(ancestor);
+                    ancestor = ancestor.parentElement;
+                }
+
+                for (const element of ancestors) {
+                    const style = getStyle(element);
+
+                    if (
+                        style.backgroundColor !== 'transparent' &&
+                        style.backgroundColor !== 'rgba(0, 0, 0, 0)'
+                    ) {
+                        backgrounds.push(style.backgroundColor);
+                    }
+
+                    if (
+                        style.textDecorationLine &&
+                        style.textDecorationLine !== 'none'
+                    ) {
+                        decorations.push({
+                            line: style.textDecorationLine,
+                            color: style.textDecorationColor || style.color,
+                        });
+                    }
+
+                }
+
+                const shift = probe.getBoundingClientRect().top - referenceTop;
+                const value = node.textContent ?? '';
+                const metricsKey = JSON.stringify([font, value]);
+                let metrics = metricsCache.get(metricsKey);
+                if (!metrics) {
+                    ctx.font = font;
+                    metrics = ctx.measureText(value);
+                    metricsCache.set(metricsKey, metrics);
+                }
+
+                runs.push({
+                    text: value,
+                    font,
+                    size,
+                    color: css.color,
+                    backgrounds,
+                    decorations,
+                    shift,
+                    width: metrics.width,
+                    ascent: Math.max(
+                        metrics.fontBoundingBoxAscent || 0,
+                        metrics.actualBoundingBoxAscent || 0,
+                        size * 0.8,
+                    ),
+                    descent: Math.max(
+                        metrics.fontBoundingBoxDescent || 0,
+                        metrics.actualBoundingBoxDescent || 0,
+                        size * 0.2,
+                    ),
+                });
+
+            }
+            return runs;
+        });
+    }
+
+    private measureSetFrame(
+        measuredItems: SetRun[][], defaultSize: number, fontFamily: string,
+    ): SetFrame {
+        const ctx = this.canvasContext;
+        const padding = 2;
+
+        // Include the normal font so even an entirely superscript or subscript
+        // set retains its position relative to an ordinary text baseline.
+        ctx.font = `${defaultSize}px "${fontFamily}"`;
+        ctx.textBaseline = 'alphabetic';
+
+        const normalMetrics = ctx.measureText('Mg');
+
+        let sharedAscent = Math.max(
+            normalMetrics.fontBoundingBoxAscent || 0,
+            normalMetrics.actualBoundingBoxAscent || 0,
+            defaultSize * 0.8,
+        );
+
+        let sharedDescent = Math.max(
+            normalMetrics.fontBoundingBoxDescent || 0,
+            normalMetrics.actualBoundingBoxDescent || 0,
+            defaultSize * 0.2,
+        );
+
+        for (const runs of measuredItems) {
+            for (const run of runs) {
+                sharedAscent = Math.max(
+                    sharedAscent,
+                    run.ascent - run.shift,
+                );
+
+                sharedDescent = Math.max(
+                    sharedDescent,
+                    run.descent + run.shift,
+                );
+            }
+        }
+
+        const height = sharedAscent + sharedDescent + padding * 2;
+        const sharedBaseline = padding + sharedAscent;
+
+        // Distance from the image's bottom edge to its text baseline.
+        const belowBaseline = padding + sharedDescent;
+
+        return {
+            padding, scale: 600 / 96, height,
+            baseline: sharedBaseline, belowBaseline
+        };
+    }
+
+    private renderSetBitmap(runs: SetRun[], frame: SetFrame): string {
+        const ctx = this.canvasContext;
+        const { padding, scale, height, belowBaseline } = frame;
+        const width =
+            runs.reduce((total, run) => total + run.width, 0) +
+            padding * 2;
+
+        this.workCanvas.width = Math.max(
+            1, Math.ceil(width * scale),
+        );
+        this.workCanvas.height = Math.max(
+            1, Math.ceil(height * scale),
+        );
+
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'left';
+        ctx.direction = 'ltr';
+
+        let x = padding;
+
+        for (const run of runs) {
+            const baseline = frame.baseline + run.shift;
+
+            for (const background of run.backgrounds) {
+                ctx.fillStyle = background;
+                ctx.fillRect(
+                    x,
+                    baseline - run.ascent,
+                    run.width,
+                    run.ascent + run.descent,
+                );
+            }
+
+            ctx.font = run.font;
+            ctx.fillStyle = run.color;
+            ctx.fillText(run.text, x, baseline);
+
+            for (const decoration of run.decorations) {
+                ctx.strokeStyle = decoration.color;
+                ctx.lineWidth = Math.max(0.5, run.size / 16);
+
+                const drawLine = (y: number): void => {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + run.width, y);
+                    ctx.stroke();
+                };
+
+                if (decoration.line.includes('underline')) {
+                    drawLine(baseline + run.size * 0.1);
+                }
+
+                if (decoration.line.includes('line-through')) {
+                    drawLine(baseline - run.size * 0.3);
+                }
+
+                if (decoration.line.includes('overline')) {
+                    drawLine(baseline - run.ascent);
+                }
+            }
+
+            x += run.width;
+        }
+
+        const result =
+            `<img src="${this.workCanvas.toDataURL()}" ` +
+            `width="${width.toFixed(2)}" ` +
+            `height="${height.toFixed(2)}" ` +
+            `style="vertical-align: -${belowBaseline.toFixed(2)}px;">`;
+
+        return result;
+    }
+
+    private buildSetBitmaps(items: SetPiece[][]): string[] {
+        const defaultSize = 16 * this.state.zoom / 100;
+        const fontFamily = this.useAltFont ? 'juliamono' : 'Courier New';
+        const host = document.createElement('div');
+        Object.assign(host.style, {
+            position: 'fixed', left: '-100000px', top: '0',
+            visibility: 'hidden', pointerEvents: 'none', whiteSpace: 'pre',
+            fontFamily, fontSize: `${defaultSize}px`, color: '#000000',
+        });
 
         try {
-            return items.map(pieces => {
-                const item = makeItem(pieces);
-                host.appendChild(item);
+            const prepared = this.prepareSetItems(items, host);
+            document.body.appendChild(host);
+            const measured = this.measureSetItems(prepared, host, defaultSize);
+            const frame = this.measureSetFrame(measured, defaultSize, fontFamily);
+            // All geometry and styles have now been copied into plain values.
+            host.remove();
 
-                const runs: Run[] = [];
-                const walker = document.createTreeWalker(
-                    item,
-                    NodeFilter.SHOW_TEXT,
-                );
-
-                let node: Node | null;
-
-                while ((node = walker.nextNode())) {
-                    const parent = node.parentElement!;
-                    const css = getComputedStyle(parent);
-                    const size = parseFloat(css.fontSize) || defaultSize;
-                    const font =
-                        `${css.fontStyle} ${css.fontWeight} ` +
-                        `${size}px ${css.fontFamily}`;
-
-                    const backgrounds: string[] = [];
-                    const decorations: Decoration[] = [];
-                    const ancestors: HTMLElement[] = [];
-
-                    let ancestor: HTMLElement | null = parent;
-
-                    while (ancestor && ancestor !== host) {
-                        ancestors.unshift(ancestor);
-                        ancestor = ancestor.parentElement;
-                    }
-
-                    let shift = 0;
-
-                    for (const element of ancestors) {
-                        const style = getComputedStyle(element);
-
-                        if (
-                            style.backgroundColor !== 'transparent' &&
-                            style.backgroundColor !== 'rgba(0, 0, 0, 0)'
-                        ) {
-                            backgrounds.push(style.backgroundColor);
-                        }
-
-                        if (
-                            style.textDecorationLine &&
-                            style.textDecorationLine !== 'none'
-                        ) {
-                            decorations.push({
-                                line: style.textDecorationLine,
-                                color: style.textDecorationColor || style.color,
-                            });
-                        }
-
-                        const parentSize = element.parentElement
-                            ? parseFloat(
-                                getComputedStyle(element.parentElement).fontSize,
-                            ) || defaultSize
-                            : defaultSize;
-
-                        const verticalAlign = style.verticalAlign;
-
-                        if (verticalAlign === 'sub') {
-                            shift += parentSize * 0.2;
-                        } else if (verticalAlign === 'super') {
-                            shift -= parentSize * 0.35;
-                        } else if (verticalAlign.endsWith('px')) {
-                            shift -= parseFloat(verticalAlign) || 0;
-                        } else if (verticalAlign.endsWith('%')) {
-                            const lineHeight =
-                                parseFloat(style.lineHeight) ||
-                                (parseFloat(style.fontSize) || defaultSize) * 1.2;
-
-                            shift -=
-                                parseFloat(verticalAlign) / 100 * lineHeight;
-                        }
-                    }
-
-                    const value = node.textContent ?? '';
-                    ctx.font = font;
-
-                    const metrics = ctx.measureText(value);
-
-                    runs.push({
-                        text: value,
-                        font,
-                        size,
-                        color: css.color,
-                        backgrounds,
-                        decorations,
-                        shift,
-                        width: metrics.width,
-                        ascent: Math.max(
-                            metrics.fontBoundingBoxAscent || 0,
-                            metrics.actualBoundingBoxAscent || 0,
-                            size * 0.8,
-                        ),
-                        descent: Math.max(
-                            metrics.fontBoundingBoxDescent || 0,
-                            metrics.actualBoundingBoxDescent || 0,
-                            size * 0.2,
-                        ),
-                    });
-                }
-
-                const padding = 2;
-                const width =
-                    runs.reduce((total, run) => total + run.width, 0) +
-                    padding * 2;
-
-                const ascent = Math.max(
-                    0,
-                    ...runs.map(run => run.ascent - run.shift),
-                );
-
-                const descent = Math.max(
-                    0,
-                    ...runs.map(run => run.descent + run.shift),
-                );
-
-                const height = ascent + descent + padding * 2;
-
-                this.workCanvas.width = Math.max(
-                    1, Math.ceil(width * scale),
-                );
-                this.workCanvas.height = Math.max(
-                    1, Math.ceil(height * scale),
-                );
-
-                ctx.setTransform(scale, 0, 0, scale, 0, 0);
-                ctx.textBaseline = 'alphabetic';
-
-                let x = padding;
-
-                for (const run of runs) {
-                    const baseline = padding + ascent + run.shift;
-
-                    for (const background of run.backgrounds) {
-                        ctx.fillStyle = background;
-                        ctx.fillRect(
-                            x,
-                            baseline - run.ascent,
-                            run.width,
-                            run.ascent + run.descent,
-                        );
-                    }
-
-                    ctx.font = run.font;
-                    ctx.fillStyle = run.color;
-                    ctx.fillText(run.text, x, baseline);
-
-                    for (const decoration of run.decorations) {
-                        ctx.strokeStyle = decoration.color;
-                        ctx.lineWidth = Math.max(0.5, run.size / 16);
-
-                        const drawLine = (y: number): void => {
-                            ctx.beginPath();
-                            ctx.moveTo(x, y);
-                            ctx.lineTo(x + run.width, y);
-                            ctx.stroke();
-                        };
-
-                        if (decoration.line.includes('underline')) {
-                            drawLine(baseline + run.size * 0.1);
-                        }
-
-                        if (decoration.line.includes('line-through')) {
-                            drawLine(baseline - run.size * 0.3);
-                        }
-
-                        if (decoration.line.includes('overline')) {
-                            drawLine(baseline - run.ascent);
-                        }
-                    }
-
-                    x += run.width;
-                }
-
-                const result =
-                    `<img src="${this.workCanvas.toDataURL()}" ` +
-                    `width="${width.toFixed(2)}" ` +
-                    `height="${height.toFixed(2)}">`;
-
-                item.remove();
-                return result;
-            });
+            return measured.map(runs => this.getCachedSetBitmap(runs, frame));
         } finally {
             host.remove();
         }
@@ -1097,7 +1216,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let sharedpos = 0;
         // Build up a proper set for the a and b strings
         let aset = this.buildset(this.state.texta);
-        console.log('Aset = ', JSON.stringify(aset));
+
         if (aset.length === 0) {
             aset.push(" ")
         }
@@ -1170,7 +1289,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     ciphertext: encodeline
                 })
         }
-        console.log(result);
         return result;
     }
     /**
@@ -1226,7 +1344,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         } else {
             aSet = this.buildsetbitmap(this.state.texta, false);
             bSet = this.buildsetbitmap(this.state.textb, false);
-            console.log('Direct buildsetbitmap output:', JSON.stringify(aSet));
+
             const texta = this.removeHtml(this.state.texta)
             const textb = this.removeHtml(this.state.textb)
             if (texta === "A" || texta === "" || textb === "B" || textb === "") {
@@ -1253,7 +1371,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.operation === 'sequence') {
             let charMatchedIndex = -1;
             for (let i = 0; i < aSet.length; i++) {
-                // console.log(aSet[i]);
                 if (aSet[i] == bSet[i]) {
                     charMatchedIndex = i;
                     break;
@@ -1271,7 +1388,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 for (let j = 0; j < bSet.length && dupeLetter == ''; j++) {
                     if (aSet[i] == bSet[j]) {
                         dupeLetter = aSet[i];
-                        // console.log(dupeLetter);
                     }
                 }
             }
@@ -1440,7 +1556,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const ct = this.getCipherTextForCrib(pos, pt.length)
         if (ct !== '') {
             const rec = new RegExp('\\b' + ct.replace(/[ \s+]/g, '[\\s\\.,;\\-!]+') + '\\b');
-            // console.log(rec)
             if (questionText.match(rec) !== null) {
                 return true;
             }
@@ -2032,7 +2147,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         settings: { class: "b" },
                         content: ct
                     });
-                    console.log('Adding CT=', ct);
                 }
                 rowbaconian.add(line.baconian[i]);
                 rowanswer.add({
@@ -2040,13 +2154,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     content: line.plaintext[i]
                 });
             }
-            console.log(rowcipher);
             rowblank.add('\xa0');
         }
-        const r = table.generate();
-        console.log(r);
-        // result.append(table.generate());
-        result.append(r);
+        result.append(table.generate());
         result.append(
             $('<div/>', {
                 class: 'TOANSWER',

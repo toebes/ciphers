@@ -637,80 +637,445 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns Array of strings
      */
     public buildsetbitmap(text: string, doBitmap: boolean): string[] {
-        // First we need to get rid of all the HTML elements in the string
-        // TODO: Remember BOLD/ITALIC and which characters they applied to and bring them back later on
-        const remain = decodeHTML(text.replace(/<[^>]*>/g, '')).replace(/[\s\xa0]+/g, ' ')
-        // All the entities need to be converted 
-        let result: string[] = [];
-        let lastc = undefined;
+        type Wrapper = {
+            tag: string;
+            className: string | null;
+            style: string;
+        };
+
+        type Piece = {
+            text: string;
+            wrappers: Wrapper[];
+        };
+
+        type Decoration = {
+            line: string;
+            color: string;
+        };
+
+        type Run = {
+            text: string;
+            font: string;
+            size: number;
+            color: string;
+            backgrounds: string[];
+            decorations: Decoration[];
+            shift: number;
+            width: number;
+            ascent: number;
+            descent: number;
+        };
+
+        const parsed = new DOMParser().parseFromString(text, 'text/html');
+
+        const formattingTags = new Set([
+            'strong', 'b', 'em', 'i', 'u',
+            'sub', 'sup', 's', 'strike', 'del', 'span',
+        ]);
+
+        const supportedProperties = [
+            'font-family',
+            'font-size',
+            'font-weight',
+            'font-style',
+            'color',
+            'background-color',
+            'text-decoration',
+            'text-decoration-line',
+            'text-decoration-color',
+            'vertical-align',
+        ];
+
+        let plainText = '';
+        const formatting: Wrapper[][] = [];
+
+        const visit = (node: Node, inherited: Wrapper[]): void => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                for (const character of node.textContent ?? '') {
+                    const value = /[\s\u00a0]/u.test(character)
+                        ? ' '
+                        : character;
+
+                    if (value === ' ' && plainText.endsWith(' ')) {
+                        continue;
+                    }
+
+                    plainText += value;
+
+                    // Index formatting by UTF-16 offset.
+                    for (let i = 0; i < value.length; i++) {
+                        formatting.push(inherited);
+                    }
+                }
+                return;
+            }
+
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+            const element = node as HTMLElement;
+            const tag = element.tagName.toLowerCase();
+
+            if (['script', 'style', 'template'].includes(tag)) return;
+
+            let wrappers = inherited;
+
+            if (formattingTags.has(tag)) {
+                const style = parsed.createElement('span').style;
+
+                for (const property of supportedProperties) {
+                    const value = element.style.getPropertyValue(property);
+
+                    if (value) {
+                        style.setProperty(
+                            property,
+                            value,
+                            element.style.getPropertyPriority(property),
+                        );
+                    }
+                }
+
+                wrappers = [
+                    ...inherited,
+                    {
+                        tag,
+                        className: element.getAttribute('class'),
+                        style: style.cssText,
+                    },
+                ];
+            }
+
+            for (const child of Array.from(element.childNodes)) {
+                visit(child, wrappers);
+            }
+        };
+
+        visit(parsed.body, []);
+
         const Segmenter = (Intl as any).Segmenter;
-
-        const chars: string[] =
+        const graphemes: string[] =
             typeof Segmenter === 'function'
-                ? Array.from(new Segmenter(undefined, { granularity: 'grapheme' }).segment(remain), (s: any) => s.segment)
-                : this.splitGraphemes(remain);
+                ? Array.from(
+                    new Segmenter(undefined, {
+                        granularity: 'grapheme',
+                    }).segment(plainText),
+                    (entry: any) => entry.segment,
+                )
+                : this.splitGraphemes(plainText);
 
-        for (const c of chars) {
-            if (c === ' ') {
-                if (lastc === undefined) {
-                    lastc = c;
+        const items: Piece[][] = [];
+        let offset = 0;
+
+        for (const grapheme of graphemes) {
+            // Append trailing spaces to the preceding grapheme.
+            if (grapheme !== ' ' || items.length === 0) {
+                items.push([]);
+            }
+
+            const item = items[items.length - 1];
+
+            for (const character of grapheme) {
+                const wrappers = formatting[offset];
+                const previous = item[item.length - 1];
+
+                if (previous && previous.wrappers === wrappers) {
+                    previous.text += character;
                 } else {
-                    lastc += c;
+                    item.push({ text: character, wrappers });
                 }
-            } else {
-                if (lastc !== undefined) {
-                    result.push(lastc);
-                }
-                lastc = c;
+
+                offset += character.length;
             }
         }
-        if (lastc !== undefined) {
-            result.push(lastc);
-        }
-        // See if we need to change it to bitmaps.
-        if (doBitmap) {
-            // we need to go through result and convert everything to a bitmap
-            for (let i = 0; i < result.length; i++) {
-                const txt = result[i]
 
-                // Note that you have to work in px units when working with the canvas
-                // or it ends up scaling funny.
-                const defaultFontsize = 16 * this.state.zoom / 100
-                let font = 'Courier New'
-                if (this.useAltFont) {
-                    font = 'juliamono'
-                }
-                let fontSize = `${defaultFontsize}px ${font}`
+        const escapeText = (value: string): string =>
+            value
+                .replace(/\u00a0/g, ' ')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
 
-                this.canvasContext.font = fontSize
-                this.workCanvas.style.font = fontSize
-                this.workCanvas.style.fontSize = `${defaultFontsize}px`
+        // Choose an attribute delimiter that minimizes quote entities.
+        const attribute = (name: string, value: string): string => {
+            const escaped = escapeText(value);
 
-                const txtSize = this.canvasContext.measureText(txt)
-                let ascent = Math.max(txtSize.fontBoundingBoxAscent, txtSize.actualBoundingBoxAscent)
-                let descent = Math.max(txtSize.actualBoundingBoxDescent, txtSize.fontBoundingBoxDescent)
-                // Now we are going to *assume* that the DPI is 96 and we really want to get something that is 600 DPI.
-                // so that it prints cleanly without pixelization
-                const scaleFactor = 600 / 96
-                let height = Math.ceil((ascent + descent) * scaleFactor)
-                let width = Math.ceil(txtSize.width * scaleFactor)
-
-                // console.log(`${txt}  ${txtSize.actualBoundingBoxAscent + txtSize.actualBoundingBoxDescent} x ${txtSize.width} => ${height} x ${width} ${this.canvasContext.font} `)
-
-                this.workCanvas.width = width
-                this.workCanvas.height = height
-                const scaledFont = defaultFontsize * scaleFactor
-                fontSize = `${scaledFont}px ${font}`
-                this.canvasContext.font = fontSize
-                this.workCanvas.style.font = fontSize
-                this.canvasContext.fillText(txt, 0, Math.ceil(ascent * scaleFactor))
-
-                // https://stackoverflow.com/questions/12328714/convert-text-to-image-using-javascript
-                const dataURL = this.workCanvas.toDataURL()
-                result[i] = `<img src="${dataURL}" width="${txtSize.width.toFixed(2)}">`
+            if (!value.includes('"')) {
+                return ` ${name}="${escaped}"`;
             }
+
+            if (!value.includes("'")) {
+                return ` ${name}='${escaped}'`;
+            }
+
+            return ` ${name}="${escaped.replace(/"/g, '&quot;')}"`;
+        };
+
+        const serialize = (piece: Piece): string => {
+            let html = escapeText(piece.text);
+
+            for (let i = piece.wrappers.length - 1; i >= 0; i--) {
+                const wrapper = piece.wrappers[i];
+                let attributes = '';
+
+                if (wrapper.className !== null) {
+                    attributes += attribute('class', wrapper.className);
+                }
+
+                if (wrapper.style) {
+                    attributes += attribute('style', wrapper.style);
+                }
+
+                html =
+                    `<${wrapper.tag}${attributes}>` +
+                    html +
+                    `</${wrapper.tag}>`;
+            }
+
+            return html;
+        };
+
+        if (!doBitmap) {
+            return items.map(item => item.map(serialize).join(''));
         }
-        return result;
+
+        // Build DOM nodes separately for computed-style measurement.
+        const makeItem = (pieces: Piece[]): HTMLSpanElement => {
+            const container = document.createElement('span');
+
+            for (const piece of pieces) {
+                let node: Node = document.createTextNode(piece.text);
+
+                for (let i = piece.wrappers.length - 1; i >= 0; i--) {
+                    const wrapper = piece.wrappers[i];
+                    const element = document.createElement(wrapper.tag);
+
+                    if (wrapper.className !== null) {
+                        element.setAttribute('class', wrapper.className);
+                    }
+
+                    if (wrapper.style) {
+                        element.setAttribute('style', wrapper.style);
+                    }
+
+                    element.appendChild(node);
+                    node = element;
+                }
+
+                container.appendChild(node);
+            }
+
+            return container;
+        };
+
+        const defaultSize = 16 * this.state.zoom / 100;
+        const fontFamily = this.useAltFont ? 'juliamono' : 'Courier New';
+        const scale = 600 / 96;
+        const ctx = this.canvasContext;
+
+        const host = document.createElement('div');
+
+        Object.assign(host.style, {
+            position: 'fixed',
+            left: '-100000px',
+            top: '0',
+            visibility: 'hidden',
+            pointerEvents: 'none',
+            whiteSpace: 'pre',
+            fontFamily,
+            fontSize: `${defaultSize}px`,
+            color: '#000000',
+        });
+
+        document.body.appendChild(host);
+
+        try {
+            return items.map(pieces => {
+                const item = makeItem(pieces);
+                host.appendChild(item);
+
+                const runs: Run[] = [];
+                const walker = document.createTreeWalker(
+                    item,
+                    NodeFilter.SHOW_TEXT,
+                );
+
+                let node: Node | null;
+
+                while ((node = walker.nextNode())) {
+                    const parent = node.parentElement!;
+                    const css = getComputedStyle(parent);
+                    const size = parseFloat(css.fontSize) || defaultSize;
+                    const font =
+                        `${css.fontStyle} ${css.fontWeight} ` +
+                        `${size}px ${css.fontFamily}`;
+
+                    const backgrounds: string[] = [];
+                    const decorations: Decoration[] = [];
+                    const ancestors: HTMLElement[] = [];
+
+                    let ancestor: HTMLElement | null = parent;
+
+                    while (ancestor && ancestor !== host) {
+                        ancestors.unshift(ancestor);
+                        ancestor = ancestor.parentElement;
+                    }
+
+                    let shift = 0;
+
+                    for (const element of ancestors) {
+                        const style = getComputedStyle(element);
+
+                        if (
+                            style.backgroundColor !== 'transparent' &&
+                            style.backgroundColor !== 'rgba(0, 0, 0, 0)'
+                        ) {
+                            backgrounds.push(style.backgroundColor);
+                        }
+
+                        if (
+                            style.textDecorationLine &&
+                            style.textDecorationLine !== 'none'
+                        ) {
+                            decorations.push({
+                                line: style.textDecorationLine,
+                                color: style.textDecorationColor || style.color,
+                            });
+                        }
+
+                        const parentSize = element.parentElement
+                            ? parseFloat(
+                                getComputedStyle(element.parentElement).fontSize,
+                            ) || defaultSize
+                            : defaultSize;
+
+                        const verticalAlign = style.verticalAlign;
+
+                        if (verticalAlign === 'sub') {
+                            shift += parentSize * 0.2;
+                        } else if (verticalAlign === 'super') {
+                            shift -= parentSize * 0.35;
+                        } else if (verticalAlign.endsWith('px')) {
+                            shift -= parseFloat(verticalAlign) || 0;
+                        } else if (verticalAlign.endsWith('%')) {
+                            const lineHeight =
+                                parseFloat(style.lineHeight) ||
+                                (parseFloat(style.fontSize) || defaultSize) * 1.2;
+
+                            shift -=
+                                parseFloat(verticalAlign) / 100 * lineHeight;
+                        }
+                    }
+
+                    const value = node.textContent ?? '';
+                    ctx.font = font;
+
+                    const metrics = ctx.measureText(value);
+
+                    runs.push({
+                        text: value,
+                        font,
+                        size,
+                        color: css.color,
+                        backgrounds,
+                        decorations,
+                        shift,
+                        width: metrics.width,
+                        ascent: Math.max(
+                            metrics.fontBoundingBoxAscent || 0,
+                            metrics.actualBoundingBoxAscent || 0,
+                            size * 0.8,
+                        ),
+                        descent: Math.max(
+                            metrics.fontBoundingBoxDescent || 0,
+                            metrics.actualBoundingBoxDescent || 0,
+                            size * 0.2,
+                        ),
+                    });
+                }
+
+                const padding = 2;
+                const width =
+                    runs.reduce((total, run) => total + run.width, 0) +
+                    padding * 2;
+
+                const ascent = Math.max(
+                    0,
+                    ...runs.map(run => run.ascent - run.shift),
+                );
+
+                const descent = Math.max(
+                    0,
+                    ...runs.map(run => run.descent + run.shift),
+                );
+
+                const height = ascent + descent + padding * 2;
+
+                this.workCanvas.width = Math.max(
+                    1, Math.ceil(width * scale),
+                );
+                this.workCanvas.height = Math.max(
+                    1, Math.ceil(height * scale),
+                );
+
+                ctx.setTransform(scale, 0, 0, scale, 0, 0);
+                ctx.textBaseline = 'alphabetic';
+
+                let x = padding;
+
+                for (const run of runs) {
+                    const baseline = padding + ascent + run.shift;
+
+                    for (const background of run.backgrounds) {
+                        ctx.fillStyle = background;
+                        ctx.fillRect(
+                            x,
+                            baseline - run.ascent,
+                            run.width,
+                            run.ascent + run.descent,
+                        );
+                    }
+
+                    ctx.font = run.font;
+                    ctx.fillStyle = run.color;
+                    ctx.fillText(run.text, x, baseline);
+
+                    for (const decoration of run.decorations) {
+                        ctx.strokeStyle = decoration.color;
+                        ctx.lineWidth = Math.max(0.5, run.size / 16);
+
+                        const drawLine = (y: number): void => {
+                            ctx.beginPath();
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(x + run.width, y);
+                            ctx.stroke();
+                        };
+
+                        if (decoration.line.includes('underline')) {
+                            drawLine(baseline + run.size * 0.1);
+                        }
+
+                        if (decoration.line.includes('line-through')) {
+                            drawLine(baseline - run.size * 0.3);
+                        }
+
+                        if (decoration.line.includes('overline')) {
+                            drawLine(baseline - run.ascent);
+                        }
+                    }
+
+                    x += run.width;
+                }
+
+                const result =
+                    `<img src="${this.workCanvas.toDataURL()}" ` +
+                    `width="${width.toFixed(2)}" ` +
+                    `height="${height.toFixed(2)}">`;
+
+                item.remove();
+                return result;
+            });
+        } finally {
+            host.remove();
+        }
     }
     /**
      * 
@@ -732,6 +1097,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let sharedpos = 0;
         // Build up a proper set for the a and b strings
         let aset = this.buildset(this.state.texta);
+        console.log('Aset = ', JSON.stringify(aset));
         if (aset.length === 0) {
             aset.push(" ")
         }
@@ -804,6 +1170,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     ciphertext: encodeline
                 })
         }
+        console.log(result);
         return result;
     }
     /**
@@ -849,13 +1216,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         this.setErrorMsg(msg, 'tsz')
-
+        let aSet: string[] = [];
+        let bSet: string[] = [];
         msg = ''
         if (this.state.operation === 'words') {
             if (!this.ValidateAllWords()) {
                 msg = "Not all of the words have been selected for the mapping"
             }
         } else {
+            aSet = this.buildsetbitmap(this.state.texta, false);
+            bSet = this.buildsetbitmap(this.state.textb, false);
+            console.log('Direct buildsetbitmap output:', JSON.stringify(aSet));
             const texta = this.removeHtml(this.state.texta)
             const textb = this.removeHtml(this.state.textb)
             if (texta === "A" || texta === "" || textb === "B" || textb === "") {
@@ -867,8 +1238,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that A and B are same length, and each has a length of >=2
         msg = '';
         if (this.state.operation === 'sequence') {
-            let aSet = this.buildsetbitmap(this.state.texta, false);
-            let bSet = this.buildsetbitmap(this.state.textb, false);
             if (aSet.length != bSet.length) {
                 msg = 'The A and B texts are different lengths';
             }
@@ -882,9 +1251,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that A and B don't have the same character at the same location (like CAT and HAG have the same A, but BAT and AGE are ok)
         msg = '';
         if (this.state.operation === 'sequence') {
-            let aSet = this.buildsetbitmap(this.state.texta, false);
-            let bSet = this.buildsetbitmap(this.state.textb, false);
-
             let charMatchedIndex = -1;
             for (let i = 0; i < aSet.length; i++) {
                 // console.log(aSet[i]);
@@ -899,8 +1265,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         if (this.state.operation === 'let4let') {
-            let aSet = this.buildsetbitmap(this.state.texta, false);
-            let bSet = this.buildsetbitmap(this.state.textb, false);
+
             let dupeLetter = '';
             for (let i = 0; i < aSet.length && dupeLetter == ''; i++) {
                 for (let j = 0; j < bSet.length && dupeLetter == ''; j++) {
@@ -934,8 +1299,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that the line width is a multiple of the sequence length.
         msg = '';
         if (this.state.operation === 'sequence') {
-            let aset = this.buildset(this.state.texta);
-            if (this.state.linewidth % aset.length != 0) {
+            if (this.state.linewidth % aSet.length != 0) {
                 msg = 'The line width is not a multiple of the sequence length.'
             }
         }
@@ -955,8 +1319,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
-
-
     }
 
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
@@ -1661,11 +2023,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         content: elem
                     })
                 } else {
-                    let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                    // let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                    let ct = line.ciphertext[i].replace(
+                        /<[^>]*>| /g,
+                        match => match === ' ' ? '\xa0' : match,
+                    );
                     rowcipher.add({
                         settings: { class: "b" },
                         content: ct
                     });
+                    console.log('Adding CT=', ct);
                 }
                 rowbaconian.add(line.baconian[i]);
                 rowanswer.add({
@@ -1673,9 +2040,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     content: line.plaintext[i]
                 });
             }
+            console.log(rowcipher);
             rowblank.add('\xa0');
         }
-        result.append(table.generate());
+        const r = table.generate();
+        console.log(r);
+        // result.append(table.generate());
+        result.append(r);
         result.append(
             $('<div/>', {
                 class: 'TOANSWER',

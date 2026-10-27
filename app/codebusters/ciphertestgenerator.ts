@@ -477,8 +477,10 @@ export class CipherTestGenerator extends CipherTest {
     }
     /**
      * Populate the file list dialog to match all the entries of a given type
+     * @param ciphertype Type of cipher
+     * @param aristocratOnly Only list ciphers that can be the timed question
      */
-    public getFileList(ciphertype: ICipherType): JQuery<HTMLElement> {
+    public getFileList(ciphertype: ICipherType, aristocratOnly = false): JQuery<HTMLElement> {
         let result = null;
         const cipherCount = this.getCipherCount();
         $('#okopen').attr('disabled', 'disabled');
@@ -504,8 +506,8 @@ export class CipherTestGenerator extends CipherTest {
                 size: 10,
             });
             for (let entry = 0; entry < cipherCount; entry++) {
-                if (!useditems[entry]) {
-                    const fileEntry = this.getFileEntry(entry);
+                const fileEntry = this.getFileEntry(entry);
+                if (!useditems[entry] && (!aristocratOnly || this.isTimedAristocrat(fileEntry))) {
                     let entryText = '[' + String(entry) + ']:';
                     entryText += '(' + getCipherTitle(fileEntry.cipherType) + ') ';
                     if (
@@ -535,11 +537,11 @@ export class CipherTestGenerator extends CipherTest {
     public addExistingCipher(isTimed: boolean): void {
         // Populate the list of known files.
         if (isTimed) {
-            $('#OpenFile .dlgtitle').text('Select existing cipher for Timed Question');
+            $('#OpenFile .dlgtitle').text('Select existing Aristocrat for Timed Question');
         } else {
             $('#OpenFile .dlgtitle').text('Select existing cipher to add');
         }
-        $('#files').replaceWith(this.getFileList(this.state.cipherType));
+        $('#files').replaceWith(this.getFileList(this.state.cipherType, isTimed));
         $('#files')
             .off('change')
             .on('change', (e) => {

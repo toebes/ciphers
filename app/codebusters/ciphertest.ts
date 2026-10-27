@@ -1175,6 +1175,64 @@ export class CipherTest extends CipherEncoder {
         return inputgroup;
     }
     /**
+     * Determine if a stored cipher can be used as the timed question.
+     * The timed question must be an English Aristocrat.
+     * @param state Stored cipher entry
+     */
+    public isTimedAristocrat(state: IEncoderState): boolean {
+        return (
+            state !== null &&
+            state.cipherType === ICipherType.Aristocrat &&
+            (state.curlang === undefined || state.curlang === '' || state.curlang === 'en')
+        );
+    }
+    /**
+     * Create a dropdown to add the timed question.  The timed question is
+     * always an Aristocrat, either a new one or an existing unused one.
+     * @param ID HTML ID of the generated dropdown
+     * @param title Title text for the generated dropdown
+     */
+    public genNewTimedDropdown(id: string, title: string): JQuery<HTMLElement> {
+        const inputgroup = $('<div/>', {
+            class: 'input-group cell small-12 medium-12 large-12',
+        });
+        $('<span/>', { class: 'input-group-label' })
+            .text(title)
+            .appendTo(inputgroup);
+        const select = $('<select/>', {
+            id: id,
+            class: 'input-group-field',
+        });
+        select.append(
+            $('<option />', {
+                value: '',
+                disabled: 'disabled',
+                selected: 'selected',
+            }).text('--Add Timed Question--')
+        );
+        select.append(
+            $('<option />', { value: ICipherType.Aristocrat }).html('New Aristocrat')
+        );
+        // Only offer existing Aristocrats if there is one not already on the test
+        const test = this.getTestEntry(this.state.test);
+        const cipherCount = this.getCipherCount();
+        for (let entry = 0; entry < cipherCount; entry++) {
+            if (
+                !test.questions.includes(entry) &&
+                this.isTimedAristocrat(this.getFileEntry(entry))
+            ) {
+                select.append(
+                    $('<option/>', { value: ICipherType.None }).html(
+                        '**Choose Existing Aristocrat**'
+                    )
+                );
+                break;
+            }
+        }
+        inputgroup.append(select);
+        return inputgroup;
+    }
+    /**
      * Create a dropdown to allow inserting a new cipher type
      * @param ID HTML ID of the generated dropdown
      * @param title Title text for the generated dropdown
@@ -1283,7 +1341,7 @@ export class CipherTest extends CipherEncoder {
                 class: 'callout warning',
             }).text('No Timed Question!  Add one from below');
             callout.append(
-                this.genNewCipherDropdown('addnewtimed', 'New Timed Question', testtype)
+                this.genNewTimedDropdown('addnewtimed', 'New Timed Question')
             );
             row.add({
                 celltype: 'td',

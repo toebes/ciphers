@@ -1478,9 +1478,10 @@ export class CipherEncoder extends CipherHandler {
                 }
             }
         }
-        // Filter only values that appear more than once
+        // Filter only values that appear on more than one distinct question.
+        // The same question can be on multiple tests, so it would otherwise match itself.
         for (const [key, entries] of Object.entries(seen)) {
-            if (entries.length > 1) {
+            if (new Set(entries.map(e => e.entry)).size > 1) {
                 // See if we need to keep it.  If they gave us a testid to limit to, then only keep it if it appears more than once on that test
                 // Otherwise, keep it if any one of the entries has a entry that matches fileEntry (i.e. it is associated with the current entry we are editing)
                 if (limitTestId !== -1 || entries.some(e => e.entry === fileEntry)) {

@@ -20,6 +20,7 @@ import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput, JTFLabeledInputApply } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
+import { pickRandom } from '../common/pickrandom';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
@@ -1695,13 +1696,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param crib string to look for
      * @returns String containing Cipher text characters correspond to the crib
      */
-    public placeCrib(): number {
+    public placeCrib(crib: string = this.state.crib): number {
         // If they haven't given us a crib, then we don't have to worry about placing it
-        if (this.state.crib === undefined || this.state.crib === '') {
+        if (crib === undefined || crib === '') {
             return 0;
         }
         const plaintext = this.minimizeString(this.getEncodingString());
-        const criblook = this.minimizeString(this.state.crib);
+        const criblook = this.minimizeString(crib);
         // See if the crib occurs anywhere in the cipher string
         let pos = plaintext.search(criblook);
         // If not found then we are done
@@ -1804,9 +1805,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 'text',
                 'crib',
                 this.state.crib,
-                'crib small-12 medium-12 large-12 opfield words'
+                'crib small-12 medium-12 large-12 opfield words',
+                $('<a/>', { type: 'button', class: 'button primary tight', id: 'suggestcrib' }).text('Suggest Crib')
             )
         );
+        result.append(this.createSuggestCribDlg());
 
         result.append(
             $('<p/>', { class: 'opfield words' }).text(
@@ -2593,9 +2596,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * have already determined and don't cause any cipher word to start with BB.
      * @param solverData Current solver state
      * @param rejected (output) pattern lengths that conflicted with the known letters
+     * @param limit Stop looking once this many candidates have been found
      * @returns List of full 26 letter mappings worth testing
      */
-    public findABPatternCandidates(solverData: BaconianWordsSolverData, rejected: number[]): string[] {
+    public findABPatternCandidates(solverData: BaconianWordsSolverData, rejected: number[], limit = 50): string[] {
         const charset = this.getCharset();
         const candidates: string[] = [];
         const seen: BoolMap = {};
@@ -2656,7 +2660,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
                 if (legal) {
                     candidates.push(mapping);
-                    if (candidates.length >= 50) {
+                    if (candidates.length >= limit) {
                         return candidates;
                     }
                 }
@@ -2693,7 +2697,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
                 if (legal) {
                     candidates.push(mapping);
-                    if (candidates.length >= 50) {
+                    if (candidates.length >= limit) {
                         return candidates;
                     }
                 }
@@ -2990,6 +2994,125 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.isLoading = false;
     }
     /**
+     * Generates a dialog showing the choices for Cribs
+     */
+    public createSuggestCribDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestCribOpts' }));
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button cribRegenerate' }).text('Regenerate'))
+                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Cancel'))
+        );
+        return JTFDialog('suggestCribDLG', 'Suggest Crib', dlgContents);
+    }
+    /**
+     * Fill the Suggest Crib dialog with 10 random 4 and 5 letter cribs from the plain text.
+     * The cribs are ranked by how many of the letters in the A/B mapping table they reveal,
+     * with the regular ones picked from the top half and the harder ones from the bottom half.
+     * The number of possible patterns is what the Auto-Solver would have to pick from.
+     */
+    public genCribSuggestions(): void {
+        const output = $('#suggestCribOpts').empty();
+        const charset = this.getCharset();
+        const plaintext = this.minimizeString(this.getEncodingString());
+        const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+        // The solver steps write out their explanation, so give them a scratch place to put it
+        const scratch = $('<div/>');
+        const cribs: { crib: string; revealed: number; patterns: number }[] = [];
+        const seen: BoolMap = {};
+        for (let len = 4; len <= 5; len++) {
+            for (let i = 0; i + len <= plaintext.length; i++) {
+                const crib = plaintext.substring(i, i + len);
+                if (seen[crib]) {
+                    continue;
+                }
+                seen[crib] = true;
+                const pos = this.placeCrib(crib);
+                const solverData: BaconianWordsSolverData = { abKnown: {}, cipherWords: [], plainAnswer: [] };
+                for (const c of charset) {
+                    solverData.abKnown[c] = '?';
+                }
+                for (let j = 0; j < encoded.cipherword.length; j++) {
+                    solverData.cipherWords.push(this.minimizeString(encoded.cipherword[j].toUpperCase()));
+                    solverData.plainAnswer.push(encoded.plainword[j]);
+                }
+                if (!this.solveCribLetters(scratch, solverData, encoded, pos, crib.toUpperCase())) {
+                    continue;
+                }
+                let revealed = 0;
+                for (const c of charset) {
+                    if (solverData.abKnown[c] !== '?') {
+                        revealed++;
+                    }
+                }
+                // Count the patterns the same way the Auto-Solver does
+                this.applyBBStartRule(scratch, solverData);
+                const patterns = this.findABPatternCandidates(solverData, [], Infinity)
+                    .filter((mapping) => this.isReasonablePattern(mapping)).length;
+                cribs.push({ crib: crib, revealed: revealed, patterns: patterns });
+            }
+        }
+        if (cribs.length === 0) {
+            output.text('The plain text is too short to suggest a crib.');
+            return;
+        }
+        // Most letters revealed first, and fewer patterns to try breaks a tie
+        const byRank = (a: { revealed: number; patterns: number }, b: { revealed: number; patterns: number }): number =>
+            b.revealed - a.revealed || a.patterns - b.patterns;
+        cribs.sort(byRank);
+        const half = Math.ceil(cribs.length / 2);
+        const regular = pickRandom(cribs.slice(0, half), 7).sort(byRank);
+        const harder = pickRandom(cribs.slice(half), 3).sort(byRank);
+        const table = new JTTable({ class: 'cell shrink suggestcrib' });
+        table.addHeaderRow(['', 'Crib', `Letters Revealed (of ${charset.length})`, 'Possible Patterns']);
+        for (const c of regular.concat(harder)) {
+            const extraclass = harder.includes(c) ? ' warning' : '';
+            const useButton = $('<a/>', { type: 'button', class: `button rounded cribset abbuttons${extraclass}`, 'data-crib': c.crib })
+                .text('Use')
+                .on('click', (e) => this.useCrib(e.target));
+            table.addBodyRow([useButton, c.crib, String(c.revealed), String(c.patterns)]);
+        }
+        output.append(table.generate());
+    }
+    /**
+     * Determine if a mapping comes from a pattern someone would reasonably use:
+     * a short repeating pattern (4 or fewer long like AB or AAB), a block of A's
+     * followed by a block of B's (like AAABB or the pattern buttons make), or two
+     * of those blocks with every run at least 2 long (like AABBAAABBB)
+     * @param mapping 26 character string of A/B values in charset order
+     */
+    public isReasonablePattern(mapping: string): boolean {
+        const unit = this.getRepeatingUnit(mapping);
+        if (unit.length <= 4) {
+            return true;
+        }
+        // Rotate the repeat so that it starts at the beginning of a run
+        let start = 0;
+        while (unit.charAt(start) === unit.charAt((start + unit.length - 1) % unit.length)) {
+            start++;
+        }
+        const runs = (unit.substring(start) + unit.substring(0, start)).match(/A+|B+/g);
+        return runs.length === 2 || (runs.length === 4 && runs.every((run) => run.length >= 2));
+    }
+    /**
+     * Put up the dialog to suggest a crib
+     */
+    public suggestCrib(): void {
+        this.genCribSuggestions();
+        $('#suggestCribDLG').foundation('open');
+    }
+    /**
+     * Use the crib from a suggestion button
+     * @param elem Use button that was clicked
+     */
+    public useCrib(elem: HTMLElement): void {
+        this.markUndo(null);
+        this.setCrib($(elem).attr('data-crib'));
+        $('#suggestCribDLG').foundation('close');
+        this.updateOutput();
+    }
+    /**
      * Generates a dialog showing the choices for AB patterns
      */
     public createSuggestABDlg(): JQuery<HTMLElement> {
@@ -3215,6 +3338,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#suggestcrib')
+            .off('click')
+            .on('click', () => {
+                this.suggestCrib();
+            });
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions();
+            });
 
         $('#texta')
             .off('richchange')

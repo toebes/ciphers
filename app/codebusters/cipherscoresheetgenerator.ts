@@ -88,6 +88,7 @@ enum SheetType {
     ScoreEntry = "Score Entry",
     ScoreCalculation = "Score Calculation",
     ScoreSummary = "Score Summary",
+    DuosmiumExport = "Duosmium Export",
     ScoreAnalysis = "Score Analysis",
     SuccessCorrelationAnalysis = "Success Correlation Analysis",
     AttemptCorrelationAnalysis = "Attempt Correlation Analysis",
@@ -259,6 +260,10 @@ export default class CipherScoreSheetGenerator {
         const scoreSummarySheet = this.generateScoreSummarySheet();
         XLSX_STYLE.utils.book_append_sheet(workbook, scoreSummarySheet, SheetType.ScoreSummary);
 
+        // Generate Duosmium Export Sheet
+        const duosmiumExportSheet = this.generateDuosmiumExportSheet();
+        XLSX_STYLE.utils.book_append_sheet(workbook, duosmiumExportSheet, SheetType.DuosmiumExport);
+
         // Generate Score Analysis Sheet
         const scoreAnalysisSheet = this.generateScoreAnalysisSheet();
         XLSX_STYLE.utils.book_append_sheet(workbook, scoreAnalysisSheet, SheetType.ScoreAnalysis);
@@ -314,13 +319,21 @@ export default class CipherScoreSheetGenerator {
                 },
                 xmlSheetPath: "xl/worksheets/sheet4.xml"
             }],
+            [SheetType.DuosmiumExport, {
+                frozenPane: {
+                    ySplit: 1,
+                    topLeftCell: "A2",
+                    activePane: "bottomLeft"
+                },
+                xmlSheetPath: "xl/worksheets/sheet5.xml"
+            }],
             [SheetType.ScoreAnalysis, {
                 frozenPane: {
                     xSplit: 2, ySplit: 4,
                     topLeftCell: "C5",
                     activePane: "bottomRight"
                 },
-                xmlSheetPath: "xl/worksheets/sheet5.xml"
+                xmlSheetPath: "xl/worksheets/sheet6.xml"
             }],
             [SheetType.SuccessCorrelationAnalysis, {
                 frozenPane: {
@@ -328,7 +341,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A5",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet6.xml"
+                xmlSheetPath: "xl/worksheets/sheet7.xml"
             }],
             [SheetType.AttemptCorrelationAnalysis, {
                 frozenPane: {
@@ -336,7 +349,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A5",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet7.xml"
+                xmlSheetPath: "xl/worksheets/sheet8.xml"
             }],
             [SheetType.CorrelationSummary, {
                 frozenPane: {
@@ -344,7 +357,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A3",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet8.xml"
+                xmlSheetPath: "xl/worksheets/sheet9.xml"
             }],
 
             //  = "Correlation Summary",
@@ -1244,6 +1257,116 @@ export default class CipherScoreSheetGenerator {
         // ---------------------------------------------
 
         this.setSheetSize(sheet, lastTeamRow, RANK_DISPLAY_COL);
+
+        return sheet;
+    }
+
+    /**
+     * Generates the Duosmium export worksheet: one row per team with the
+     * team number (without the division letter), raw score, status
+     * (CO competed, PO participation, NS no show, DQ disqualified)
+     * and the tiebreak value calculated on the score summary sheet.
+     * @returns The generated worksheet.
+     */
+    private generateDuosmiumExportSheet(): XLSX_STYLE.WorkSheet {
+        const sheet = XLSX_STYLE.utils.json_to_sheet([]);
+        const numQuestions = this.questionSheetData.length;
+
+        const MAX_TEAMS = CipherScoreSheetGenerator.MAX_TEAMS;
+        const HEADER_ROWS = CipherScoreSheetGenerator.HEADER_ROWS;
+        const FIRST_TEAM_ROW = 1;
+
+        // Column layout
+        const NUMBER_COL = 0;
+        const RAW_SCORE_COL = 1;
+        const STATUS_COL = 2;
+        const TIEBREAK_COL = 3;
+
+        // Source column layout
+        const TEAM_NUMBER_SOURCE_COL = 0;
+        const TIMED_SOURCE_COL = 3;
+        const LAST_QUESTION_SOURCE_COL = numQuestions + 3;
+        const FINAL_SCORE_SOURCE_COL = numQuestions + 4;
+        const SUMMARY_SCORE_SOURCE_COL = 1;
+
+        // This sheet has one header row rather than HEADER_ROWS.
+        const exportTeamFormula = (formula: string): string =>
+            `IF(ROW()-${FIRST_TEAM_ROW}<=NumberOfTeams,${formula},"")`;
+
+        // ---------------------------------------------
+        // Headers and column widths
+        // ---------------------------------------------
+
+        const headerTable: TableCell[][] = [[
+            { v: "Number", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Raw Score", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Status", s: this.STYLE_HEADER_BORDER_ALL },
+            { v: "Tiebreak", s: this.STYLE_HEADER_BORDER_ALL }
+        ]];
+
+        this.writeCellTable(sheet, 0, NUMBER_COL, headerTable);
+
+        for (let col = NUMBER_COL; col <= TIEBREAK_COL; col++) {
+            this.setColumnWidth(sheet, col, CipherScoreSheetGenerator.SUMMARY_COL_WIDTH * 1.5);
+        }
+
+        // ---------------------------------------------
+        // Team rows
+        // ---------------------------------------------
+
+        for (let team = 0; team < MAX_TEAMS; team++) {
+            const row = FIRST_TEAM_ROW + team;
+            const sourceRow = HEADER_ROWS + team;
+
+            const statusRef = this.cellAddress(row, STATUS_COL);
+
+            const sourceTeam =
+                `'Score Entry'!${this.cellAddress(sourceRow, TEAM_NUMBER_SOURCE_COL)}`;
+            const sourceScore =
+                `'Score Calculation'!${this.cellAddress(sourceRow, FINAL_SCORE_SOURCE_COL)}`;
+            const summaryScore =
+                `'Score Summary'!${this.cellAddress(row, SUMMARY_SCORE_SOURCE_COL)}`;
+
+            // Strip the division letter so "C12" becomes 12
+            const strippedTeam = `SUBSTITUTE(${sourceTeam},"${this.testDivision}","")`;
+            const numberFormula = `IFERROR(VALUE(${strippedTeam}),${strippedTeam})`;
+
+            const sourceEntries =
+                `'Score Entry'!${this.cellAddress(sourceRow, TIMED_SOURCE_COL)}:${this.cellAddress(sourceRow, LAST_QUESTION_SOURCE_COL)}`;
+            const attempted = `SUMPRODUCT(--(TRIM(${sourceEntries})<>""))>0`;
+
+            // Match the score summary: a score (including 0) competed, otherwise the
+            // score holds the attendance code from the score entry sheet.
+            // A team marked P only counts as participation if nothing was entered for any question.
+            // A team with no code and no score is left blank.
+            const trimmedScore = `TRIM(${sourceScore})`;
+            const statusFormula =
+                `IF(ISNUMBER(${sourceScore}),"CO",IF(${trimmedScore}="P",IF(${attempted},"CO","PO"),` +
+                `IF(OR(${trimmedScore}="NS",${trimmedScore}="DQ"),${trimmedScore},"")))`;
+
+            const rawScoreFormula =
+                `IF(${statusRef}="CO",IF(ISNUMBER(${sourceScore}),${sourceScore},0),"")`;
+
+            // The score summary adds the tiebreak as a fraction on top of the raw score
+            const tiebreak = `ROUND(${summaryScore}-${sourceScore},9)`;
+            const tiebreakFormula =
+                `IF(ISNUMBER(${sourceScore}),IF(${tiebreak}<>0,${tiebreak},""),"")`;
+
+            const rowTable: TableCell[][] = [[
+                { f: exportTeamFormula(numberFormula) },
+                { f: exportTeamFormula(rawScoreFormula) },
+                { f: exportTeamFormula(statusFormula) },
+                { f: exportTeamFormula(tiebreakFormula) }
+            ]];
+
+            this.writeCellTable(sheet, row, NUMBER_COL, rowTable);
+        }
+
+        // ---------------------------------------------
+        // Worksheet dimensions
+        // ---------------------------------------------
+
+        this.setSheetSize(sheet, FIRST_TEAM_ROW + MAX_TEAMS - 1, TIEBREAK_COL);
 
         return sheet;
     }

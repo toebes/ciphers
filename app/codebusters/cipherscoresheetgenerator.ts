@@ -145,15 +145,11 @@ export default class CipherScoreSheetGenerator {
     private readonly STYLE_HEADER_BORDER_ALL = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_ALL_VBOT = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_ALL_VTOP = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Top, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
-    private readonly STYLE_HEADER_BORDER_TRL_VTOP = CipherScoreSheetGenerator.makeStyle("TRL", { vertical: Alignment.Top, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
-    private readonly STYLE_HEADER_BORDER_RL = CipherScoreSheetGenerator.makeStyle("RL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
-    private readonly STYLE_HEADER_BORDER_BRL = CipherScoreSheetGenerator.makeStyle("BRL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_ALL_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_ALL_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_BR_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("BR", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_NONE_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("NONE", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_R_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("R", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
-    private readonly STYLE_HEADER_BORDER_TBL = CipherScoreSheetGenerator.makeStyle("TBL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_HRIGHT_TL = CipherScoreSheetGenerator.makeStyle("TL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_HRIGHT_L = CipherScoreSheetGenerator.makeStyle("L", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_HRIGHT_BL = CipherScoreSheetGenerator.makeStyle("BL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
@@ -166,9 +162,6 @@ export default class CipherScoreSheetGenerator {
     private readonly STYLE_BORDER_ALL_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
     private readonly STYLE_BORDER_ALL_HLEFT_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Left, bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
     private readonly STYLE_BORDER_ALL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
-    private readonly STYLE_BORDER_TRL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("TRL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
-    private readonly STYLE_BORDER_RL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("RL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
-    private readonly STYLE_BORDER_BRL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("BRL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
     private readonly STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
     private readonly STYLE_RED = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.DULL_LIGHT_RED_COLOR });
     private readonly STYLE_GRAY_FMT0 = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "0" });
@@ -914,40 +907,28 @@ export default class CipherScoreSheetGenerator {
                 { v: "On the Score Entry sheet, fill in the number of teams for the event (it defaults to 100)", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
             ],
             [
-                { v: "STEP 2:", s: this.STYLE_HEADER_BORDER_TRL_VTOP },
-                { v: "On the Score Entry sheet, find the row for the team and fill in the score for them.  ", s: this.STYLE_BORDER_TRL_HLEFT_GRAY_WRAP }
+                { v: "STEP 2:", s: this.STYLE_HEADER_BORDER_ALL_VTOP },
+                {
+                    v: "On the Score Entry sheet, find the row for the team and fill in the score for them.\n" +
+                        "Fill in the Attendance column from the Attendance table below\n" +
+                        "IF they solved the timed question before the 10:00 mark, fill in the time that they solved it at (minute:seconds)\n" +
+                        "For each of the questions fill in the score using the Score Value table below\n" +
+                        "You can check the calculated score for the team in the second column.\n" +
+                        "If the score matches, you are good. " +
+                        " If not, use the Score Calculation tab to compare the scores to see where the mistake is.",
+                    s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
             ],
             [
-                { v: "", s: this.STYLE_HEADER_BORDER_RL },
-                { v: "Fill in the Attendance column from the Attendance table below", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_RL },
-                { v: "IF they solved the timed question before the 10:00 mark, fill in the time that they solved it at (minute:seconds)", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_RL },
-                { v: "For each of the questions fill in the score using the Score Value table below", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_RL },
-                { v: "You can check the calculated score for the team in the second column.", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_BRL },
-                { v: "If the score matches, you are good.  If not, use the Score Calculation tab to compare the scores to see where the mistake is.", s: this.STYLE_BORDER_BRL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "STEP 3:", s: this.STYLE_HEADER_BORDER_TRL_VTOP },
-                { v: "When all the scores are entered correctly, switch to the Score Summary Tab which will show the rank order of all the teams", s: this.STYLE_BORDER_TRL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_RL },
-                { v: "Check the Tie column for any entries listed as --TIE-- ", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_BRL },
-                { v: "If there are ties, break all of them at the same score value according to the rules and place a 1 in the highest rank for the tie, 2 for next, etc. Note that if you have ties at multiple values, you follow the same tie breaking entry for those separate ties.", s: this.STYLE_BORDER_BRL_HLEFT_GRAY_WRAP }
+                { v: "STEP 3:", s: this.STYLE_HEADER_BORDER_ALL_VTOP },
+                {
+                    v: "When all the scores are entered correctly, switch to the Score Summary Tab which will show the rank order of all the teams\n" +
+                        "Check the Tie column for any entries listed as --TIE-- \n" +
+                        "If there are ties, break all of them at the same score value according to the rules and " +
+                        "place a 1 in the highest rank for the tie, 2 for next, etc. " +
+                        "Note that if you have ties at multiple values, you follow the same tie breaking entry for those separate ties.",
+                    s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
             ],
             [
                 { v: "STEP 4:", s: this.STYLE_HEADER_BORDER_ALL_VTOP },

@@ -14,7 +14,7 @@ type FrozenPaneXmlData = {
 };
 
 type XMLInjectionData = {
-    frozenPane: FrozenPaneXmlData;
+    frozenPane?: FrozenPaneXmlData;
     xmlSheetPath: string;
 };
 
@@ -84,6 +84,7 @@ enum Alignment {
 };
 
 enum SheetType {
+    Instructions = "Instructions",
     TestQuestions = "Test Questions",
     ScoreEntry = "Score Entry",
     ScoreCalculation = "Score Calculation",
@@ -143,6 +144,11 @@ export default class CipherScoreSheetGenerator {
     private readonly STYLE_HEADER_BORDER_ALL_ROT45 = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, textRotation: 45 });
     private readonly STYLE_HEADER_BORDER_ALL = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_ALL_VBOT = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_ALL_VTOP = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Top, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_TRL_VTOP = CipherScoreSheetGenerator.makeStyle("TRL", { vertical: Alignment.Top, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_RL = CipherScoreSheetGenerator.makeStyle("RL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_BRL = CipherScoreSheetGenerator.makeStyle("BRL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
+    private readonly STYLE_HEADER_BORDER_ALL_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_ALL_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_BR_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("BR", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
     private readonly STYLE_HEADER_BORDER_NONE_VBOT_WRAP = CipherScoreSheetGenerator.makeStyle("NONE", { vertical: Alignment.Bottom, bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, wrapText: true });
@@ -155,10 +161,14 @@ export default class CipherScoreSheetGenerator {
     private readonly STYLE_HEADER_BORDER_TB = CipherScoreSheetGenerator.makeStyle("TB", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR });
     private readonly STYLE_HEADER_BORDER_ALL_HLEFT = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, horizontal: Alignment.Left });
     private readonly STYLE_HEADER_BORDER_ALL_HRIGHT = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.DARK_GRAY_COLOR, horizontal: Alignment.Right });
+    private readonly STYLE_HEADER_BORDER_ALL_VBOT_BOLD_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, vertical: Alignment.Bottom, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
 
     private readonly STYLE_BORDER_ALL_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
-    private readonly STYLE_BORDER_ALL_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
     private readonly STYLE_BORDER_ALL_HLEFT_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Left, bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
+    private readonly STYLE_BORDER_ALL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_BORDER_TRL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("TRL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_BORDER_RL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("RL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
+    private readonly STYLE_BORDER_BRL_HLEFT_GRAY_WRAP = CipherScoreSheetGenerator.makeStyle("BRL", { horizontal: Alignment.Left, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, wrapText: true });
     private readonly STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY = CipherScoreSheetGenerator.makeStyle("ALL", { horizontal: Alignment.Right, bold: true, fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR });
     private readonly STYLE_RED = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.DULL_LIGHT_RED_COLOR });
     private readonly STYLE_GRAY_FMT0 = CipherScoreSheetGenerator.makeStyle("NONE", { fillColor: CipherScoreSheetGenerator.LIGHT_GRAY_COLOR, numFmt: "0" });
@@ -238,21 +248,19 @@ export default class CipherScoreSheetGenerator {
                 };
             });
 
+        // Generate overall instructions sheet
+        const instructionsSheet = this.generateInstructionsSheet(workbook);
+        XLSX_STYLE.utils.book_append_sheet(workbook, instructionsSheet, SheetType.Instructions);
+
         // Generate Test Questions Sheet
-
         const questionsSheet = this.generateTestQuestionsSheet();
-
-        XLSX_STYLE.utils.book_append_sheet(
-            workbook,
-            questionsSheet,
-            SheetType.TestQuestions
-        );
+        XLSX_STYLE.utils.book_append_sheet(workbook, questionsSheet, SheetType.TestQuestions);
 
         // Generates Score Entry Sheet
         const scoreEntrySheet = this.generateScoreEntrySheet(workbook);
         XLSX_STYLE.utils.book_append_sheet(workbook, scoreEntrySheet, SheetType.ScoreEntry);
-        // Generates Score Calculation Sheet
 
+        // Generates Score Calculation Sheet
         const scoreCalculationSheet = this.generateScoreCalculationSheet();
         XLSX_STYLE.utils.book_append_sheet(workbook, scoreCalculationSheet, SheetType.ScoreCalculation);
 
@@ -287,13 +295,17 @@ export default class CipherScoreSheetGenerator {
         // A custom object defining the sheets, their frozen panes, and corresponding xml sheet
 
         const xmlInjectionDataMap: Map<string, XMLInjectionData> = new Map<string, XMLInjectionData>([
+
+            [SheetType.Instructions, {
+                xmlSheetPath: "xl/worksheets/sheet1.xml"
+            }],
             [SheetType.TestQuestions, {
                 frozenPane: {
                     ySplit: 1,
                     topLeftCell: "A2",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet1.xml"
+                xmlSheetPath: "xl/worksheets/sheet2.xml"
             }],
             [SheetType.ScoreEntry, {
                 frozenPane: {
@@ -301,7 +313,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "C5",
                     activePane: "bottomRight"
                 },
-                xmlSheetPath: "xl/worksheets/sheet2.xml"
+                xmlSheetPath: "xl/worksheets/sheet3.xml"
             }],
             [SheetType.ScoreCalculation, {
                 frozenPane: {
@@ -309,7 +321,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "B5",
                     activePane: "bottomRight"
                 },
-                xmlSheetPath: "xl/worksheets/sheet3.xml"
+                xmlSheetPath: "xl/worksheets/sheet4.xml"
             }],
             [SheetType.ScoreSummary, {
                 frozenPane: {
@@ -317,7 +329,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "D2",
                     activePane: "bottomRight"
                 },
-                xmlSheetPath: "xl/worksheets/sheet4.xml"
+                xmlSheetPath: "xl/worksheets/sheet5.xml"
             }],
             [SheetType.DuosmiumExport, {
                 frozenPane: {
@@ -325,7 +337,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A2",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet5.xml"
+                xmlSheetPath: "xl/worksheets/sheet6.xml"
             }],
             [SheetType.ScoreAnalysis, {
                 frozenPane: {
@@ -333,7 +345,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "C5",
                     activePane: "bottomRight"
                 },
-                xmlSheetPath: "xl/worksheets/sheet6.xml"
+                xmlSheetPath: "xl/worksheets/sheet7.xml"
             }],
             [SheetType.SuccessCorrelationAnalysis, {
                 frozenPane: {
@@ -341,7 +353,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A5",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet7.xml"
+                xmlSheetPath: "xl/worksheets/sheet8.xml"
             }],
             [SheetType.AttemptCorrelationAnalysis, {
                 frozenPane: {
@@ -349,7 +361,7 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A5",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet8.xml"
+                xmlSheetPath: "xl/worksheets/sheet9.xml"
             }],
             [SheetType.CorrelationSummary, {
                 frozenPane: {
@@ -357,10 +369,9 @@ export default class CipherScoreSheetGenerator {
                     topLeftCell: "A3",
                     activePane: "bottomLeft"
                 },
-                xmlSheetPath: "xl/worksheets/sheet9.xml"
+                xmlSheetPath: "xl/worksheets/sheet10.xml"
             }],
 
-            //  = "Correlation Summary",
             // ScoreCalcSummary = "Score Calc Summary",
             // TimedBonus = "Timed Bonus",
             // ScoreClusters = "Score Clusters",
@@ -583,6 +594,117 @@ export default class CipherScoreSheetGenerator {
         cell.t = "n";
         if (style) cell.s = style;
     }
+    /**
+     * Adds Attendance validation to exported worksheet XML.
+     * Blank cells are allowed; typed values must match the list.
+     */
+    private addAttendanceValidation(
+        worksheetXml: string,
+        range: string
+    ): string {
+        const ns =
+            "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+        const doc = new DOMParser().parseFromString(
+            worksheetXml,
+            "application/xml"
+        );
+
+        if (doc.getElementsByTagName("parsererror").length > 0) {
+            throw new Error("Cannot parse Score Entry worksheet XML.");
+        }
+
+        const worksheet = doc.documentElement;
+
+        let validations = Array.from(worksheet.children).find(
+            element =>
+                element.namespaceURI === ns &&
+                element.localName === "dataValidations"
+        );
+
+        if (!validations) {
+            validations = doc.createElementNS(ns, "dataValidations");
+
+            // These worksheet elements follow dataValidations in schema order.
+            const followingElements = new Set([
+                "hyperlinks",
+                "printOptions",
+                "pageMargins",
+                "pageSetup",
+                "headerFooter",
+                "rowBreaks",
+                "colBreaks",
+                "customProperties",
+                "cellWatches",
+                "ignoredErrors",
+                "smartTags",
+                "drawing",
+                "legacyDrawing",
+                "legacyDrawingHF",
+                "picture",
+                "oleObjects",
+                "controls",
+                "webPublishItems",
+                "tableParts",
+                "extLst",
+            ]);
+
+            const nextElement = Array.from(worksheet.children).find(
+                element =>
+                    element.namespaceURI === ns &&
+                    followingElements.has(element.localName)
+            );
+
+            worksheet.insertBefore(validations, nextElement ?? null);
+        }
+
+        // Replace this exact range's rule if the helper is called again.
+        for (const existing of Array.from(validations.children)) {
+            if (
+                existing.namespaceURI === ns &&
+                existing.localName === "dataValidation" &&
+                existing.getAttribute("sqref") === range
+            ) {
+                existing.remove();
+            }
+        }
+
+        const rule = doc.createElementNS(ns, "dataValidation");
+
+        const attributes: Record<string, string> = {
+            type: "list",
+            allowBlank: "1",
+            showDropDown: "0", // In worksheet XML, 0 keeps the dropdown visible.
+            showErrorMessage: "1",
+            errorStyle: "stop",
+            errorTitle: "Invalid attendance",
+            error: "Enter P, A, NS, DQ, or leave the cell empty.",
+            sqref: range,
+        };
+
+        for (const [name, value] of Object.entries(attributes)) {
+            rule.setAttribute(name, value);
+        }
+
+        const formula = doc.createElementNS(ns, "formula1");
+        formula.textContent = '"P,A,NS,DQ"';
+
+        rule.appendChild(formula);
+        validations.appendChild(rule);
+
+        validations.setAttribute(
+            "count",
+            String(
+                Array.from(validations.children).filter(
+                    element =>
+                        element.namespaceURI === ns &&
+                        element.localName === "dataValidation"
+                ).length
+            )
+        );
+
+        return new XMLSerializer().serializeToString(doc);
+    }
 
     /**
      * Generates a worksheet containing the test questions data
@@ -663,6 +785,7 @@ export default class CipherScoreSheetGenerator {
         const TYPE_ROW = 0;
         const FIRST_QUESTION_COL = timedCol + 1;
 
+
         // ---------------------------------------------
         // Header row height
         // ---------------------------------------------
@@ -719,17 +842,10 @@ export default class CipherScoreSheetGenerator {
      * along with the team-count input and attendance/question-entry directions.
      * @param sheet - Score entry worksheet to populate and format.
      */
-    private ScoreSheetDirections(sheet: XLSX_STYLE.WorkSheet): void {
+    private putScoreEntryHeaders(sheet: XLSX_STYLE.WorkSheet): void {
         const TEAM_NUMBER_COL = 0;
         const CALCULATED_SCORE_COL = 1;
         const ATTENDANCE_COL = 2;
-
-        const DIRECTIONS_COL = this.questionSheetData.length + CipherScoreSheetGenerator.SCORE_ENTRY_EXTRA;
-        const DIRECTIONS_VALUE_COL = DIRECTIONS_COL + 1;
-
-        const DIRECTIONS_START_ROW = 5;
-        const ATTENDANCE_HEADING_ROW = DIRECTIONS_START_ROW + 2;
-        const QUESTION_HEADING_ROW = DIRECTIONS_START_ROW + 8;
 
         const QUESTION_COL_WIDTH = CipherScoreSheetGenerator.QUESTION_COL_WIDTH;
 
@@ -739,14 +855,14 @@ export default class CipherScoreSheetGenerator {
 
         const headersTable: TableCell[][] = [
             [
+                { v: "Number of Teams:", s: this.STYLE_HEADER_BORDER_ALL_VBOT_WRAP },
+                { v: 100, s: this.STYLE_HEADER_BORDER_ALL_VBOT_BOLD_GRAY_WRAP },
+                { v: "" }
+            ],
+            [
                 { v: "Team Number", s: this.STYLE_HEADER_BORDER_R_VBOT_WRAP },
                 { v: "Calculated Score", s: this.STYLE_HEADER_BORDER_R_VBOT_WRAP },
                 { v: "Attendance", s: this.STYLE_HEADER_BORDER_NONE_VBOT_WRAP }
-            ],
-            [
-                { v: "", s: this.STYLE_HEADER_BORDER_R_VBOT_WRAP },
-                { v: "", s: this.STYLE_HEADER_BORDER_R_VBOT_WRAP },
-                { v: "", s: this.STYLE_HEADER_BORDER_R_VBOT_WRAP }
             ],
             [
                 { v: "", s: this.STYLE_HEADER_BORDER_R_VBOT_WRAP },
@@ -763,7 +879,8 @@ export default class CipherScoreSheetGenerator {
         this.writeCellTable(sheet, 0, TEAM_NUMBER_COL, headersTable);
 
         for (let col = TEAM_NUMBER_COL; col <= ATTENDANCE_COL; col++) {
-            this.mergeCells(sheet, 0, col, headersTable.length - 1, col);
+            const firstRow = 1;
+            this.mergeCells(sheet, firstRow, col, headersTable.length - 1, col);
         }
 
         // ---------------------------------------------
@@ -771,84 +888,251 @@ export default class CipherScoreSheetGenerator {
         // ---------------------------------------------
 
         this.setColumnWidth(sheet, CALCULATED_SCORE_COL, QUESTION_COL_WIDTH * 2);
-        this.setColumnWidth(sheet, DIRECTIONS_COL - 1, 1);
-        this.setColumnWidth(sheet, DIRECTIONS_COL, QUESTION_COL_WIDTH * 5);
-        this.setColumnWidth(sheet, DIRECTIONS_VALUE_COL, QUESTION_COL_WIDTH * 10);
+
+    }
+
+    private generateInstructionsSheet(workbook: XLSX_STYLE.WorkBook): XLSX_STYLE.WorkSheet {
+        const sheet = XLSX_STYLE.utils.json_to_sheet([]);
+
+        const INSTRUCTIONS_HEADER_COL = 0;
+        const INSTRUCTIONS_VALUE_COL = INSTRUCTIONS_HEADER_COL + 1;
+
+        const INSTRUCTIONS_START_ROW = 0;
+
+        const QUESTION_COL_WIDTH = CipherScoreSheetGenerator.QUESTION_COL_WIDTH;
+
+        this.setColumnWidth(sheet, INSTRUCTIONS_HEADER_COL, QUESTION_COL_WIDTH * 5);
+        this.setColumnWidth(sheet, INSTRUCTIONS_VALUE_COL, QUESTION_COL_WIDTH * 15);
 
         // ---------------------------------------------
-        // Team count and entry directions
+        // Overall Instructions
         // ---------------------------------------------
 
-        const directionsTable: TableCell[][] = [
+        const stepsTable: TableCell[][] = [
             [
-                { v: "Number of Teams:", s: this.STYLE_HEADER_BORDER_TBL },
-                { v: 100, s: this.STYLE_BORDER_ALL_BOLD_GRAY }
+                { v: "STEP 1:", s: this.STYLE_HEADER_BORDER_ALL_VTOP },
+                { v: "On the Score Entry sheet, fill in the number of teams for the event (it defaults to 100)", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "STEP 2:", s: this.STYLE_HEADER_BORDER_TRL_VTOP },
+                { v: "On the Score Entry sheet, find the row for the team and fill in the score for them.  ", s: this.STYLE_BORDER_TRL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_RL },
+                { v: "Fill in the Attendance column from the Attendance table below", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_RL },
+                { v: "IF they solved the timed question before the 10:00 mark, fill in the time that they solved it at (minute:seconds)", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_RL },
+                { v: "For each of the questions fill in the score using the Score Value table below", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_RL },
+                { v: "You can check the calculated score for the team in the second column.", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_BRL },
+                { v: "If the score matches, you are good.  If not, use the Score Calculation tab to compare the scores to see where the mistake is.", s: this.STYLE_BORDER_BRL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "STEP 3:", s: this.STYLE_HEADER_BORDER_TRL_VTOP },
+                { v: "When all the scores are entered correctly, switch to the Score Summary Tab which will show the rank order of all the teams", s: this.STYLE_BORDER_TRL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_RL },
+                { v: "Check the Tie column for any entries listed as --TIE-- ", s: this.STYLE_BORDER_RL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "", s: this.STYLE_HEADER_BORDER_BRL },
+                { v: "If there are ties, break all of them at the same score value according to the rules and place a 1 in the highest rank for the tie, 2 for next, etc. Note that if you have ties at multiple values, you follow the same tie breaking entry for those separate ties.", s: this.STYLE_BORDER_BRL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "STEP 4:", s: this.STYLE_HEADER_BORDER_ALL_VTOP },
+                { v: "Switch to the score export tab (for example Duosmium) to select the data to export", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
             ],
             [{}, {}],
-            [
-                { v: "Directions - Enter the following values for the attendance column:", s: this.STYLE_HEADER_BORDER_TBL },
-                { v: " ", s: this.STYLE_HEADER_BORDER_TBR }
-            ],
-            [
-                { v: "Key", s: this.STYLE_HEADER_BORDER_ALL_HLEFT },
-                { v: "Meaning", s: this.STYLE_HEADER_BORDER_ALL_HRIGHT }
-            ],
-            [
-                { v: "NS", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: "No Show", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ],
-            [
-                { v: "P", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: "Participation", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ],
-            [
-                { v: "DQ", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: "Disqualified", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ],
             [{}, {}],
-            [
-                { v: "Directions - Enter the following values for the following responses on each question:", s: this.STYLE_HEADER_BORDER_TBL },
-                { v: " ", s: this.STYLE_HEADER_BORDER_TBR }
-            ],
-            [
-                { v: "Response", s: this.STYLE_HEADER_BORDER_ALL_HLEFT },
-                { v: "Value", s: this.STYLE_HEADER_BORDER_ALL_HRIGHT }
-            ],
-            [
-                { v: "Fully Solved", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: 0, s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ],
-            [
-                { v: "Attempted", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: "Number of Letters Incorrect", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ],
-            [
-                { v: "Attempted but not Solved", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: 99, s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ],
-            [
-                { v: "Untouched", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY },
-                { v: "Leave Blank", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY }
-            ]
         ];
 
-        this.writeCellTable(sheet, DIRECTIONS_START_ROW, DIRECTIONS_COL, directionsTable);
+        const attendanceTable: TableCell[][] = [
+            [
+                { v: "Attendance", s: this.STYLE_HEADER_BORDER_ALL_HLEFT },
+                { v: "Enter the following values for the attendance column", s: this.STYLE_HEADER_BORDER_ALL_HLEFT }
+            ],
+            [
+                { v: "Value", s: this.STYLE_HEADER_BORDER_ALL_HRIGHT },
+                { v: "Meaning", s: this.STYLE_HEADER_BORDER_ALL_HLEFT }
+            ],
+            [
+                { v: "NS", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: "Team was a No Show", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [
+                { v: "A", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: "Attended - forces a score to be calculated", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [
+                { v: "P", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: "Participation Only (no score calculated)", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [
+                { v: "DQ", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: "Disqualified", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [{}, {}],
+        ];
 
-        // Merge each directions heading across both columns.
-        this.mergeCells(
-            sheet,
-            ATTENDANCE_HEADING_ROW,
-            DIRECTIONS_COL,
-            ATTENDANCE_HEADING_ROW,
-            DIRECTIONS_VALUE_COL
+        const scoreValueTable: TableCell[][] = [
+            [
+                { v: "Score Value", s: this.STYLE_HEADER_BORDER_ALL_HLEFT },
+                { v: "Enter the following values for the following responses on each question", s: this.STYLE_HEADER_BORDER_ALL_HLEFT }
+            ],
+            [
+                { v: "Response", s: this.STYLE_HEADER_BORDER_ALL_HRIGHT },
+                { v: "Value", s: this.STYLE_HEADER_BORDER_ALL_HLEFT }
+            ],
+            [
+                { v: "Fully Solved", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: 0, s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [
+                { v: "Attempted", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: "Number of Letters Incorrect (up to 10)", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [
+                { v: "Attempted but not Solved", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: 99, s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [
+                { v: "Untouched", s: this.STYLE_BORDER_ALL_HRIGHT_BOLD_GRAY },
+                { v: "Leave Blank", s: this.STYLE_BORDER_ALL_HLEFT_BOLD_GRAY }
+            ],
+            [{}, {}],
+            [{}, {}],
+        ];
+
+        const tabDescriptionTable: TableCell[][] = [
+            [
+                { v: "Tab Name", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "Description", s: this.STYLE_HEADER_BORDER_ALL }
+            ],
+            [
+                { v: "Instructions", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "(This tab) Instructions for using this scoresheet", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "Test Questions", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "The questions on the test with their type and point score", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "Score Entry", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "The main tab where you enter the scores from the team scoresheets", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "Score Calculation", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "The calculator of the scores for each question, timed question, special bonus and overall sum. " +
+                        "This tab is useful for comparing individual questions when the calculated score doesn't match what the score person calculated.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Score Summary", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "The computed rankings of all teams based on their score.  Ties are indicated and broken here.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "Duosmium Export", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "The computed rankings ordered in a table that is easy to cut/paste into Duosmium", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "Score Analysis", s: this.STYLE_HEADER_BORDER_ALL },
+                { v: "Basic statistical analysis of how the questions were answered.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP }
+            ],
+            [
+                { v: "Success Correlation Analysis", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "A comparitive correlation of successfully answered questions track with how well the team did. " +
+                        "The table on the right is the actual correlation of each question to the final scores. " +
+                        "Note: Higher values are better with a range of 0.00 to 1.00.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Attempt Correlation Analysis", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "A comparitive correlation of attempted questions (answer with 8 or fewer mistakes) track with how well the team did. " +
+                        "The table on the right is the actual correlation of each question to the final scores. " +
+                        "Note: Higher values are better with a range of 0.00 to 1.00.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Correlation Summary", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "Consolidated comparison of the Success Correlation and Attempt Correlation values. " +
+                        "These values are sorted high to low indicating better correlation at the top. " +
+                        "Values below 0.25 indicate questions which don't correlate well to how well a team scored overall." +
+                        "i.e. A question with a correlation of 0.16 means that teams that spent time on it were less likely to score well overall. " +
+                        "Questions with a correlation of .70 or above means that teams that did well overall also solved that question.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Score Calc Summary", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "(NOT YET IMPLEMENTED) " +
+                        "This shows how the special bonus points contributed to a team's overall ranking.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Timed Bonus", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "(NOT YET IMPLEMENTED) " +
+                        "This shows the relative position impact of the timed bonus on a team's score.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Score Clusters", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "(NOT YET IMPLEMENTED) " +
+                        "This breaks the teams into High/Medium/Low clusters. " +
+                        "There are configuration fields in the first two columns to adjust the display in order to get a clearer view of how the teams rank.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+            [
+                { v: "Timed Differential", s: this.STYLE_HEADER_BORDER_ALL },
+                {
+                    v: "(NOT YET IMPLEMENTED) " +
+                        "Similar to the Timed Bonus tab, this tab shows how many position a team moved when the timed bonus was taken into consideration. " +
+                        "The purpose of this analysis is to make sure that the timed bonus value doesn't move a team by more than 3 ranking positions but that it does move teams.", s: this.STYLE_BORDER_ALL_HLEFT_GRAY_WRAP
+                }
+            ],
+        ];
+
+
+        // Spacer rows are included at the end of the preceding table.
+        const instructionsTable: TableCell[][] = [
+            ...stepsTable,
+            ...attendanceTable,
+            ...scoreValueTable,
+            ...tabDescriptionTable
+        ];
+
+        this.writeCellTable(
+            sheet, INSTRUCTIONS_START_ROW, INSTRUCTIONS_HEADER_COL, instructionsTable
         );
-        this.mergeCells(
+
+
+        // ---------------------------------------------
+        // Worksheet dimensions
+        // ---------------------------------------------
+
+        this.setSheetSize(
             sheet,
-            QUESTION_HEADING_ROW,
-            DIRECTIONS_COL,
-            QUESTION_HEADING_ROW,
-            DIRECTIONS_VALUE_COL
+            instructionsTable.length + 2,
+            4
         );
+
+        return sheet;
     }
 
     /**
@@ -869,10 +1153,10 @@ export default class CipherScoreSheetGenerator {
         const ATTENDANCE_COL = 2;
         const TIMED_COL = 3;
         const FINAL_SCORE_SOURCE_COL = numQuestions + 4;
-        const DIRECTIONS_COL = numQuestions + CipherScoreSheetGenerator.SCORE_ENTRY_EXTRA;
-        const NUMBER_OF_TEAMS_COL = DIRECTIONS_COL + 1;
+        const LAST_COL = numQuestions + CipherScoreSheetGenerator.SCORE_ENTRY_EXTRA;
 
-        const NUMBER_OF_TEAMS_ROW = 5;
+        const NUMBER_OF_TEAMS_COL = 1;
+        const NUMBER_OF_TEAMS_ROW = 0;
 
         // ---------------------------------------------
         // Headers and column widths
@@ -921,7 +1205,6 @@ export default class CipherScoreSheetGenerator {
         // ---------------------------------------------
         // Number of teams named range
         // ---------------------------------------------
-
         const numberOfTeamsAddress =
             `$${XLSX_STYLE.utils.encode_col(NUMBER_OF_TEAMS_COL)}$${XLSX_STYLE.utils.encode_row(NUMBER_OF_TEAMS_ROW)}`;
 
@@ -933,17 +1216,25 @@ export default class CipherScoreSheetGenerator {
         // ---------------------------------------------
         // Attendance and question-entry directions
         // ---------------------------------------------
+        this.putScoreEntryHeaders(sheet);
 
-        this.ScoreSheetDirections(sheet);
+        // Store validation metadata for the XML post-processing step.
+        // This custom property is not exported automatically by xlsx-js-style.
+        sheet["!attendanceValidation"] = XLSX_STYLE.utils.encode_range({
+            s: { r: HEADER_ROWS, c: ATTENDANCE_COL },
+            e: {
+                r: HEADER_ROWS + MAX_TEAMS - 1,
+                c: ATTENDANCE_COL,
+            },
+        });
 
         // ---------------------------------------------
         // Worksheet dimensions
         // ---------------------------------------------
-
         this.setSheetSize(
             sheet,
             MAX_TEAMS + HEADER_ROWS - 1,
-            DIRECTIONS_COL + 4
+            LAST_COL + 2
         );
 
         return sheet;
@@ -2013,7 +2304,7 @@ export default class CipherScoreSheetGenerator {
             const sheetViewsRegex: RegExp = /<sheetViews>[^]*?<\/sheetViews>/;
 
             // Check for existing <sheetViews> tags, should always exist...
-            if (sheetXmlContent.match(sheetViewsRegex)) {
+            if (xmlInjectionData.frozenPane && sheetXmlContent.match(sheetViewsRegex)) {
                 // Custom XML for Frozen Panes (A common feature requiring XML injection)
                 const frozenPaneXml = `
                     <sheetViews>
@@ -2025,7 +2316,22 @@ export default class CipherScoreSheetGenerator {
                 sheetXmlContent = sheetXmlContent.replace(sheetViewsRegex, frozenPaneXml);
             }
 
-            // Overwrite the file in the ZIP archive
+            // Add Attendance validation only to the Score Entry worksheet.
+            const scoreEntryPath =
+                xmlInjectionDataMap.get(SheetType.ScoreEntry)?.xmlSheetPath;
+
+            if (targetFile === scoreEntryPath) {
+                const range = wb.Sheets["Score Entry"]["!attendanceValidation"];
+
+                if (typeof range === "string") {
+                    sheetXmlContent = this.addAttendanceValidation(
+                        sheetXmlContent,
+                        range
+                    );
+                }
+            }
+
+            // Overwrite the file in the ZIP archive.
             zip.file(targetFile, sheetXmlContent);
         }));
 

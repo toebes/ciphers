@@ -1584,12 +1584,12 @@ export class CipherEncoder extends CipherHandler {
             const foundlimit = Math.round(kwcount * ((len + 1 - lower) / (upper + 1 - lower)))
 
             // We want to get at least 4 choices from each of the length ranges
-            for (let pass = 0; pass < 20 && found < foundlimit;) {
+            for (let pass = 0; pass < 20 && found < foundlimit; pass++) {
                 const slot = Math.trunc(maxWord * Math.random())
                 const choice = patSet[slot][0]
                 // Make sure we didn't get this one before (i.e. same random number)
                 // And that it has a frequency of more than 1 occurance to avoid obscure words
-                if (patSet[slot][2] > 1 && picked[choice] !== true) {
+                if (patSet[slot][2] > 1 && picked[choice] !== true && patSet[slot][3] >= 0) {
                     picked[choice] = true
                     if (action(found, choice)) {
                         found++
@@ -1725,7 +1725,8 @@ export class CipherEncoder extends CipherHandler {
             let keyword = this.Frequent[lang][pat][slot][0];
 
             // Make sure that the random number hadn't given us this sample before.
-            if (picked[keyword] !== true) {
+            // Also make sure it is an acceptable keyword to choose
+            if (picked[keyword] !== true && this.Frequent[lang][pat][slot][3] >= 0) {
                 picked[keyword] = true;
                 // We have a keyword, so let them process it (if they can)
                 if (action(found, keyword)) {
@@ -1879,7 +1880,7 @@ export class CipherEncoder extends CipherHandler {
 
             const keyword = patternEntries[slot][0];
 
-            if (picked[keyword] === true) {
+            if (picked[keyword] === true || patternEntries[slot][3] < 0) {
                 continue;
             }
 
@@ -1919,9 +1920,6 @@ export class CipherEncoder extends CipherHandler {
         const result: string[] = []
         const depthLimit = keyLens.length - 1;
 
-        // if (used === "PI") {
-        //     console.log(`Recursing Keyword=${keyword} used=${used}`)
-        // }
         if (depthLimit >= 0) {
             // Let's find all the alternate words which may match this one.
             // We can determine the range of keyword lengths by comparing the length
@@ -1933,7 +1931,7 @@ export class CipherEncoder extends CipherHandler {
                 for (const entry of this.Frequent['en'][pat]) {
                     const thisWord = entry[0]
                     const check = this.undupeString(used + thisWord)
-                    if (minWord.startsWith(check)) {
+                    if (minWord.startsWith(check) && entry[3] >= 0) {
                         // We got a match.  See if this is actually a complete match
                         if (depth === depthLimit) {
                             if (minWord.length === check.length) {
@@ -1943,9 +1941,6 @@ export class CipherEncoder extends CipherHandler {
                                 break top;
                             }
                         } else {
-                            if (thisWord === "PIPI") {
-                                console.log(`Found PIPI minword=${minWord} used=${used} check=${check}`)
-                            }
                             const found = await this.searchForAlternateWordsCore(minWord, keyLens, depth + 1, check)
                             for (const res of found) {
                                 result.push(thisWord + " " + res)

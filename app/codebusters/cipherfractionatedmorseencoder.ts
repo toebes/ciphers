@@ -1681,7 +1681,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 let entry = matches[i];
                 if (this.isValidReplacement(entry[0], repl, used)) {
                     if (!matched) {
-                        selectclass = "l" + entry[3];
+                        selectclass = "l" + Math.abs(entry[3]);
                     }
                     if (!matched) {
                         mselect.append(
@@ -1689,13 +1689,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                                 selected: "",
                                 disabled: "",
                             })
-                                .addClass("l" + entry[3])
+                                .addClass("l" + Math.abs(entry[3]))
                                 .text(entry[0])
                         );
                     }
                     mselect.append(
                         $("<option/>")
-                            .addClass("l" + entry[3])
+                            .addClass("l" + Math.abs(entry[3]))
                             .text(entry[0])
                     );
                     added++;
@@ -1705,7 +1705,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         selectclass = entry.c;
                     }
                     added++;
-                    $('<option/>').addClass('l'+entry[3] + ' nomatch').text(entry.t).appendTo(mselect);
+                    $('<option/>').addClass('l'+Math.abs(entry[3]) + ' nomatch').text(entry.t).appendTo(mselect);
 */
                 }
                 if (matched && added > 9) {
@@ -3422,8 +3422,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 )}% of the possible cribs will make the problem easier, ${(
                     (100.0 * harder) /
                     potentialCribs.length
-                ).toFixed(0)}% will make the problem harder, and ${
-                    (100.0 * average / potentialCribs.length).toFixed(0)
+                ).toFixed(0)}% will make the problem harder, and ${(100.0 * average / potentialCribs.length).toFixed(0)
                 }% make it average difficulty.`) //  In general, shorter plain text makes the problem easier because more cribs reveal a higher percentage of mapped letters.
         )
         //Add selection amount to the UI

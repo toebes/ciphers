@@ -343,7 +343,7 @@ export interface IScoreInformation {
     score: number;
 }
 
-//              Patern String
+//              Pattern String
 //              Ordinal in the list (1 = the first word)
 //              Frequency of occurrence of the word
 //              Stratum 0 = top 500 words
@@ -351,6 +351,7 @@ export interface IScoreInformation {
 //                      3 = top 2000 words
 //                      4 = top 5000 words
 //                      5 = all other words
+//               Note: A negative stratum indicates that the word is inappropriate to use as a keyword.
 type patelem = [string, number, number, number];
 /**
  * Base class for all the Cipher Encoders/Decoders
@@ -1928,7 +1929,7 @@ export class CipherHandler {
                     let matches = this.Frequent[lang][pat];
                     let ordinal = 999999
                     let frequency = 0
-                    let stratum = 10
+                    // let stratum = 10
                     let idx = 9999
                     let needed = false
                     do {
@@ -1936,7 +1937,7 @@ export class CipherHandler {
                             if (word === matches[i][0]) {
                                 ordinal = matches[i][1]
                                 frequency = matches[i][2]
-                                stratum = matches[i][3]
+                                // stratum = matches[i][3]
                                 idx = Number(i)
                                 break;
                             }
@@ -1978,9 +1979,9 @@ export class CipherHandler {
                         if (!Number.isNaN(ln) && ln > 0) {
                             lnOrdinal += ln
                         }
-                        if (stratum > 1) {
-                            stratum--
-                        }
+                        // if (stratum > 1) {
+                        //     stratum--
+                        // }
                     }
                 }
             }
@@ -3516,6 +3517,9 @@ export class CipherHandler {
                             elem[3] = 4;
                         } else {
                             elem[3] = 5;
+                        }
+                        if (pieces[2] === '*') {
+                            elem[3] = -Math.max(1, elem[3]);
                         }
                         if (typeof this.Frequent[lang][pat] === 'undefined') {
                             this.Frequent[lang][pat] = [];

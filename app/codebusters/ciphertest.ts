@@ -846,23 +846,35 @@ export class CipherTest extends CipherEncoder {
         return JSON.stringify(this.generateTestData(test));
     }
     /**
+     * Create a non-mergable copy of a question to be used on another test
+     * Note that passing in -1 (for a non existing entry) returns -1
+     * @param entry Question to be duplicated
+     * @returns new entry id
+     */
+    public duplicateFileEntry(entry: number): number {
+        if (entry === -1) {
+            return -1;
+        }
+
+        const state = this.getFileEntry(entry);
+        state['salt'] = Number(state['salt'] ?? 0) + 1;
+
+        return this.setFileEntry(-1, state);
+    }
+    /**
      * Make a copy of a test
      * @param test Test to duplicate
      */
     public gotoEditCopyTest(test: number): void {
-        const testdata = this.getTestEntry(test);
-        testdata.title = 'DUP ' + testdata.title;
-        if (testdata.timed !== -1) {
-            const entry = this.getFileEntry(testdata.timed);
-            entry.question = 'DUP ' + entry.question;
-            testdata.timed = this.setFileEntry(-1, entry);
-        }
-        for (const i in testdata.questions) {
-            const entry = this.getFileEntry(testdata.questions[i]);
-            entry.question = 'DUP ' + entry.question;
-            testdata.questions[i] = this.setFileEntry(-1, entry);
-        }
-        const newtest = this.setTestEntry(-1, testdata);
+        const testData = this.getTestEntry(test);
+
+        testData.title = `DUP ${testData.title}`;
+        testData.timed = this.duplicateFileEntry(testData.timed);
+        testData.questions = testData.questions.map(
+            entryId => this.duplicateFileEntry(entryId)
+        );
+
+        const newtest = this.setTestEntry(-1, testData);
         location.assign(`TestGenerator.html?test=${newtest}`);
     }
     /**

@@ -682,9 +682,9 @@ export class CipherTestGenerator extends CipherTest {
         // If we already have a timed question, then we just add it to the list of questions.
         if (appendTest.timed !== -1 && !skipQuestions[appendTest.timed]) {
             if (test.timed === -1) {
-                test.timed = appendTest.timed;
+                test.timed = this.duplicateFileEntry(appendTest.timed);
             } else {
-                test.questions.push(appendTest.timed);
+                test.questions.push(this.duplicateFileEntry(appendTest.timed));
                 test.count++;
             }
             skipQuestions[appendTest.timed] = true;
@@ -692,7 +692,7 @@ export class CipherTestGenerator extends CipherTest {
         // Next we add all the remaining questions in order if we don't already have them.
         for (const entry of appendTest.questions) {
             if (!skipQuestions[entry]) {
-                test.questions.push(entry);
+                test.questions.push(this.duplicateFileEntry(entry));
                 test.count++;
                 skipQuestions[entry] = true;
             }

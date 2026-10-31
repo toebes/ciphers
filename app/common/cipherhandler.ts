@@ -3518,7 +3518,7 @@ export class CipherHandler {
                         } else {
                             elem[3] = 5;
                         }
-                        if (pieces[2] === '*') {
+                        if (pieces[2] === '*' || pieces[1] < 50) {
                             elem[3] = -Math.max(1, elem[3]);
                         }
                         if (typeof this.Frequent[lang][pat] === 'undefined') {

@@ -2226,7 +2226,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     cipherText
                 )
                 completeColumnarSolver.addColumnsToAnalyze(
-                    cipherText[startRow].length,
+                    cipherText[startRow - 1].length,
                     cribSplitInformation
                 )
                 cribSplitInformation.setSplitInformation(startRow - 1, crib.length, 0)

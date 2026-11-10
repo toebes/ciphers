@@ -328,7 +328,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     /**
       * Generate the recommended score and score ranges for a cipher
-      * 100 for a Decode (approximately 2 points per letter), 120 for an Encode.
+      * A Porta is 40 points plus 2.5 points per letter, with 60 more for cryptanalysis.
       * If the Block Size is the same as the Key length subtract 20 points.
       * If the Block Size is non-zero and different from the Key length, add 25 points.
       * @returns Computed score ranges for the cipher and text description
@@ -348,7 +348,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (usedOnA) {
                 scaleFactor = 1.2
             }
-            suggested = Math.round(scaleFactor * qdata.len * 2.25)
+            suggested = Math.round(40 + scaleFactor * qdata.len * 2.5)
             if (this.state.blocksize > 0) {
                 if (this.state.blocksize === this.state.keyword.length) {
                     suggested -= 20;
@@ -374,8 +374,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
         }
         if (this.state.operation === 'crypt') {
-            suggested += 15;
-            extra += ` A cryptanalysis problem adds extra work, which makes it about 15 points harder.`;
+            // Recovering the Porta keyword from a crib is much more work than a decode
+            const cryptAdd = this.state.cipherType === ICipherType.Porta ? 60 : 15;
+            suggested += cryptAdd;
+            extra += ` A cryptanalysis problem adds extra work, which makes it about ${cryptAdd} points harder.`;
         }
 
         const min = Math.max(suggested - range, 0)

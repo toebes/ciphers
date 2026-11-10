@@ -781,7 +781,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
-        let suggested = 25 + (qdata.len * 3);
+        // A decode has a higher base and counts length a little less so that
+        // typical decodes land around 200 to 300.  Cryptanalysis is unchanged.
+        let suggested = Math.round(95 + (qdata.len * 2.25));
+        if (this.state.operation === 'crypt') {
+            suggested = 25 + (qdata.len * 3);
+        }
         let operationText = '';
         let zeroBlockSizeText = '';
         let keywordLengthText = '';

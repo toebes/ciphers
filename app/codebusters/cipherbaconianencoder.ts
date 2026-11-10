@@ -1620,6 +1620,105 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return true;
     }
     /**
+     * Figure out how hard the A/B letter mapping of a Words Baconian is to spot.
+     * This works from the mapping itself so that older saved questions which
+     * don't remember the pattern they were built from are still scored.
+     * @returns Points to add for the pattern and a description of it
+     */
+    public classifyABPattern(): { points: number, text: string } {
+        const map = this.state.abMapping
+        // See if this is one of the standard blocks of As followed by Bs (the 1-9 and 13 buttons),
+        // possibly toggled or shifted.  These are checked directly because the larger blocks
+        // repeat every 14 to 26 letters, which is too long to find with the repeat check below.
+        for (let half = 1; half <= 13; half++) {
+            const block = this.repeatStr('A', half) + this.repeatStr('B', half)
+            let full = ''
+            while (full.length < map.length + block.length) {
+                full += block
+            }
+            const shift = full.indexOf(map)
+            if (shift < 0) {
+                continue
+            }
+            if (half === 1) {
+                return { points: 0, text: 'The A/B pattern simply alternates, which is the easiest pattern to spot.' }
+            }
+            // A shift of 0 is the plain block and a shift of half is the same block toggled B/A
+            if (shift === 0 || shift === half) {
+                return { points: 10, text: `The A/B pattern is a standard block of ${half}, which makes it about 10 points harder.` }
+            }
+            return { points: 20, text: `The A/B pattern is a standard block of ${half} shifted by an offset, which makes it about 20 points harder.` }
+        }
+        // Find the shortest length (up to half the alphabet) that the mapping repeats at
+        let period = 0
+        for (let p = 1; p <= map.length / 2 && period === 0; p++) {
+            let repeats = true
+            for (let i = 0; i + p < map.length; i++) {
+                if (map.charAt(i) !== map.charAt(i + p)) {
+                    repeats = false
+                    break
+                }
+            }
+            if (repeats) {
+                period = p
+            }
+        }
+        if (period === 0) {
+            return { points: 40, text: 'The A/B pattern does not repeat, which makes it about 40 points harder.' }
+        }
+        // Anything else is a custom pattern
+        const pattern = this.state.abPattern
+        if (pattern !== undefined && pattern.length > 0 && this.state.abOffset !== undefined) {
+            const offset = ((this.state.abOffset % pattern.length) + pattern.length) % pattern.length
+            if (offset !== 0) {
+                return { points: 40, text: `The A/B pattern is a custom pattern repeating every ${period} letters and shifted by an offset, which makes it about 40 points harder.` }
+            }
+        }
+        return { points: 30, text: `The A/B pattern is a custom pattern repeating every ${period} letters, which makes it about 30 points harder.` }
+    }
+    /**
+     * Figure out how hard the A Text/B Text of a Sequence Baconian are to tell apart
+     * by comparing each position of the A Text with the same position of the B Text.
+     * @returns Points to add for the pattern and a description of it
+     */
+    public classifySequencePattern(): { points: number, text: string } {
+        // Get the plain text of each symbol along with any formatting applied to it
+        const getSymbols = (text: string): { base: string, marks: string }[] => {
+            return this.parseSetItems(text).map(item => {
+                const str = item.map(piece => piece.text).join('').trim().normalize('NFKD')
+                const format = item.map(piece => piece.wrappers.map(w => `${w.tag}${w.style}`).join('')).join('')
+                let base = ''
+                let marks = []
+                for (const c of str) {
+                    const code = c.charCodeAt(0)
+                    // Combining diacritical marks (including the extended and supplement blocks)
+                    if ((code >= 0x0300 && code <= 0x036f) || (code >= 0x1ab0 && code <= 0x1aff) ||
+                        (code >= 0x1dc0 && code <= 0x1dff) || (code >= 0x20d0 && code <= 0x20ff) ||
+                        (code >= 0xfe20 && code <= 0xfe2f)) {
+                        marks.push(c)
+                    } else {
+                        base += c
+                    }
+                }
+                return { base: base.toLowerCase(), marks: marks.sort().join('') + format }
+            })
+        }
+        const aSyms = getSymbols(this.state.texta)
+        const bSyms = getSymbols(this.state.textb)
+        const len = Math.min(aSyms.length, bSyms.length)
+        for (let i = 0; i < len; i++) {
+            if (aSyms[i].base !== bSyms[i].base) {
+                return { points: 70, text: 'The A Text and B Text use different symbols in the same position, which makes it about 70 points harder.' }
+            }
+        }
+        const aMarks = new Set(aSyms.map(s => s.marks))
+        const bMarks = new Set(bSyms.map(s => s.marks))
+        if (aMarks.size <= 1 && bMarks.size <= 1) {
+            return { points: 0, text: 'Every symbol in the A Text is marked the same way, as is every symbol in the B Text, which is the easiest kind of pattern to spot.' }
+        }
+        return { points: 35, text: 'The marks change from symbol to symbol within the A Text or B Text, which makes it about 35 points harder.' }
+    }
+    /**
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher and text description
       */
@@ -1630,41 +1729,64 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let min = 0
         let range = 0
         let text = ''
+        let extra = ''
         let autoSolverText = ''
         if (this.state.operation === 'words') {
-            const hints = this.countCribHints();
-            suggested = 20 + Math.round((qdata.len * 6) + ((13 - hints) * 3))
+            // The work in a Words Baconian is mostly spotting the A/B pattern and
+            // then looking up each word, so the length counts for less than the
+            // pattern, the crib and how hard the Auto-Solver had to work.
+            suggested = 250 + Math.round(qdata.len * 2)
             range = 20
+            const pattern = this.classifyABPattern();
+            suggested += pattern.points
+            extra += ` ${pattern.text}`
+            // A shorter crib reveals fewer letters, which makes the pattern harder to find
+            const hints = this.countCribHints();
+            const cribAdd = Math.max(0, (8 - hints) * 3)
+            if (cribAdd > 0) {
+                suggested += cribAdd
+                extra += ` The crib only reveals ${hints} distinct letters, which makes it about ${cribAdd} points harder.`
+            }
             if (this.state.autoSolverScore === undefined) {
                 autoSolverText = `The Auto-Solver has not run on this question yet, so the score may need to be adjusted.`
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOCRIB) {
-                autoSolverText = `The Auto-Solver was not able to run without a Crib, so we add 250 points.`
-                suggested += 250
+                autoSolverText = `The Auto-Solver was not able to run without a Crib, so we add 60 points.`
+                suggested += 60
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOPATTERN) {
-                autoSolverText = `The Auto-Solver was not able to determine the A/B pattern, so we add 200 points.`
-                suggested += 200
+                autoSolverText = `The Auto-Solver was not able to determine the A/B pattern, so we add 50 points.`
+                suggested += 50
             } else if (this.state.autoSolverScore > 1.25) {
-                const add = Math.min(300, Math.round((this.state.autoSolverScore - 1.25) * 100))
+                const add = Math.min(50, Math.round((this.state.autoSolverScore - 1.25) * 40))
                 autoSolverText = `The Auto-Solver had to work harder than usual to determine the A/B pattern, so we add ${add} points [autosolverScore=${this.state.autoSolverScore.toFixed(2)}].`
                 suggested += add
             }
         } else {
             let aSet = this.buildset(this.state.texta)
             let bSet = this.buildset(this.state.textb)
+            range = 20
             if (this.state.operation === 'sequence') {
-                suggested = Math.round((qdata.len * 5.8))
-                range = 20
-                if (aSet.length !== bSet.length || aSet.length % 5 !== 0) {
-                    range += 20
-                    suggested += 30;
+                suggested = 85 + Math.round(qdata.len * 3.5)
+                const pattern = this.classifySequencePattern();
+                suggested += pattern.points
+                extra += ` ${pattern.text}`
+                if (aSet.length > 4) {
+                    const add = (aSet.length - 4) * 5
+                    suggested += add
+                    extra += ` The A Text has ${aSet.length} symbols to keep track of, which makes it about ${add} points harder.`
                 }
             } else {
-                suggested = Math.round((qdata.len * 5.8) + (aSet.length + bSet.length) * 2)
-                range = (aSet.length + bSet.length) * 10
+                suggested = 60 + Math.round(qdata.len * 4.5) + (aSet.length + bSet.length) * 4
+                extra += ` There are ${aSet.length} A symbols and ${bSet.length} B symbols, which adds ${(aSet.length + bSet.length) * 4} points.`
+            }
+            if (aSet.length !== bSet.length) {
+                suggested += 25
+                range += 20
+                extra += ` The A and B Texts have a different number of symbols, which makes it about 25 points harder.`
             }
             if (this.state.linewidth % 5 !== 0) {
                 suggested += 25;
                 range += 10;
+                extra += ` The line width is not a multiple of 5, which makes it about 25 points harder.`
             }
         }
         min = Math.max(suggested - range, 125)
@@ -1676,14 +1798,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
             rangetext = ` (From a range of ${min} to ${max})`
         }
         if (qdata.len > 2) {
-            text += `<p>There are ${qdata.len} characters in the quote.
+            text += `<p>There are ${qdata.len} characters in the quote.${extra}
              We suggest you try a score of ${suggested}${rangetext}</p>`
         }
         if (autoSolverText !== '') {
             text += `<p><b>NOTE:</b><em> ${autoSolverText}</em></p>`
         }
-        if (this.state.operation !== 'words') {
-            text += `<p><b>NOTE:</b><em>If the A Text/B Text Pattern is really obvious or really obscure,
+        if (this.state.operation === 'let4let') {
+            text += `<p><b>NOTE:</b><em> The suggested score can not judge how hard the A Text/B Text symbols are to tell apart.
+            If one simple visual rule separates them (such as hollow vs. filled, upper vs. lower case, or circled vs. plain),
+            consider lowering the score by about 30 points.  If there is no visual rule and the symbols have to be
+            memorized (such as a theme or unrelated symbols), consider raising it by about 40 points.</em></p>`
+        } else if (this.state.operation === 'sequence') {
+            text += `<p><b>NOTE:</b><em> If the A Text/B Text Pattern is really obvious or really obscure,
             you may want to adjust the score lower or higher as appropriate.</em></p>`
         }
 
@@ -1737,17 +1864,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (cribpos === undefined) {
             return 0;
         }
-        // Go through and figure out what letters we have mapped with the hint
+        // Go through and figure out what letters we have mapped with the hint.
+        // Only the letters covered by the crib count, not the whole quote.
         const criblen = this.minimizeString(this.state.crib).length;
+        const plaintext = this.minimizeString(this.getEncodingString());
         const found: BoolMap = {}
         for (let i = cribpos; i < cribpos + criblen; i++) {
-            let ciphertext = this.minimizeString(this.getEncodingString());
-
-            for (const c of ciphertext)
-                if (!found[c]) {
-                    hintcount++;
-                    found[c] = true
-                }
+            const c = plaintext.charAt(i);
+            if (c !== '' && !found[c]) {
+                hintcount++;
+                found[c] = true
+            }
         }
         return hintcount
     }

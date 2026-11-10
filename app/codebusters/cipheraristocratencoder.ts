@@ -1108,8 +1108,8 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 adjust += 400;
                 result.text += ". Encoding as a Patristocrat adds 400 points";
             } else if (this.state.cipherType === ICipherType.Xenocrypt || this.state.curlang !== 'en') {
-                adjust += 200;
-                result.text += ". Because it is a Xenocrypt, it adds 200 points";
+                adjust += 175;
+                result.text += ". Because it is a Xenocrypt, it adds 175 points";
             }
             if (this.state.operation === 'keyword') {
                 if (this.state.encodeType === 'k3') {

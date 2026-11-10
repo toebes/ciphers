@@ -512,6 +512,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     /**
       * Generate the recommended score and score ranges for a cipher
       * If the Block Size is non-zero, add 40 points.
+      * A cryptanalysis is adjusted by the length of the crib and a decode by
+      * how many letters of the keyword are given.
       * @returns Computed score ranges for the cipher and text description
       */
     public genScoreRangeAndText(): suggestedData {
@@ -528,13 +530,44 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         let straightModifier = 120;
         if (this.state.cipherType === ICipherType.Homophonic) {
             range = 10
-            if (usedOnA) {
-                scaleFactor = 1.2
-            }
-            suggested = Math.round(scaleFactor * qdata.len * 2.25 + straightModifier)
+            suggested = Math.round(qdata.len * 2.25 + straightModifier)
             if (this.state.blocksize > 0) {
                 suggested += 40;
                 extra += ` The block size is not equal to zero, making it about 40 points harder.`;
+            }
+            if (this.state.operation === 'decode') {
+                // The fewer keyword letters given, the more work to recover the keyword
+                const keyword = this.minimizeString(this.state.keyword);
+                const hintLetters = hint === '' ? keyword.length : hint.length;
+                let add = 40;
+                if (hintLetters <= 1) {
+                    add = 150;
+                } else if (hintLetters === 2) {
+                    add = 125;
+                } else if (hintLetters === 3) {
+                    add = 75;
+                }
+                suggested += add;
+                extra += ` A decode with ${hintLetters} keyword letter${hintLetters === 1 ? '' : 's'} given makes it about ${add} points harder.`;
+            } else {
+                // The shorter the crib, the less of the mapping is given away
+                const criblen = this.minimizeString(this.state.crib).length;
+                let add = -25;
+                if (criblen <= 1) {
+                    add = 75;
+                } else if (criblen === 2) {
+                    add = 50;
+                } else if (criblen === 3) {
+                    add = 0;
+                } else if (criblen === 4) {
+                    add = -15;
+                }
+                suggested += add;
+                if (add > 0) {
+                    extra += ` A crib of only ${criblen} letter${criblen === 1 ? '' : 's'} makes it about ${add} points harder.`;
+                } else if (add < 0) {
+                    extra += ` A crib of ${criblen} letters makes it about ${-add} points easier.`;
+                }
             }
         } else {
             range = 15
@@ -549,14 +582,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 suggested -= 15
             } else if (qdata.minlength === 2) {
                 suggested -= 10
-            }
-        }
-        if (this.state.operation === 'decode') {
-            suggested += 55;
-            extra += ` A decode problem adds extra work, which makes it about 55 points harder.`;
-            if (hint.length < 3) {
-                suggested += 45;
-                extra += ` Less than three hint characters are provided, making it about 45 points harder.`;
             }
         }
 

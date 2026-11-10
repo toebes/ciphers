@@ -201,7 +201,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         texta: 'A',
         textb: 'B',
         abMapping: 'ABABABABABABABABABABABABAB',
-        linewidth: this.maxEncodeWidth,
+        linewidth: 55,
         zoom: 100,
         bitmap: true,
         words: [],

@@ -238,8 +238,30 @@ export class CipherEncoder extends CipherHandler {
         this.setErrorMsg(msg, 'vq');
         if (this.state.placeholder) {
             msg = "The Question Text needs to be updated from the generated placeholder.";
+        } else if (this.isQuestionTextOnOtherTestQuestion()) {
+            msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
         }
         this.setErrorMsg(msg, 'pq');
+    }
+    /**
+     * Check whether another question on any test containing this question
+     * has the same question text (ignoring HTML, punctuation, spacing and case).
+     * Only the other questions are compared, so a question never matches itself.
+     * @returns true if the question text is duplicated on one of its tests
+     */
+    public isQuestionTextOnOtherTestQuestion(): boolean {
+        const key = this.makeQuestionKey(this.state.question ?? '', Infinity);
+        if (key === '') {
+            return false;
+        }
+        for (const qnum of this.getOtherTestQuestions()) {
+            const other = this.getFileEntry(qnum);
+            if (other !== undefined && other !== null && !(other as IEncoderState).placeholder &&
+                this.makeQuestionKey(other.question ?? '', Infinity) === key) {
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * 
@@ -897,15 +919,9 @@ export class CipherEncoder extends CipherHandler {
 
         $('#chi').text(statusText);
         this.validateQuestion();
-        const questionKey = this.makeQuestionKey(this.state.question);
-        if (!this.questionsUsed.has(questionKey)) {
-            this.questionsUsed.add(questionKey);
-        } else {
-            let msg = '';
-            this.setErrorMsg(msg, 'vq');
-            msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
-            this.setErrorMsg(msg, 'pq');
-        }
+        // Remember this question so the suggestion dialog doesn't offer it again.
+        // (The duplicate-on-test warning is handled in validateQuestion.)
+        this.questionsUsed.add(this.makeQuestionKey(this.state.question));
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields

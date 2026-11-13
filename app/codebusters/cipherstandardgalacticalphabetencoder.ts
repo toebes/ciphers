@@ -247,7 +247,7 @@ export class CipherStandardGalacticAlphabetEncoder extends CipherEncoder {
         )
         result.append(
             $('<p/>', { class: 'sga center' }).text(
-                'JUMPED OVER THE LAZY DOG'
+                'JUMPS OVER THE LAZY DOG'
             )
         )
         result.append(

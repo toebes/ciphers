@@ -8,12 +8,8 @@ import {
     toolMode,
     IQuestionData,
     ITestQuestionFields,
-    QuoteRecord,
-    IEncodeType,
-    IOperationType,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
-import { countHomonyms } from '../common/homonyms';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
@@ -26,14 +22,8 @@ import { pushLinkedTest, withCloudSyncSuppressed } from './cloudtestsync';
 import { waitForCloudAuth } from './cloudauth';
 import CipherScoreSheetGenerator from './cipherscoresheetgenerator';
 import { generateTestLatex } from './ciphertestlatexer';
-import { DatabaseManager } from './databasemanager'
-
-
-
 
 const OVERLEAF_TEMPLATE_URL = 'https://www.overleaf.com/read/yxjtjdcgykgp#aa9620';
-
-
 
 export interface SortableEntry {
     weight: number;
@@ -46,8 +36,6 @@ export interface buttonInfo {
     btnClass: string;
     disabled?: boolean;
 }
-
-
 
 export type modelID = string;
 export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' | 'answeraudit'; //| 'answermodel'
@@ -183,14 +171,7 @@ export interface IAnswerAudit {
 export type ITestDisp = 'testedit' | 'testprint' | 'ressheet' | 'testans' | 'testanstiny' | 'testsols' | 'testint';
 export type ITestManage = 'local' | 'published';
 
-
-
-
-
-
-
 export type KeyRangeMap = Record<string, IDBKeyRange>;
-
 
 /**
  * Base support for all the test generation handlers
@@ -198,8 +179,6 @@ export type KeyRangeMap = Record<string, IDBKeyRange>;
 export class CipherTest extends CipherEncoder {
 
     public requiredSpecialBonusCipher: ICipherType = ICipherType.Homophonic
-
-
 
     public readonly cipherSubTypes = [
         'Aristocrat',
@@ -363,6 +342,11 @@ export class CipherTest extends CipherEncoder {
             this.updateOutput();
         }
     }
+    /**
+     * Load the test data.  We don't have to actually do anything for the test clases
+     * because they output in a different manner
+     */
+    public load(): void { }
     /**
      * Create the tab buttons on the top of the page
      * @param testdisp Default state for this page
@@ -537,7 +521,8 @@ export class CipherTest extends CipherEncoder {
     public async generateScoreSheet(test: number): Promise<void> {
         const testdata = this.getTestEntry(test);
         const testJson = this.generateTestData(testdata);
-        await CipherScoreSheetGenerator.generateScoreSheet(testJson, testdata.questions);
+        const generator = new CipherScoreSheetGenerator();
+        await generator.generateScoreSheet(testJson, testdata.questions);
     }
     /**
      * Inject the LaTeX warning dialog into the page's main menu area so that
@@ -778,11 +763,17 @@ export class CipherTest extends CipherEncoder {
         }
         withCloudSyncSuppressed(() => {
             // Reset the scratch namespace and import the exact cloud contents.
+            // Force new cipher entries so every question on the cloud test gets
+            // its own entry.  Without this, identical questions (such as several
+            // freshly created placeholders of the same cipher type) would be
+            // deduplicated into a single shared entry and editing one would
+            // change all of them.
             this.setTestCount(0);
             this.setCipherCount(0);
-            const idx = this.processTestXML(source, false, true, false);
+            const idx = this.processTestXML(source, false, true, true);
             if (idx >= 0) {
                 const test = this.getTestEntry(idx);
+                this.splitSharedQuestions(test);
                 test.cloudExtId = this.cloudEditExtId;
                 test.cloudRevision = cloud.revision;
                 test.cloudSyncBaseline = cloud.payload;
@@ -791,6 +782,43 @@ export class CipherTest extends CipherEncoder {
         });
         this.setConfigString(CipherHandler.CLOUD_LOADED_KEY, this.cloudEditExtId);
         return true;
+    }
+    /**
+     * Make sure no two slots on a test (timed or numbered) point at the same
+     * cipher entry.  Cloud tests saved before identical questions were kept
+     * separate can reference one entry from several slots, which makes editing
+     * any of them change all of them.  Each extra reference gets its own copy
+     * of the cipher so the slots become independent questions again.
+     * @param test Test to repair (modified in place, not saved)
+     * @returns true when any slot was given a fresh copy
+     */
+    public splitSharedQuestions(test: ITest): boolean {
+        const seen = new Set<number>();
+        let changed = false;
+        const claim = (entry: number): number => {
+            if (entry === -1) {
+                return entry;
+            }
+            if (!seen.has(entry)) {
+                seen.add(entry);
+                return entry;
+            }
+            const state = this.getFileEntry(entry);
+            if (state === null) {
+                return entry;
+            }
+            const copy = cloneObject(state) as IState;
+            delete copy.editEntry;
+            const newEntry = this.setFileEntry(-1, copy);
+            seen.add(newEntry);
+            changed = true;
+            return newEntry;
+        };
+        test.timed = claim(test.timed);
+        for (let i = 0; i < test.questions.length; i++) {
+            test.questions[i] = claim(test.questions[i]);
+        }
+        return changed;
     }
     /**
      * Convert the current test information to a map which can be saved/restored later
@@ -818,23 +846,35 @@ export class CipherTest extends CipherEncoder {
         return JSON.stringify(this.generateTestData(test));
     }
     /**
+     * Create a non-mergable copy of a question to be used on another test
+     * Note that passing in -1 (for a non existing entry) returns -1
+     * @param entry Question to be duplicated
+     * @returns new entry id
+     */
+    public duplicateFileEntry(entry: number): number {
+        if (entry === -1) {
+            return -1;
+        }
+
+        const state = this.getFileEntry(entry);
+        state['salt'] = Number(state['salt'] ?? 0) + 1;
+
+        return this.setFileEntry(-1, state);
+    }
+    /**
      * Make a copy of a test
      * @param test Test to duplicate
      */
     public gotoEditCopyTest(test: number): void {
-        const testdata = this.getTestEntry(test);
-        testdata.title = 'DUP ' + testdata.title;
-        if (testdata.timed !== -1) {
-            const entry = this.getFileEntry(testdata.timed);
-            entry.question = 'DUP ' + entry.question;
-            testdata.timed = this.setFileEntry(-1, entry);
-        }
-        for (const i in testdata.questions) {
-            const entry = this.getFileEntry(testdata.questions[i]);
-            entry.question = 'DUP ' + entry.question;
-            testdata.questions[i] = this.setFileEntry(-1, entry);
-        }
-        const newtest = this.setTestEntry(-1, testdata);
+        const testData = this.getTestEntry(test);
+
+        testData.title = `DUP ${testData.title}`;
+        testData.timed = this.duplicateFileEntry(testData.timed);
+        testData.questions = testData.questions.map(
+            entryId => this.duplicateFileEntry(entryId)
+        );
+
+        const newtest = this.setTestEntry(-1, testData);
         location.assign(`TestGenerator.html?test=${newtest}`);
     }
     /**
@@ -1147,6 +1187,64 @@ export class CipherTest extends CipherEncoder {
         return inputgroup;
     }
     /**
+     * Determine if a stored cipher can be used as the timed question.
+     * The timed question must be an English Aristocrat.
+     * @param state Stored cipher entry
+     */
+    public isTimedAristocrat(state: IEncoderState): boolean {
+        return (
+            state !== null &&
+            state.cipherType === ICipherType.Aristocrat &&
+            (state.curlang === undefined || state.curlang === '' || state.curlang === 'en')
+        );
+    }
+    /**
+     * Create a dropdown to add the timed question.  The timed question is
+     * always an Aristocrat, either a new one or an existing unused one.
+     * @param ID HTML ID of the generated dropdown
+     * @param title Title text for the generated dropdown
+     */
+    public genNewTimedDropdown(id: string, title: string): JQuery<HTMLElement> {
+        const inputgroup = $('<div/>', {
+            class: 'input-group cell small-12 medium-12 large-12',
+        });
+        $('<span/>', { class: 'input-group-label' })
+            .text(title)
+            .appendTo(inputgroup);
+        const select = $('<select/>', {
+            id: id,
+            class: 'input-group-field',
+        });
+        select.append(
+            $('<option />', {
+                value: '',
+                disabled: 'disabled',
+                selected: 'selected',
+            }).text('--Add Timed Question--')
+        );
+        select.append(
+            $('<option />', { value: ICipherType.Aristocrat }).html('New Aristocrat')
+        );
+        // Only offer existing Aristocrats if there is one not already on the test
+        const test = this.getTestEntry(this.state.test);
+        const cipherCount = this.getCipherCount();
+        for (let entry = 0; entry < cipherCount; entry++) {
+            if (
+                !test.questions.includes(entry) &&
+                this.isTimedAristocrat(this.getFileEntry(entry))
+            ) {
+                select.append(
+                    $('<option/>', { value: ICipherType.None }).html(
+                        '**Choose Existing Aristocrat**'
+                    )
+                );
+                break;
+            }
+        }
+        inputgroup.append(select);
+        return inputgroup;
+    }
+    /**
      * Create a dropdown to allow inserting a new cipher type
      * @param ID HTML ID of the generated dropdown
      * @param title Title text for the generated dropdown
@@ -1255,7 +1353,7 @@ export class CipherTest extends CipherEncoder {
                 class: 'callout warning',
             }).text('No Timed Question!  Add one from below');
             callout.append(
-                this.genNewCipherDropdown('addnewtimed', 'New Timed Question', testtype)
+                this.genNewTimedDropdown('addnewtimed', 'New Timed Question')
             );
             row.add({
                 celltype: 'td',
@@ -1630,6 +1728,12 @@ export class CipherTest extends CipherEncoder {
      * @returns Boolean indicating if they are identical
      */
     public isSameCipher(state1: IState, state2: IState): boolean {
+        // If either state has a placeholder, they are not the same. 
+        // Note that we only have to check one state because if state1 has a placeholder
+        // and state2 does not have a placeholder, they won't be the same anyway
+        if (state1["placeholder"]) {
+            return false;
+        }
         // Make sure every element in state1 that is non empty is also in state 2
         for (const elem in state1) {
             if (elem !== "editEntry" && !this.isEquivalent(state1[elem], state2[elem])) {
@@ -1925,23 +2029,23 @@ export class CipherTest extends CipherEncoder {
         let cipherCount = this.getCipherCount();
         const cipherCache: { [index: number]: IState } = {};
         const inputMap: NumberMap = {};
+        const duplicatedEnt = new Map<number, boolean>();
         for (let entry = 0; entry < cipherCount; entry++) {
             cipherCache[entry] = this.getFileEntry(entry);
         }
         // First we get all the ciphers defined and add them to the list of ciphers
         for (const ent in data) {
-            const pieces = ent.split('.');
+            const [EntryType, EntryId] = ent.split('.');
             // Make sure we have a valid object that we can bring in
             if (
-                pieces[0] === 'CIPHER' &&
-                typeof data[ent] === 'object' &&
-                data[ent].cipherType !== undefined &&
-                data[ent].cipherString !== undefined &&
-                !(pieces[1] in inputMap)
+                EntryType === 'CIPHER' &&                   // It is a cipher entry 
+                data[ent] !== null &&                       // Which is not null
+                typeof data[ent] === 'object' &&            // It is an object 
+                data[ent].cipherType !== undefined &&       // with a cipherType 
+                data[ent].cipherString !== undefined &&     // and a cipherString
+                !(EntryId in inputMap)                      // that we haven't seen before
             ) {
-                // It is a cipher entry // It is an object // with a cipherType // and a cipherString
-                // that we haven't seen before
-                const oldPos = Number(pieces[1]);
+                const oldPos = Number(EntryId);
                 const toAdd: IState = data[ent];
                 let needNew = true;
                 // Now make sure that we don't already have this cipher loaded.
@@ -1950,6 +2054,7 @@ export class CipherTest extends CipherEncoder {
                 if (!forceNewCiphers) {
                     for (let oldEnt = 0; oldEnt < cipherCount; oldEnt++) {
                         if (this.isSameCipher(cipherCache[oldEnt], toAdd)) {
+                            duplicatedEnt.set(oldEnt, true);
                             inputMap[String(oldPos)] = oldEnt;
                             needNew = false;
                             break;
@@ -2034,14 +2139,14 @@ export class CipherTest extends CipherEncoder {
             const pieces = ent.split('.');
             // Make sure we have a valid object that we can bring in
             if (
-                pieces[0] === 'TEST' &&
-                typeof data[ent] === 'object' &&
-                data[ent].title !== undefined &&
-                data[ent].timed !== undefined &&
-                data[ent].questions !== undefined
+                pieces[0] === 'TEST' &&           // It is a cipher entry
+                data[ent] !== null &&             // Which is not null
+                typeof data[ent] === 'object' &&  // It is an object 
+                data[ent].title !== undefined &&  // with a title
+                data[ent].timed !== undefined &&  // with a timed question
+                data[ent].questions !== undefined // and questions
             ) {
-                // It is a cipher entry // It is an object // with a title // with a timed question
-                // and questions
+
                 const newTest: ITest = data[ent];
                 // Go through and fix up all the entries.  First the timed question
                 if (newTest.timed !== -1 && inputMap[newTest.timed] !== undefined) {
@@ -2059,7 +2164,20 @@ export class CipherTest extends CipherEncoder {
                 }
                 // For good measure, just fix up the questions length
                 newTest.count = newTest.questions.length;
-                let testnum = forceNewTest ? -1 : this.findTest(newTest);
+                let testnum = this.findTest(newTest);
+                if (testnum === -1 || forceNewTest) {
+                    // This means we have a new test.  Any duplicate questions need to be replicated so that
+                    // we have a unique set of questions for each test (even if they look the same).
+                    if (newTest.timed !== -1 && duplicatedEnt.get(newTest.timed)) {
+                        newTest.timed = this.setFileEntry(-1, this.getFileEntry(newTest.timed));
+                    }
+                    for (let entry = 0; entry < newTest.questions.length; entry++) {
+                        if (duplicatedEnt.get(newTest.questions[entry])) {
+                            newTest.questions[entry] = this.setFileEntry(-1, this.getFileEntry(newTest.questions[entry]));
+                        }
+                    }
+                    testnum = -1;
+                }
                 if (testnum === -1) {
                     testnum = this.setTestEntry(-1, newTest);
                 }

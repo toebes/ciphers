@@ -630,6 +630,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
     }
     public validateSpecialKeyword(): void {
         if (this.state.operation === 'keyword') {
+            if (this.state.keyword === undefined || this.state.keyword.trim() === '') {
+                this.setErrorMsg('No keyword has been entered. ', 'dq');
+                $('#validatekey').text('Invalid keyword').removeClass('primary success').addClass('alert');
+                $('#validatekey').attr('disabled', 'disabled');
+                return;
+            }
             this.stopGenerating = false;
             this.isLoading = true
             this.loadLanguageDictionary(this.state.curlang).then(async () => {
@@ -1102,8 +1108,8 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 adjust += 400;
                 result.text += ". Encoding as a Patristocrat adds 400 points";
             } else if (this.state.cipherType === ICipherType.Xenocrypt || this.state.curlang !== 'en') {
-                adjust += 200;
-                result.text += ". Because it is a Xenocrypt, it adds 200 points";
+                adjust += 175;
+                result.text += ". Because it is a Xenocrypt, it adds 175 points";
             }
             if (this.state.operation === 'keyword') {
                 if (this.state.encodeType === 'k3') {

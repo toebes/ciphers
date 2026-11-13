@@ -20,6 +20,7 @@ import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput, JTFLabeledInputApply } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
+import { pickRandom } from '../common/pickrandom';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
@@ -157,6 +158,23 @@ interface BaconianWordsSolverData {
      * verify pattern candidates (the solver "cheats" by knowing the answer) */
     plainAnswer: string[];
 }
+type SetWrapper = { tag: string; className: string | null; style: string };
+type SetPiece = { text: string; wrappers: SetWrapper[] };
+type SetDecoration = { line: string; color: string };
+type SetRun = {
+    text: string; font: string; size: number; color: string;
+    backgrounds: string[]; decorations: SetDecoration[];
+    shift: number; width: number; ascent: number; descent: number;
+};
+type SetPreparedItem = {
+    reference: HTMLSpanElement;
+    entries: { node: Text; probe: HTMLSpanElement }[];
+};
+type SetFrame = {
+    padding: number; scale: number; height: number;
+    baseline: number; belowBaseline: number;
+};
+
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
  * a Baconian cipher.
@@ -172,6 +190,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         ITestType.cstate,
         ITestType.bregional,
         ITestType.bstate,
+        ITestType.aregional,
+        ITestType.astate,
     ];
     public defaultstate: IBaconianState = {
         cipherString: '',
@@ -181,13 +201,14 @@ export class CipherBaconianEncoder extends CipherEncoder {
         texta: 'A',
         textb: 'B',
         abMapping: 'ABABABABABABABABABABABABAB',
-        linewidth: this.maxEncodeWidth,
+        linewidth: 55,
         zoom: 100,
         bitmap: true,
         words: [],
         autoSolverScore: undefined,
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
+    public usesBaconianTable = true;
 
     public suggestABButton: JTButtonItem = {
         title: 'Suggest AB',
@@ -203,6 +224,35 @@ export class CipherBaconianEncoder extends CipherEncoder {
     private workCanvas: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
     private useAltFont: boolean = false;
+    /** Reuse print-resolution images across A/B sets and repeated builds. */
+    private setBitmapCache = new Map<string, string>();
+    private setBitmapCacheScaleKey = '';
+
+    private clearSetBitmapCache(): void {
+        this.setBitmapCache.clear();
+        this.setBitmapCacheScaleKey = '';
+    }
+
+    private getCachedSetBitmap(runs: SetRun[], frame: SetFrame): string {
+        // Check here as well as in setZoom: restored state may bypass its setter.
+        const scaleKey = JSON.stringify([
+            this.state.zoom, frame.scale, this.useAltFont,
+        ]);
+        if (this.setBitmapCacheScaleKey !== scaleKey) {
+            this.clearSetBitmapCache();
+            this.setBitmapCacheScaleKey = scaleKey;
+        }
+
+        // Include the frame: identical letters can have different shared baselines.
+        const key = JSON.stringify([frame, runs]);
+        const cached = this.setBitmapCache.get(key);
+        if (cached !== undefined) return cached;
+
+        const result = this.renderSetBitmap(runs, frame);
+        this.setBitmapCache.set(key, result);
+        return result;
+    }
+
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
      * the realtime answers when the test is being given.
@@ -232,6 +282,28 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setTextb(this.state.textb);
         this.getFontClass();
         this.setOperation(this.state.operation);
+    }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division B, only decode is allowed
+     * Cryptanalysis is only allowed at the state level
+     *   decode - cregional/cstate/bregional/bstate
+     *   encode - cregional/cstate
+     *   crypt - cstate/bstate
+     * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
+        let result = super.CheckAppropriate(testType, anyOperation);
+        if (!result) {
+            if (!anyOperation) {
+                if ((testType === ITestType.aregional || testType === ITestType.astate) && this.state.operation !== 'let4let') {
+                    return 'Not valid for ' + this.getTestTypeName(testType);
+                }
+            }
+        }
+        return result;
     }
     /**
      * Create a Canvas for setting up images
@@ -303,6 +375,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         if (this.state.zoom !== zoom) {
             this.state.zoom = zoom;
+            this.clearSetBitmapCache();
             changed = true;
         }
         return changed;
@@ -612,80 +685,517 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns Array of strings
      */
     public buildsetbitmap(text: string, doBitmap: boolean): string[] {
-        // First we need to get rid of all the HTML elements in the string
-        // TODO: Remember BOLD/ITALIC and which characters they applied to and bring them back later on
-        const remain = decodeHTML(text.replace(/<[^>]*>/g, '')).replace(/[\s\xa0]+/g, ' ')
-        // All the entities need to be converted 
-        let result: string[] = [];
-        let lastc = undefined;
-        const Segmenter = (Intl as any).Segmenter;
-
-        const chars: string[] =
-            typeof Segmenter === 'function'
-                ? Array.from(new Segmenter(undefined, { granularity: 'grapheme' }).segment(remain), (s: any) => s.segment)
-                : this.splitGraphemes(remain);
-
-        for (const c of chars) {
-            if (c === ' ') {
-                if (lastc === undefined) {
-                    lastc = c;
-                } else {
-                    lastc += c;
-                }
-            } else {
-                if (lastc !== undefined) {
-                    result.push(lastc);
-                }
-                lastc = c;
-            }
-        }
-        if (lastc !== undefined) {
-            result.push(lastc);
-        }
-        // See if we need to change it to bitmaps.
+        const items = this.parseSetItems(text);
         if (doBitmap) {
-            // we need to go through result and convert everything to a bitmap
-            for (let i = 0; i < result.length; i++) {
-                const txt = result[i]
+            if (items.length === 0) {
+                return [];
+            }
+            return this.buildSetBitmaps(items);
+        }
+        return items.map(item => this.serializeSetItem(item));
+    }
+    private parseSetItems(text: string): SetPiece[][] {
+        const parsed = new DOMParser().parseFromString(text, 'text/html');
 
-                // Note that you have to work in px units when working with the canvas
-                // or it ends up scaling funny.
-                const defaultFontsize = 16 * this.state.zoom / 100
-                let font = 'Courier New'
-                if (this.useAltFont) {
-                    font = 'juliamono'
+        const formattingTags = new Set([
+            'strong', 'b', 'em', 'i', 'u',
+            'sub', 'sup', 's', 'strike', 'del', 'span',
+        ]);
+
+        const supportedProperties = [
+            'font-family',
+            'font-size',
+            'font-weight',
+            'font-style',
+            'color',
+            'background-color',
+            'text-decoration',
+            'text-decoration-line',
+            'text-decoration-color',
+            'vertical-align',
+        ];
+
+        let plainText = '';
+        const formatting: SetWrapper[][] = [];
+
+        const visit = (node: Node, inherited: SetWrapper[]): void => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                for (const character of node.textContent ?? '') {
+                    const value = /[\s\u00a0]/u.test(character)
+                        ? ' '
+                        : character;
+
+                    if (value === ' ' && plainText.endsWith(' ')) {
+                        continue;
+                    }
+
+                    plainText += value;
+
+                    // Index formatting by UTF-16 offset.
+                    for (let i = 0; i < value.length; i++) {
+                        formatting.push(inherited);
+                    }
                 }
-                let fontSize = `${defaultFontsize}px ${font}`
+                return;
+            }
 
-                this.canvasContext.font = fontSize
-                this.workCanvas.style.font = fontSize
-                this.workCanvas.style.fontSize = `${defaultFontsize}px`
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
 
-                const txtSize = this.canvasContext.measureText(txt)
-                let ascent = Math.max(txtSize.fontBoundingBoxAscent, txtSize.actualBoundingBoxAscent)
-                let descent = Math.max(txtSize.actualBoundingBoxDescent, txtSize.fontBoundingBoxDescent)
-                // Now we are going to *assume* that the DPI is 96 and we really want to get something that is 600 DPI.
-                // so that it prints cleanly without pixelization
-                const scaleFactor = 600 / 96
-                let height = Math.ceil((ascent + descent) * scaleFactor)
-                let width = Math.ceil(txtSize.width * scaleFactor)
+            const element = node as HTMLElement;
+            const tag = element.tagName.toLowerCase();
 
-                // console.log(`${txt}  ${txtSize.actualBoundingBoxAscent + txtSize.actualBoundingBoxDescent} x ${txtSize.width} => ${height} x ${width} ${this.canvasContext.font} `)
+            if (['script', 'style', 'template'].includes(tag)) return;
 
-                this.workCanvas.width = width
-                this.workCanvas.height = height
-                const scaledFont = defaultFontsize * scaleFactor
-                fontSize = `${scaledFont}px ${font}`
-                this.canvasContext.font = fontSize
-                this.workCanvas.style.font = fontSize
-                this.canvasContext.fillText(txt, 0, Math.ceil(ascent * scaleFactor))
+            let wrappers = inherited;
 
-                // https://stackoverflow.com/questions/12328714/convert-text-to-image-using-javascript
-                const dataURL = this.workCanvas.toDataURL()
-                result[i] = `<img src="${dataURL}" width="${txtSize.width.toFixed(2)}">`
+            if (formattingTags.has(tag)) {
+                const style = parsed.createElement('span').style;
+
+                for (const property of supportedProperties) {
+                    const value = element.style.getPropertyValue(property);
+
+                    if (value) {
+                        style.setProperty(
+                            property,
+                            value,
+                            element.style.getPropertyPriority(property),
+                        );
+                    }
+                }
+
+                wrappers = [
+                    ...inherited,
+                    {
+                        tag,
+                        className: element.getAttribute('class'),
+                        style: style.cssText,
+                    },
+                ];
+            }
+
+            for (const child of Array.from(element.childNodes)) {
+                visit(child, wrappers);
+            }
+        };
+
+        visit(parsed.body, []);
+
+        const Segmenter = (Intl as any).Segmenter;
+        const graphemes: string[] =
+            typeof Segmenter === 'function'
+                ? Array.from(
+                    new Segmenter(undefined, {
+                        granularity: 'grapheme',
+                    }).segment(plainText),
+                    (entry: any) => entry.segment,
+                )
+                : this.splitGraphemes(plainText);
+
+        const items: SetPiece[][] = [];
+        let offset = 0;
+
+        for (const grapheme of graphemes) {
+            // Append trailing spaces to the preceding grapheme.
+            if (grapheme !== ' ' || items.length === 0) {
+                items.push([]);
+            }
+
+            const item = items[items.length - 1];
+
+            for (const character of grapheme) {
+                const wrappers = formatting[offset];
+                const previous = item[item.length - 1];
+
+                if (previous && previous.wrappers === wrappers) {
+                    previous.text += character;
+                } else {
+                    item.push({ text: character, wrappers });
+                }
+
+                offset += character.length;
             }
         }
+
+        return items;
+    }
+    private serializeSetItem(item: SetPiece[]): string {
+        const escapeText = (value: string): string =>
+            value
+                .replace(/\u00a0/g, ' ')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+        // Choose an attribute delimiter that minimizes quote entities.
+        const attribute = (name: string, value: string): string => {
+            const escaped = escapeText(value);
+
+            if (!value.includes('"')) {
+                return ` ${name}="${escaped}"`;
+            }
+
+            if (!value.includes("'")) {
+                return ` ${name}='${escaped}'`;
+            }
+
+            return ` ${name}="${escaped.replace(/"/g, '&quot;')}"`;
+        };
+
+        const serialize = (piece: SetPiece): string => {
+            let html = escapeText(piece.text);
+
+            for (let i = piece.wrappers.length - 1; i >= 0; i--) {
+                const wrapper = piece.wrappers[i];
+                let attributes = '';
+
+                if (wrapper.className !== null) {
+                    attributes += attribute('class', wrapper.className);
+                }
+
+                if (wrapper.style) {
+                    attributes += attribute('style', wrapper.style);
+                }
+
+                html =
+                    `<${wrapper.tag}${attributes}>` +
+                    html +
+                    `</${wrapper.tag}>`;
+            }
+
+            return html;
+        };
+
+        return item.map(serialize).join('');
+    }
+    private makeSetItem(pieces: SetPiece[]): HTMLSpanElement {
+        const container = document.createElement('span');
+
+        for (const piece of pieces) {
+            let node: Node = document.createTextNode(piece.text);
+
+            for (let i = piece.wrappers.length - 1; i >= 0; i--) {
+                const wrapper = piece.wrappers[i];
+                const element = document.createElement(wrapper.tag);
+
+                if (wrapper.className !== null) {
+                    element.setAttribute('class', wrapper.className);
+                }
+
+                if (wrapper.style) {
+                    element.setAttribute('style', wrapper.style);
+                }
+
+                element.appendChild(node);
+                node = element;
+            }
+
+            container.appendChild(node);
+        }
+
+        return container;
+    }
+    private makeSetProbeTemplate(): HTMLSpanElement {
+        const probe = document.createElement('span');
+
+        const properties: Record<string, string> = {
+            display: 'inline-block',
+            width: '0',
+            height: '0',
+            padding: '0',
+            margin: '0',
+            border: '0',
+            'font-size': '0',
+            'line-height': '0',
+            'vertical-align': 'baseline',
+            position: 'static',
+            float: 'none',
+            transform: 'none',
+        };
+
+        for (const [property, value] of Object.entries(properties)) {
+            probe.style.setProperty(property, value, 'important');
+        }
+
+        return probe;
+    }
+
+    /** Build every item and probe before performing any layout reads. */
+    private prepareSetItems(items: SetPiece[][], host: HTMLElement): SetPreparedItem[] {
+        const template = this.makeSetProbeTemplate();
+        const cloneProbe = (): HTMLSpanElement =>
+            template.cloneNode(false) as HTMLSpanElement;
+        const fragment = document.createDocumentFragment();
+
+        const prepared = items.map(pieces => {
+            const item = this.makeSetItem(pieces);
+            const reference = cloneProbe();
+            item.appendChild(reference);
+
+            // Collect text nodes before inserting probes.
+            const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+            const nodes: Text[] = [];
+            let node: Node | null;
+            while ((node = walker.nextNode())) nodes.push(node as Text);
+
+            const entries = nodes.map(node => {
+                const probe = cloneProbe();
+                node.parentNode!.insertBefore(probe, node.nextSibling);
+                return { node, probe };
+            });
+
+            fragment.appendChild(item);
+            return { reference, entries };
+        });
+
+        host.appendChild(fragment);
+        return prepared;
+    }
+
+    /** Read styles and positions without changing the connected DOM. */
+    private measureSetItems(
+        prepared: SetPreparedItem[], host: HTMLElement, defaultSize: number,
+    ): SetRun[][] {
+        const ctx = this.canvasContext;
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'left';
+        ctx.direction = 'ltr';
+        const metricsCache = new Map<string, TextMetrics>();
+        const styleCache = new WeakMap<Element, CSSStyleDeclaration>();
+        const getStyle = (element: Element): CSSStyleDeclaration => {
+            let style = styleCache.get(element);
+            if (!style) {
+                style = getComputedStyle(element);
+                styleCache.set(element, style);
+            }
+            return style;
+        };
+        return prepared.map(({ reference, entries }) => {
+            const referenceTop = reference.getBoundingClientRect().top;
+            const runs: SetRun[] = [];
+            for (const { node, probe } of entries) {
+                const parent = node.parentElement!;
+                const css = getStyle(parent);
+                const size = parseFloat(css.fontSize) || defaultSize;
+                const font =
+                    `${css.fontStyle} ${css.fontWeight} ` +
+                    `${size}px ${css.fontFamily}`;
+
+                const backgrounds: string[] = [];
+                const decorations: SetDecoration[] = [];
+                const ancestors: HTMLElement[] = [];
+
+                let ancestor: HTMLElement | null = parent;
+
+                while (ancestor && ancestor !== host) {
+                    ancestors.unshift(ancestor);
+                    ancestor = ancestor.parentElement;
+                }
+
+                for (const element of ancestors) {
+                    const style = getStyle(element);
+
+                    if (
+                        style.backgroundColor !== 'transparent' &&
+                        style.backgroundColor !== 'rgba(0, 0, 0, 0)'
+                    ) {
+                        backgrounds.push(style.backgroundColor);
+                    }
+
+                    if (
+                        style.textDecorationLine &&
+                        style.textDecorationLine !== 'none'
+                    ) {
+                        decorations.push({
+                            line: style.textDecorationLine,
+                            color: style.textDecorationColor || style.color,
+                        });
+                    }
+
+                }
+
+                const shift = probe.getBoundingClientRect().top - referenceTop;
+                const value = node.textContent ?? '';
+                const metricsKey = JSON.stringify([font, value]);
+                let metrics = metricsCache.get(metricsKey);
+                if (!metrics) {
+                    ctx.font = font;
+                    metrics = ctx.measureText(value);
+                    metricsCache.set(metricsKey, metrics);
+                }
+
+                runs.push({
+                    text: value,
+                    font,
+                    size,
+                    color: css.color,
+                    backgrounds,
+                    decorations,
+                    shift,
+                    width: metrics.width,
+                    ascent: Math.max(
+                        metrics.fontBoundingBoxAscent || 0,
+                        metrics.actualBoundingBoxAscent || 0,
+                        size * 0.8,
+                    ),
+                    descent: Math.max(
+                        metrics.fontBoundingBoxDescent || 0,
+                        metrics.actualBoundingBoxDescent || 0,
+                        size * 0.2,
+                    ),
+                });
+
+            }
+            return runs;
+        });
+    }
+
+    private measureSetFrame(
+        measuredItems: SetRun[][], defaultSize: number, fontFamily: string,
+    ): SetFrame {
+        const ctx = this.canvasContext;
+        const padding = 2;
+
+        // Include the normal font so even an entirely superscript or subscript
+        // set retains its position relative to an ordinary text baseline.
+        ctx.font = `${defaultSize}px "${fontFamily}"`;
+        ctx.textBaseline = 'alphabetic';
+
+        const normalMetrics = ctx.measureText('Mg');
+
+        let sharedAscent = Math.max(
+            normalMetrics.fontBoundingBoxAscent || 0,
+            normalMetrics.actualBoundingBoxAscent || 0,
+            defaultSize * 0.8,
+        );
+
+        let sharedDescent = Math.max(
+            normalMetrics.fontBoundingBoxDescent || 0,
+            normalMetrics.actualBoundingBoxDescent || 0,
+            defaultSize * 0.2,
+        );
+
+        for (const runs of measuredItems) {
+            for (const run of runs) {
+                sharedAscent = Math.max(
+                    sharedAscent,
+                    run.ascent - run.shift,
+                );
+
+                sharedDescent = Math.max(
+                    sharedDescent,
+                    run.descent + run.shift,
+                );
+            }
+        }
+
+        const height = sharedAscent + sharedDescent + padding * 2;
+        const sharedBaseline = padding + sharedAscent;
+
+        // Distance from the image's bottom edge to its text baseline.
+        const belowBaseline = padding + sharedDescent;
+
+        return {
+            padding, scale: 600 / 96, height,
+            baseline: sharedBaseline, belowBaseline
+        };
+    }
+
+    private renderSetBitmap(runs: SetRun[], frame: SetFrame): string {
+        const ctx = this.canvasContext;
+        const { padding, scale, height, belowBaseline } = frame;
+        const width =
+            runs.reduce((total, run) => total + run.width, 0) +
+            padding * 2;
+
+        this.workCanvas.width = Math.max(
+            1, Math.ceil(width * scale),
+        );
+        this.workCanvas.height = Math.max(
+            1, Math.ceil(height * scale),
+        );
+
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'left';
+        ctx.direction = 'ltr';
+
+        let x = padding;
+
+        for (const run of runs) {
+            const baseline = frame.baseline + run.shift;
+
+            for (const background of run.backgrounds) {
+                ctx.fillStyle = background;
+                ctx.fillRect(
+                    x,
+                    baseline - run.ascent,
+                    run.width,
+                    run.ascent + run.descent,
+                );
+            }
+
+            ctx.font = run.font;
+            ctx.fillStyle = run.color;
+            ctx.fillText(run.text, x, baseline);
+
+            for (const decoration of run.decorations) {
+                ctx.strokeStyle = decoration.color;
+                ctx.lineWidth = Math.max(0.5, run.size / 16);
+
+                const drawLine = (y: number): void => {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + run.width, y);
+                    ctx.stroke();
+                };
+
+                if (decoration.line.includes('underline')) {
+                    drawLine(baseline + run.size * 0.1);
+                }
+
+                if (decoration.line.includes('line-through')) {
+                    drawLine(baseline - run.size * 0.3);
+                }
+
+                if (decoration.line.includes('overline')) {
+                    drawLine(baseline - run.ascent);
+                }
+            }
+
+            x += run.width;
+        }
+
+        const result =
+            `<img src="${this.workCanvas.toDataURL()}" ` +
+            `width="${width.toFixed(2)}" ` +
+            `height="${height.toFixed(2)}" ` +
+            `style="vertical-align: -${belowBaseline.toFixed(2)}px;">`;
+
         return result;
+    }
+
+    private buildSetBitmaps(items: SetPiece[][]): string[] {
+        const defaultSize = 16 * this.state.zoom / 100;
+        const fontFamily = this.useAltFont ? 'juliamono' : 'Courier New';
+        const host = document.createElement('div');
+        Object.assign(host.style, {
+            position: 'fixed', left: '-100000px', top: '0',
+            visibility: 'hidden', pointerEvents: 'none', whiteSpace: 'pre',
+            fontFamily, fontSize: `${defaultSize}px`, color: '#000000',
+        });
+
+        try {
+            const prepared = this.prepareSetItems(items, host);
+            document.body.appendChild(host);
+            const measured = this.measureSetItems(prepared, host, defaultSize);
+            const frame = this.measureSetFrame(measured, defaultSize, fontFamily);
+            // All geometry and styles have now been copied into plain values.
+            host.remove();
+
+            return measured.map(runs => this.getCachedSetBitmap(runs, frame));
+        } finally {
+            host.remove();
+        }
     }
     /**
      * 
@@ -707,6 +1217,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let sharedpos = 0;
         // Build up a proper set for the a and b strings
         let aset = this.buildset(this.state.texta);
+
         if (aset.length === 0) {
             aset.push(" ")
         }
@@ -824,13 +1335,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         this.setErrorMsg(msg, 'tsz')
-
+        let aSet: string[] = [];
+        let bSet: string[] = [];
         msg = ''
         if (this.state.operation === 'words') {
             if (!this.ValidateAllWords()) {
                 msg = "Not all of the words have been selected for the mapping"
             }
         } else {
+            aSet = this.buildsetbitmap(this.state.texta, false);
+            bSet = this.buildsetbitmap(this.state.textb, false);
+
             const texta = this.removeHtml(this.state.texta)
             const textb = this.removeHtml(this.state.textb)
             if (texta === "A" || texta === "" || textb === "B" || textb === "") {
@@ -842,8 +1357,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that A and B are same length, and each has a length of >=2
         msg = '';
         if (this.state.operation === 'sequence') {
-            let aSet = this.buildsetbitmap(this.state.texta, false);
-            let bSet = this.buildsetbitmap(this.state.textb, false);
             if (aSet.length != bSet.length) {
                 msg = 'The A and B texts are different lengths';
             }
@@ -857,12 +1370,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that A and B don't have the same character at the same location (like CAT and HAG have the same A, but BAT and AGE are ok)
         msg = '';
         if (this.state.operation === 'sequence') {
-            let aSet = this.buildsetbitmap(this.state.texta, false);
-            let bSet = this.buildsetbitmap(this.state.textb, false);
-
             let charMatchedIndex = -1;
             for (let i = 0; i < aSet.length; i++) {
-                // console.log(aSet[i]);
                 if (aSet[i] == bSet[i]) {
                     charMatchedIndex = i;
                     break;
@@ -874,14 +1383,12 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         if (this.state.operation === 'let4let') {
-            let aSet = this.buildsetbitmap(this.state.texta, false);
-            let bSet = this.buildsetbitmap(this.state.textb, false);
+
             let dupeLetter = '';
             for (let i = 0; i < aSet.length && dupeLetter == ''; i++) {
                 for (let j = 0; j < bSet.length && dupeLetter == ''; j++) {
                     if (aSet[i] == bSet[j]) {
                         dupeLetter = aSet[i];
-                        // console.log(dupeLetter);
                     }
                 }
             }
@@ -909,8 +1416,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that the line width is a multiple of the sequence length.
         msg = '';
         if (this.state.operation === 'sequence') {
-            let aset = this.buildset(this.state.texta);
-            if (this.state.linewidth % aset.length != 0) {
+            if (this.state.linewidth % aSet.length != 0) {
                 msg = 'The line width is not a multiple of the sequence length.'
             }
         }
@@ -930,8 +1436,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
-
-
     }
 
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string, warnlevel: string): boolean {
@@ -1053,7 +1557,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const ct = this.getCipherTextForCrib(pos, pt.length)
         if (ct !== '') {
             const rec = new RegExp('\\b' + ct.replace(/[ \s+]/g, '[\\s\\.,;\\-!]+') + '\\b');
-            // console.log(rec)
             if (questionText.match(rec) !== null) {
                 return true;
             }
@@ -1117,6 +1620,105 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return true;
     }
     /**
+     * Figure out how hard the A/B letter mapping of a Words Baconian is to spot.
+     * This works from the mapping itself so that older saved questions which
+     * don't remember the pattern they were built from are still scored.
+     * @returns Points to add for the pattern and a description of it
+     */
+    public classifyABPattern(): { points: number, text: string } {
+        const map = this.state.abMapping
+        // See if this is one of the standard blocks of As followed by Bs (the 1-9 and 13 buttons),
+        // possibly toggled or shifted.  These are checked directly because the larger blocks
+        // repeat every 14 to 26 letters, which is too long to find with the repeat check below.
+        for (let half = 1; half <= 13; half++) {
+            const block = this.repeatStr('A', half) + this.repeatStr('B', half)
+            let full = ''
+            while (full.length < map.length + block.length) {
+                full += block
+            }
+            const shift = full.indexOf(map)
+            if (shift < 0) {
+                continue
+            }
+            if (half === 1) {
+                return { points: 0, text: 'The A/B pattern simply alternates, which is the easiest pattern to spot.' }
+            }
+            // A shift of 0 is the plain block and a shift of half is the same block toggled B/A
+            if (shift === 0 || shift === half) {
+                return { points: 10, text: `The A/B pattern is a standard block of ${half}, which makes it about 10 points harder.` }
+            }
+            return { points: 20, text: `The A/B pattern is a standard block of ${half} shifted by an offset, which makes it about 20 points harder.` }
+        }
+        // Find the shortest length (up to half the alphabet) that the mapping repeats at
+        let period = 0
+        for (let p = 1; p <= map.length / 2 && period === 0; p++) {
+            let repeats = true
+            for (let i = 0; i + p < map.length; i++) {
+                if (map.charAt(i) !== map.charAt(i + p)) {
+                    repeats = false
+                    break
+                }
+            }
+            if (repeats) {
+                period = p
+            }
+        }
+        if (period === 0) {
+            return { points: 40, text: 'The A/B pattern does not repeat, which makes it about 40 points harder.' }
+        }
+        // Anything else is a custom pattern
+        const pattern = this.state.abPattern
+        if (pattern !== undefined && pattern.length > 0 && this.state.abOffset !== undefined) {
+            const offset = ((this.state.abOffset % pattern.length) + pattern.length) % pattern.length
+            if (offset !== 0) {
+                return { points: 40, text: `The A/B pattern is a custom pattern repeating every ${period} letters and shifted by an offset, which makes it about 40 points harder.` }
+            }
+        }
+        return { points: 30, text: `The A/B pattern is a custom pattern repeating every ${period} letters, which makes it about 30 points harder.` }
+    }
+    /**
+     * Figure out how hard the A Text/B Text of a Sequence Baconian are to tell apart
+     * by comparing each position of the A Text with the same position of the B Text.
+     * @returns Points to add for the pattern and a description of it
+     */
+    public classifySequencePattern(): { points: number, text: string } {
+        // Get the plain text of each symbol along with any formatting applied to it
+        const getSymbols = (text: string): { base: string, marks: string }[] => {
+            return this.parseSetItems(text).map(item => {
+                const str = item.map(piece => piece.text).join('').trim().normalize('NFKD')
+                const format = item.map(piece => piece.wrappers.map(w => `${w.tag}${w.style}`).join('')).join('')
+                let base = ''
+                let marks = []
+                for (const c of str) {
+                    const code = c.charCodeAt(0)
+                    // Combining diacritical marks (including the extended and supplement blocks)
+                    if ((code >= 0x0300 && code <= 0x036f) || (code >= 0x1ab0 && code <= 0x1aff) ||
+                        (code >= 0x1dc0 && code <= 0x1dff) || (code >= 0x20d0 && code <= 0x20ff) ||
+                        (code >= 0xfe20 && code <= 0xfe2f)) {
+                        marks.push(c)
+                    } else {
+                        base += c
+                    }
+                }
+                return { base: base.toLowerCase(), marks: marks.sort().join('') + format }
+            })
+        }
+        const aSyms = getSymbols(this.state.texta)
+        const bSyms = getSymbols(this.state.textb)
+        const len = Math.min(aSyms.length, bSyms.length)
+        for (let i = 0; i < len; i++) {
+            if (aSyms[i].base !== bSyms[i].base) {
+                return { points: 70, text: 'The A Text and B Text use different symbols in the same position, which makes it about 70 points harder.' }
+            }
+        }
+        const aMarks = new Set(aSyms.map(s => s.marks))
+        const bMarks = new Set(bSyms.map(s => s.marks))
+        if (aMarks.size <= 1 && bMarks.size <= 1) {
+            return { points: 0, text: 'Every symbol in the A Text is marked the same way, as is every symbol in the B Text, which is the easiest kind of pattern to spot.' }
+        }
+        return { points: 35, text: 'The marks change from symbol to symbol within the A Text or B Text, which makes it about 35 points harder.' }
+    }
+    /**
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher and text description
       */
@@ -1127,41 +1729,64 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let min = 0
         let range = 0
         let text = ''
+        let extra = ''
         let autoSolverText = ''
         if (this.state.operation === 'words') {
-            const hints = this.countCribHints();
-            suggested = 20 + Math.round((qdata.len * 6) + ((13 - hints) * 3))
+            // The work in a Words Baconian is mostly spotting the A/B pattern and
+            // then looking up each word, so the length counts for less than the
+            // pattern, the crib and how hard the Auto-Solver had to work.
+            suggested = 250 + Math.round(qdata.len * 2)
             range = 20
+            const pattern = this.classifyABPattern();
+            suggested += pattern.points
+            extra += ` ${pattern.text}`
+            // A shorter crib reveals fewer letters, which makes the pattern harder to find
+            const hints = this.countCribHints();
+            const cribAdd = Math.max(0, (8 - hints) * 3)
+            if (cribAdd > 0) {
+                suggested += cribAdd
+                extra += ` The crib only reveals ${hints} distinct letters, which makes it about ${cribAdd} points harder.`
+            }
             if (this.state.autoSolverScore === undefined) {
                 autoSolverText = `The Auto-Solver has not run on this question yet, so the score may need to be adjusted.`
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOCRIB) {
-                autoSolverText = `The Auto-Solver was not able to run without a Crib, so we add 250 points.`
-                suggested += 250
+                autoSolverText = `The Auto-Solver was not able to run without a Crib, so we add 60 points.`
+                suggested += 60
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOPATTERN) {
-                autoSolverText = `The Auto-Solver was not able to determine the A/B pattern, so we add 200 points.`
-                suggested += 200
+                autoSolverText = `The Auto-Solver was not able to determine the A/B pattern, so we add 50 points.`
+                suggested += 50
             } else if (this.state.autoSolverScore > 1.25) {
-                const add = Math.min(300, Math.round((this.state.autoSolverScore - 1.25) * 100))
+                const add = Math.min(50, Math.round((this.state.autoSolverScore - 1.25) * 40))
                 autoSolverText = `The Auto-Solver had to work harder than usual to determine the A/B pattern, so we add ${add} points [autosolverScore=${this.state.autoSolverScore.toFixed(2)}].`
                 suggested += add
             }
         } else {
             let aSet = this.buildset(this.state.texta)
             let bSet = this.buildset(this.state.textb)
+            range = 20
             if (this.state.operation === 'sequence') {
-                suggested = Math.round((qdata.len * 5.8))
-                range = 20
-                if (aSet.length !== bSet.length || aSet.length % 5 !== 0) {
-                    range += 20
-                    suggested += 30;
+                suggested = 85 + Math.round(qdata.len * 3.5)
+                const pattern = this.classifySequencePattern();
+                suggested += pattern.points
+                extra += ` ${pattern.text}`
+                if (aSet.length > 4) {
+                    const add = (aSet.length - 4) * 5
+                    suggested += add
+                    extra += ` The A Text has ${aSet.length} symbols to keep track of, which makes it about ${add} points harder.`
                 }
             } else {
-                suggested = Math.round((qdata.len * 5.8) + (aSet.length + bSet.length) * 2)
-                range = (aSet.length + bSet.length) * 10
+                suggested = 60 + Math.round(qdata.len * 4.5) + (aSet.length + bSet.length) * 4
+                extra += ` There are ${aSet.length} A symbols and ${bSet.length} B symbols, which adds ${(aSet.length + bSet.length) * 4} points.`
+            }
+            if (aSet.length !== bSet.length) {
+                suggested += 25
+                range += 20
+                extra += ` The A and B Texts have a different number of symbols, which makes it about 25 points harder.`
             }
             if (this.state.linewidth % 5 !== 0) {
                 suggested += 25;
                 range += 10;
+                extra += ` The line width is not a multiple of 5, which makes it about 25 points harder.`
             }
         }
         min = Math.max(suggested - range, 125)
@@ -1173,14 +1798,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
             rangetext = ` (From a range of ${min} to ${max})`
         }
         if (qdata.len > 2) {
-            text += `<p>There are ${qdata.len} characters in the quote.
+            text += `<p>There are ${qdata.len} characters in the quote.${extra}
              We suggest you try a score of ${suggested}${rangetext}</p>`
         }
         if (autoSolverText !== '') {
             text += `<p><b>NOTE:</b><em> ${autoSolverText}</em></p>`
         }
-        if (this.state.operation !== 'words') {
-            text += `<p><b>NOTE:</b><em>If the A Text/B Text Pattern is really obvious or really obscure,
+        if (this.state.operation === 'let4let') {
+            text += `<p><b>NOTE:</b><em> The suggested score can not judge how hard the A Text/B Text symbols are to tell apart.
+            If one simple visual rule separates them (such as hollow vs. filled, upper vs. lower case, or circled vs. plain),
+            consider lowering the score by about 30 points.  If there is no visual rule and the symbols have to be
+            memorized (such as a theme or unrelated symbols), consider raising it by about 40 points.</em></p>`
+        } else if (this.state.operation === 'sequence') {
+            text += `<p><b>NOTE:</b><em> If the A Text/B Text Pattern is really obvious or really obscure,
             you may want to adjust the score lower or higher as appropriate.</em></p>`
         }
 
@@ -1193,13 +1823,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param crib string to look for
      * @returns String containing Cipher text characters correspond to the crib
      */
-    public placeCrib(): number {
+    public placeCrib(crib: string = this.state.crib): number {
         // If they haven't given us a crib, then we don't have to worry about placing it
-        if (this.state.crib === undefined || this.state.crib === '') {
+        if (crib === undefined || crib === '') {
             return 0;
         }
         const plaintext = this.minimizeString(this.getEncodingString());
-        const criblook = this.minimizeString(this.state.crib);
+        const criblook = this.minimizeString(crib);
         // See if the crib occurs anywhere in the cipher string
         let pos = plaintext.search(criblook);
         // If not found then we are done
@@ -1234,17 +1864,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (cribpos === undefined) {
             return 0;
         }
-        // Go through and figure out what letters we have mapped with the hint
+        // Go through and figure out what letters we have mapped with the hint.
+        // Only the letters covered by the crib count, not the whole quote.
         const criblen = this.minimizeString(this.state.crib).length;
+        const plaintext = this.minimizeString(this.getEncodingString());
         const found: BoolMap = {}
         for (let i = cribpos; i < cribpos + criblen; i++) {
-            let ciphertext = this.minimizeString(this.getEncodingString());
-
-            for (const c of ciphertext)
-                if (!found[c]) {
-                    hintcount++;
-                    found[c] = true
-                }
+            const c = plaintext.charAt(i);
+            if (c !== '' && !found[c]) {
+                hintcount++;
+                found[c] = true
+            }
         }
         return hintcount
     }
@@ -1302,9 +1932,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 'text',
                 'crib',
                 this.state.crib,
-                'crib small-12 medium-12 large-12 opfield words'
+                'crib small-12 medium-12 large-12 opfield words',
+                $('<a/>', { type: 'button', class: 'button primary tight', id: 'suggestcrib' }).text('Suggest Crib')
             )
         );
+        result.append(this.createSuggestCribDlg());
 
         result.append(
             $('<p/>', { class: 'opfield words' }).text(
@@ -1636,7 +2268,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         content: elem
                     })
                 } else {
-                    let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                    // let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                    let ct = line.ciphertext[i].replace(
+                        /<[^>]*>| /g,
+                        match => match === ' ' ? '\xa0' : match,
+                    );
                     rowcipher.add({
                         settings: { class: "b" },
                         content: ct
@@ -2087,9 +2723,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * have already determined and don't cause any cipher word to start with BB.
      * @param solverData Current solver state
      * @param rejected (output) pattern lengths that conflicted with the known letters
+     * @param limit Stop looking once this many candidates have been found
      * @returns List of full 26 letter mappings worth testing
      */
-    public findABPatternCandidates(solverData: BaconianWordsSolverData, rejected: number[]): string[] {
+    public findABPatternCandidates(solverData: BaconianWordsSolverData, rejected: number[], limit = 50): string[] {
         const charset = this.getCharset();
         const candidates: string[] = [];
         const seen: BoolMap = {};
@@ -2150,7 +2787,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
                 if (legal) {
                     candidates.push(mapping);
-                    if (candidates.length >= 50) {
+                    if (candidates.length >= limit) {
                         return candidates;
                     }
                 }
@@ -2187,7 +2824,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
                 if (legal) {
                     candidates.push(mapping);
-                    if (candidates.length >= 50) {
+                    if (candidates.length >= limit) {
                         return candidates;
                     }
                 }
@@ -2484,6 +3121,125 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.isLoading = false;
     }
     /**
+     * Generates a dialog showing the choices for Cribs
+     */
+    public createSuggestCribDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestCribOpts' }));
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button cribRegenerate' }).text('Regenerate'))
+                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Cancel'))
+        );
+        return JTFDialog('suggestCribDLG', 'Suggest Crib', dlgContents);
+    }
+    /**
+     * Fill the Suggest Crib dialog with 10 random 4 and 5 letter cribs from the plain text.
+     * The cribs are ranked by how many of the letters in the A/B mapping table they reveal,
+     * with the regular ones picked from the top half and the harder ones from the bottom half.
+     * The number of possible patterns is what the Auto-Solver would have to pick from.
+     */
+    public genCribSuggestions(): void {
+        const output = $('#suggestCribOpts').empty();
+        const charset = this.getCharset();
+        const plaintext = this.minimizeString(this.getEncodingString());
+        const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+        // The solver steps write out their explanation, so give them a scratch place to put it
+        const scratch = $('<div/>');
+        const cribs: { crib: string; revealed: number; patterns: number }[] = [];
+        const seen: BoolMap = {};
+        for (let len = 4; len <= 5; len++) {
+            for (let i = 0; i + len <= plaintext.length; i++) {
+                const crib = plaintext.substring(i, i + len);
+                if (seen[crib]) {
+                    continue;
+                }
+                seen[crib] = true;
+                const pos = this.placeCrib(crib);
+                const solverData: BaconianWordsSolverData = { abKnown: {}, cipherWords: [], plainAnswer: [] };
+                for (const c of charset) {
+                    solverData.abKnown[c] = '?';
+                }
+                for (let j = 0; j < encoded.cipherword.length; j++) {
+                    solverData.cipherWords.push(this.minimizeString(encoded.cipherword[j].toUpperCase()));
+                    solverData.plainAnswer.push(encoded.plainword[j]);
+                }
+                if (!this.solveCribLetters(scratch, solverData, encoded, pos, crib.toUpperCase())) {
+                    continue;
+                }
+                let revealed = 0;
+                for (const c of charset) {
+                    if (solverData.abKnown[c] !== '?') {
+                        revealed++;
+                    }
+                }
+                // Count the patterns the same way the Auto-Solver does
+                this.applyBBStartRule(scratch, solverData);
+                const patterns = this.findABPatternCandidates(solverData, [], Infinity)
+                    .filter((mapping) => this.isReasonablePattern(mapping)).length;
+                cribs.push({ crib: crib, revealed: revealed, patterns: patterns });
+            }
+        }
+        if (cribs.length === 0) {
+            output.text('The plain text is too short to suggest a crib.');
+            return;
+        }
+        // Most letters revealed first, and fewer patterns to try breaks a tie
+        const byRank = (a: { revealed: number; patterns: number }, b: { revealed: number; patterns: number }): number =>
+            b.revealed - a.revealed || a.patterns - b.patterns;
+        cribs.sort(byRank);
+        const half = Math.ceil(cribs.length / 2);
+        const regular = pickRandom(cribs.slice(0, half), 7).sort(byRank);
+        const harder = pickRandom(cribs.slice(half), 3).sort(byRank);
+        const table = new JTTable({ class: 'cell shrink suggestcrib' });
+        table.addHeaderRow(['', 'Crib', `Letters Revealed (of ${charset.length})`, 'Possible Patterns']);
+        for (const c of regular.concat(harder)) {
+            const extraclass = harder.includes(c) ? ' warning' : '';
+            const useButton = $('<a/>', { type: 'button', class: `button rounded cribset abbuttons${extraclass}`, 'data-crib': c.crib })
+                .text('Use')
+                .on('click', (e) => this.useCrib(e.target));
+            table.addBodyRow([useButton, c.crib, String(c.revealed), String(c.patterns)]);
+        }
+        output.append(table.generate());
+    }
+    /**
+     * Determine if a mapping comes from a pattern someone would reasonably use:
+     * a short repeating pattern (4 or fewer long like AB or AAB), a block of A's
+     * followed by a block of B's (like AAABB or the pattern buttons make), or two
+     * of those blocks with every run at least 2 long (like AABBAAABBB)
+     * @param mapping 26 character string of A/B values in charset order
+     */
+    public isReasonablePattern(mapping: string): boolean {
+        const unit = this.getRepeatingUnit(mapping);
+        if (unit.length <= 4) {
+            return true;
+        }
+        // Rotate the repeat so that it starts at the beginning of a run
+        let start = 0;
+        while (unit.charAt(start) === unit.charAt((start + unit.length - 1) % unit.length)) {
+            start++;
+        }
+        const runs = (unit.substring(start) + unit.substring(0, start)).match(/A+|B+/g);
+        return runs.length === 2 || (runs.length === 4 && runs.every((run) => run.length >= 2));
+    }
+    /**
+     * Put up the dialog to suggest a crib
+     */
+    public suggestCrib(): void {
+        this.genCribSuggestions();
+        $('#suggestCribDLG').foundation('open');
+    }
+    /**
+     * Use the crib from a suggestion button
+     * @param elem Use button that was clicked
+     */
+    public useCrib(elem: HTMLElement): void {
+        this.markUndo(null);
+        this.setCrib($(elem).attr('data-crib'));
+        $('#suggestCribDLG').foundation('close');
+        this.updateOutput();
+    }
+    /**
      * Generates a dialog showing the choices for AB patterns
      */
     public createSuggestABDlg(): JQuery<HTMLElement> {
@@ -2709,6 +3465,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#suggestcrib')
+            .off('click')
+            .on('click', () => {
+                this.suggestCrib();
+            });
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions();
+            });
 
         $('#texta')
             .off('richchange')

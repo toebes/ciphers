@@ -476,9 +476,14 @@ export class CipherHomophonicEncoder extends CipherEncoder {
      * @returns Total number of questions found
      */
     public searchForQuestions(qcount: number, action: (count: number, question: string, warnlevel: string) => boolean, _warnlevel: string): number {
-        const normalCount = Math.ceil(qcount / 2);
-        const warningCount = Math.floor(qcount / 2);
-        return super.searchForQuestions(normalCount, action, "") + super.searchForQuestions(warningCount, action, "warning");
+        if (this.state.operation == 'decode') {
+            const normalCount = Math.ceil(qcount / 2);
+            const warningCount = Math.floor(qcount / 2);
+            return super.searchForQuestions(normalCount, action, "") + super.searchForQuestions(warningCount, action, "warning");
+        }
+        else {
+            return super.searchForQuestions(qcount, action, "");
+        }
     }
     /**
      * This function identifies the crib placement for cryptanalysis and returns question text describing the placement.
@@ -507,6 +512,8 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     /**
       * Generate the recommended score and score ranges for a cipher
       * If the Block Size is non-zero, add 40 points.
+      * A cryptanalysis is adjusted by the length of the crib and a decode by
+      * how many letters of the keyword are given.
       * @returns Computed score ranges for the cipher and text description
       */
     public genScoreRangeAndText(): suggestedData {
@@ -523,13 +530,44 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         let straightModifier = 120;
         if (this.state.cipherType === ICipherType.Homophonic) {
             range = 10
-            if (usedOnA) {
-                scaleFactor = 1.2
-            }
-            suggested = Math.round(scaleFactor * qdata.len * 2.25 + straightModifier)
+            suggested = Math.round(qdata.len * 2.25 + straightModifier)
             if (this.state.blocksize > 0) {
                 suggested += 40;
                 extra += ` The block size is not equal to zero, making it about 40 points harder.`;
+            }
+            if (this.state.operation === 'decode') {
+                // The fewer keyword letters given, the more work to recover the keyword
+                const keyword = this.minimizeString(this.state.keyword);
+                const hintLetters = hint === '' ? keyword.length : hint.length;
+                let add = 40;
+                if (hintLetters <= 1) {
+                    add = 150;
+                } else if (hintLetters === 2) {
+                    add = 125;
+                } else if (hintLetters === 3) {
+                    add = 75;
+                }
+                suggested += add;
+                extra += ` A decode with ${hintLetters} keyword letter${hintLetters === 1 ? '' : 's'} given makes it about ${add} points harder.`;
+            } else {
+                // The shorter the crib, the less of the mapping is given away
+                const criblen = this.minimizeString(this.state.crib).length;
+                let add = -25;
+                if (criblen <= 1) {
+                    add = 75;
+                } else if (criblen === 2) {
+                    add = 50;
+                } else if (criblen === 3) {
+                    add = 0;
+                } else if (criblen === 4) {
+                    add = -15;
+                }
+                suggested += add;
+                if (add > 0) {
+                    extra += ` A crib of only ${criblen} letter${criblen === 1 ? '' : 's'} makes it about ${add} points harder.`;
+                } else if (add < 0) {
+                    extra += ` A crib of ${criblen} letters makes it about ${-add} points easier.`;
+                }
             }
         } else {
             range = 15
@@ -544,14 +582,6 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                 suggested -= 15
             } else if (qdata.minlength === 2) {
                 suggested -= 10
-            }
-        }
-        if (this.state.operation === 'decode') {
-            suggested += 55;
-            extra += ` A decode problem adds extra work, which makes it about 55 points harder.`;
-            if (hint.length < 3) {
-                suggested += 45;
-                extra += ` Less than three hint characters are provided, making it about 45 points harder.`;
             }
         }
 
@@ -595,12 +625,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
     }
     public checkHint(): void {
         let emsg = ''
+        const testUsage = this.getTestUsage();
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
         if (this.state.operation === 'decode') {
             // Make sure all of the hint characters occur exactly once in the crib
-            const testUsage = this.getTestUsage();
-            const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
-            let hintText = this.minimizeString(this.state.hint)
-            let keyText = this.minimizeString(this.state.keyword)
+            const hintText = this.minimizeString(this.state.hint)
+            const keyText = this.minimizeString(this.state.keyword)
             const minHint = usedOnB ? 3 : 2
             if (hintText.length < minHint) {
                 emsg = `There needs to be at least ${minHint} hint characters provided`
@@ -620,6 +650,12 @@ export class CipherHomophonicEncoder extends CipherEncoder {
                     }
                     seen[c] = true
                 }
+            }
+        } else if (this.state.operation === 'crypt') {
+            const cribText = this.minimizeString(this.state.crib)
+            const minCrib = usedOnB ? 3 : 2
+            if (cribText.length < minCrib) {
+                emsg = `There needs to be at least ${minCrib} crib characters provided`
             }
         }
         this.setErrorMsg(emsg, 'hint');
@@ -1935,6 +1971,9 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         const charset = this.getSourceCharset()
         for (let rownum = 0; rownum < HOMOPHONE_COUNT; rownum++) {
             let kwchar = keyword[rownum] ?? '?';
+            if (kwchar === 'J') {
+                kwchar = 'I';
+            }
             let kwindex = charset.indexOf(kwchar);
             if (keyword !== '' && rownum >= keyword.length) {
                 break

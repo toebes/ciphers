@@ -118,6 +118,19 @@ span.sscore {
     float: right;
     font-size: smaller;
 }
+
+.text-huge {
+    font-size: xx-large;
+}
+.text-big {
+    font-size: x-large;
+}
+.text-small {
+    font-size: x-small;
+}
+.text-tiny {
+    font-size: xx-small;
+}
 :target {
     background-color: #ffffcc !important;
 }

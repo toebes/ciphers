@@ -238,8 +238,30 @@ export class CipherEncoder extends CipherHandler {
         this.setErrorMsg(msg, 'vq');
         if (this.state.placeholder) {
             msg = "The Question Text needs to be updated from the generated placeholder.";
+        } else if (this.isQuestionTextOnOtherTestQuestion()) {
+            msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
         }
         this.setErrorMsg(msg, 'pq');
+    }
+    /**
+     * Check whether another question on any test containing this question
+     * has the same question text (ignoring HTML, punctuation, spacing and case).
+     * Only the other questions are compared, so a question never matches itself.
+     * @returns true if the question text is duplicated on one of its tests
+     */
+    public isQuestionTextOnOtherTestQuestion(): boolean {
+        const key = this.makeQuestionKey(this.state.question ?? '', Infinity);
+        if (key === '') {
+            return false;
+        }
+        for (const qnum of this.getOtherTestQuestions()) {
+            const other = this.getFileEntry(qnum);
+            if (other !== undefined && other !== null && !(other as IEncoderState).placeholder &&
+                this.makeQuestionKey(other.question ?? '', Infinity) === key) {
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * 
@@ -897,15 +919,9 @@ export class CipherEncoder extends CipherHandler {
 
         $('#chi').text(statusText);
         this.validateQuestion();
-        const questionKey = this.makeQuestionKey(this.state.question);
-        if (!this.questionsUsed.has(questionKey)) {
-            this.questionsUsed.add(questionKey);
-        } else {
-            let msg = '';
-            this.setErrorMsg(msg, 'vq');
-                msg = `The question starting with "${this.removeHtml(this.state.question).substring(0, 24)}..." has already been used in this test.`;
-            this.setErrorMsg(msg, 'pq');
-        }
+        // Remember this question so the suggestion dialog doesn't offer it again.
+        // (The duplicate-on-test warning is handled in validateQuestion.)
+        this.questionsUsed.add(this.makeQuestionKey(this.state.question));
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
@@ -951,7 +967,7 @@ export class CipherEncoder extends CipherHandler {
                 'number',
                 'points',
                 this.state.points,
-                'small-12 medium-4 large-4',
+                'small-12 medium-5 large-4',
                 suggestpButton
             )
         );
@@ -966,7 +982,7 @@ export class CipherEncoder extends CipherHandler {
                     'checkbox',
                     'spbonus',
                     this.state.specialbonus,
-                    'small-12 medium-8 large-8'
+                    'small-12 medium-7 large-8'
                 )
             );
         }
@@ -1478,9 +1494,10 @@ export class CipherEncoder extends CipherHandler {
                 }
             }
         }
-        // Filter only values that appear more than once
+        // Filter only values that appear on more than one distinct question.
+        // The same question can be on multiple tests, so it would otherwise match itself.
         for (const [key, entries] of Object.entries(seen)) {
-            if (entries.length > 1) {
+            if (new Set(entries.map(e => e.entry)).size > 1) {
                 // See if we need to keep it.  If they gave us a testid to limit to, then only keep it if it appears more than once on that test
                 // Otherwise, keep it if any one of the entries has a entry that matches fileEntry (i.e. it is associated with the current entry we are editing)
                 if (limitTestId !== -1 || entries.some(e => e.entry === fileEntry)) {
@@ -1583,12 +1600,12 @@ export class CipherEncoder extends CipherHandler {
             const foundlimit = Math.round(kwcount * ((len + 1 - lower) / (upper + 1 - lower)))
 
             // We want to get at least 4 choices from each of the length ranges
-            for (let pass = 0; pass < 20 && found < foundlimit;) {
+            for (let pass = 0; pass < 20 && found < foundlimit; pass++) {
                 const slot = Math.trunc(maxWord * Math.random())
                 const choice = patSet[slot][0]
                 // Make sure we didn't get this one before (i.e. same random number)
                 // And that it has a frequency of more than 1 occurance to avoid obscure words
-                if (patSet[slot][2] > 1 && picked[choice] !== true) {
+                if (patSet[slot][2] > 1 && picked[choice] !== true && patSet[slot][3] >= 0) {
                     picked[choice] = true
                     if (action(found, choice)) {
                         found++
@@ -1724,7 +1741,8 @@ export class CipherEncoder extends CipherHandler {
             let keyword = this.Frequent[lang][pat][slot][0];
 
             // Make sure that the random number hadn't given us this sample before.
-            if (picked[keyword] !== true) {
+            // Also make sure it is an acceptable keyword to choose
+            if (picked[keyword] !== true && this.Frequent[lang][pat][slot][3] >= 0) {
                 picked[keyword] = true;
                 // We have a keyword, so let them process it (if they can)
                 if (action(found, keyword)) {
@@ -1878,7 +1896,7 @@ export class CipherEncoder extends CipherHandler {
 
             const keyword = patternEntries[slot][0];
 
-            if (picked[keyword] === true) {
+            if (picked[keyword] === true || patternEntries[slot][3] < 0) {
                 continue;
             }
 
@@ -1918,9 +1936,6 @@ export class CipherEncoder extends CipherHandler {
         const result: string[] = []
         const depthLimit = keyLens.length - 1;
 
-        // if (used === "PI") {
-        //     console.log(`Recursing Keyword=${keyword} used=${used}`)
-        // }
         if (depthLimit >= 0) {
             // Let's find all the alternate words which may match this one.
             // We can determine the range of keyword lengths by comparing the length
@@ -1932,7 +1947,7 @@ export class CipherEncoder extends CipherHandler {
                 for (const entry of this.Frequent['en'][pat]) {
                     const thisWord = entry[0]
                     const check = this.undupeString(used + thisWord)
-                    if (minWord.startsWith(check)) {
+                    if (minWord.startsWith(check) && entry[3] >= 0) {
                         // We got a match.  See if this is actually a complete match
                         if (depth === depthLimit) {
                             if (minWord.length === check.length) {
@@ -1942,9 +1957,6 @@ export class CipherEncoder extends CipherHandler {
                                 break top;
                             }
                         } else {
-                            if (thisWord === "PIPI") {
-                                console.log(`Found PIPI minword=${minWord} used=${used} check=${check}`)
-                            }
                             const found = await this.searchForAlternateWordsCore(minWord, keyLens, depth + 1, check)
                             for (const res of found) {
                                 result.push(thisWord + " " + res)
@@ -2415,6 +2427,7 @@ export class CipherEncoder extends CipherHandler {
             params.grade = [-Infinity, 12]
         }
         let quotes = await DatabaseManager.getRandomEntriesWithRanges(lang, params, {}, 7)
+
         quotes.forEach((quote) => {
             if (action(found, quote.quote, quote.author)) {
                 found++
@@ -2611,7 +2624,7 @@ export class CipherEncoder extends CipherHandler {
     }
 
     public genQuoteSuggestions() {
-        let output = $("#quoteopts");
+        let output = $("#quoteopts").attr("class", "callout primary");
         const divAll = $("<div/>")
         output.empty().append(divAll)
 
@@ -2629,6 +2642,15 @@ export class CipherEncoder extends CipherHandler {
             )
             // divAll.append(div);
             return true;
+        }).then((found) => {
+            if (found == 0) {
+                output.attr("class", "callout alert");
+                let divNew = $("<div/>")
+                    .html('Quote manager empty. ')
+                    .append('<a href="QuoteManager.html">Import quotes here.</a>');
+                divAll.replaceWith(divNew);
+            }
+
         })
         this.attachHandlers()
     }

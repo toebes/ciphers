@@ -209,6 +209,9 @@ export class CipherTestGenerator extends CipherTest {
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
                 if (qstate.specialbonus) {
+                    if (entry === -1) {
+                        errors.push(`The timed question can not be a special bonus question.`)
+                    }
                     if (specialBonusTypes[qstate.cipherType]) {
                         errors.push(`More than one special bonus question is the same ${getCipherTitle(qstate.cipherType)} type cipher.`)
                     }
@@ -474,8 +477,10 @@ export class CipherTestGenerator extends CipherTest {
     }
     /**
      * Populate the file list dialog to match all the entries of a given type
+     * @param ciphertype Type of cipher
+     * @param aristocratOnly Only list ciphers that can be the timed question
      */
-    public getFileList(ciphertype: ICipherType): JQuery<HTMLElement> {
+    public getFileList(ciphertype: ICipherType, aristocratOnly = false): JQuery<HTMLElement> {
         let result = null;
         const cipherCount = this.getCipherCount();
         $('#okopen').attr('disabled', 'disabled');
@@ -501,8 +506,8 @@ export class CipherTestGenerator extends CipherTest {
                 size: 10,
             });
             for (let entry = 0; entry < cipherCount; entry++) {
-                if (!useditems[entry]) {
-                    const fileEntry = this.getFileEntry(entry);
+                const fileEntry = this.getFileEntry(entry);
+                if (!useditems[entry] && (!aristocratOnly || this.isTimedAristocrat(fileEntry))) {
                     let entryText = '[' + String(entry) + ']:';
                     entryText += '(' + getCipherTitle(fileEntry.cipherType) + ') ';
                     if (
@@ -532,11 +537,11 @@ export class CipherTestGenerator extends CipherTest {
     public addExistingCipher(isTimed: boolean): void {
         // Populate the list of known files.
         if (isTimed) {
-            $('#OpenFile .dlgtitle').text('Select existing cipher for Timed Question');
+            $('#OpenFile .dlgtitle').text('Select existing Aristocrat for Timed Question');
         } else {
             $('#OpenFile .dlgtitle').text('Select existing cipher to add');
         }
-        $('#files').replaceWith(this.getFileList(this.state.cipherType));
+        $('#files').replaceWith(this.getFileList(this.state.cipherType, isTimed));
         $('#files')
             .off('change')
             .on('change', (e) => {
@@ -677,9 +682,9 @@ export class CipherTestGenerator extends CipherTest {
         // If we already have a timed question, then we just add it to the list of questions.
         if (appendTest.timed !== -1 && !skipQuestions[appendTest.timed]) {
             if (test.timed === -1) {
-                test.timed = appendTest.timed;
+                test.timed = this.duplicateFileEntry(appendTest.timed);
             } else {
-                test.questions.push(appendTest.timed);
+                test.questions.push(this.duplicateFileEntry(appendTest.timed));
                 test.count++;
             }
             skipQuestions[appendTest.timed] = true;
@@ -687,7 +692,7 @@ export class CipherTestGenerator extends CipherTest {
         // Next we add all the remaining questions in order if we don't already have them.
         for (const entry of appendTest.questions) {
             if (!skipQuestions[entry]) {
-                test.questions.push(entry);
+                test.questions.push(this.duplicateFileEntry(entry));
                 test.count++;
                 skipQuestions[entry] = true;
             }

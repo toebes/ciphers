@@ -1503,7 +1503,7 @@ export class CipherSolver extends CipherHandler {
                 let entry = matches[i];
                 if (this.isValidReplacement(entry[0], repl, used)) {
                     if (!matched) {
-                        selectclass = "l" + entry[3];
+                        selectclass = "l" + Math.abs(entry[3]);
                     }
                     if (!matched) {
                         mselect.append(
@@ -1511,13 +1511,13 @@ export class CipherSolver extends CipherHandler {
                                 selected: "",
                                 disabled: "",
                             })
-                                .addClass("l" + entry[3])
+                                .addClass("l" + Math.abs(entry[3]))
                                 .text(entry[0])
                         );
                     }
                     mselect.append(
                         $("<option/>")
-                            .addClass("l" + entry[3])
+                            .addClass("l" + Math.abs(entry[3]))
                             .text(entry[0])
                     );
                     added++;
@@ -1527,7 +1527,7 @@ export class CipherSolver extends CipherHandler {
                         selectclass = entry.c;
                     }
                     added++;
-                    $('<option/>').addClass('l'+entry[3] + ' nomatch').text(entry.t).appendTo(mselect);
+                    $('<option/>').addClass('l'+Math.abs(entry[3]) + ' nomatch').text(entry.t).appendTo(mselect);
         */
                 }
                 if (matched && added > 9) {

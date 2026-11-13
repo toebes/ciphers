@@ -104,6 +104,7 @@ export class CipherTestPrint extends CipherTest {
         let usesVigenereTable = false;
         let usesDancingMenTable = false;
         let usesStandardGalacticAlphabetTable = false;
+        let usesBaconianTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         let specialBonusTypes: BoolMap<ICipherType> = {}
@@ -120,7 +121,7 @@ export class CipherTestPrint extends CipherTest {
         const pagesize = this.ComputePageHeight();
         const result = $('<div/>');
         elem.append(result);
-        console.log('Page Height is ' + pagesize + ' pixels.');
+        // console.log('Page Height is ' + pagesize + ' pixels.');
         $('.testtitle').text(test.title);
         const dt = new Date();
         // If we are at the end of the year, display the following year for tests.
@@ -240,15 +241,13 @@ export class CipherTestPrint extends CipherTest {
                 const msg = 'Something went wrong generating the Timed Question.' + ' Error =' + e;
                 page.append($('<h1>').text(msg));
             }
-            qcount = 99;
+            qcount = 1;
             if (cipherhandler.state.specialbonus) {
                 SpecialBonusCount++;
-                if (specialBonusTypes[cipherhandler.state.cipherType]) {
-                    errors.push(`More than one special bonus question is the same ${getCipherTitle(cipherhandler.state.cipherType)} type cipher.`)
-                }
+                errors.push(`The timed question can not be a special bonus question.`)
                 specialBonusTypes[cipherhandler.state.cipherType] = true;
-
             }
+
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
             if (test.testtype === ITestType.aregional) {
@@ -279,6 +278,10 @@ export class CipherTestPrint extends CipherTest {
             }
             if (cipherhandler.state.specialbonus) {
                 SpecialBonusCount++;
+                if (specialBonusTypes[cipherhandler.state.cipherType]) {
+                    errors.push(`More than one special bonus question is the same ${getCipherTitle(cipherhandler.state.cipherType)} type cipher.`)
+                }
+                specialBonusTypes[cipherhandler.state.cipherType] = true;
             }
             /* Does this cipher involve morse code? */
             if (cipherhandler.usesMorseTable) {
@@ -286,6 +289,9 @@ export class CipherTestPrint extends CipherTest {
             }
             if (cipherhandler.usesPortaTable) {
                 usesPortaTable = true;
+            }
+            if (cipherhandler.usesBaconianTable) {
+                usesBaconianTable = true;
             }
             if (cipherhandler.usesVigenereTable) {
                 usesVigenereTable = true;
@@ -371,6 +377,14 @@ export class CipherTestPrint extends CipherTest {
             $('.portatable').show();
         } else {
             $('.portatable').hide();
+        }
+        /**
+         * See if we need to show/hide the Baconian Code Table
+         */
+        if (usesBaconianTable) {
+            $('.baconiantable').show();
+        } else {
+            $('.baconiantable').hide();
         }
         /**
          * See if we need to show/hide the Vigenere Code Table

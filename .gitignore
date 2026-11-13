@@ -68,3 +68,4 @@ quotes*.json
 app/*/*.js
 app/*/*.js.map
 cache.json
+Tests/*.json

@@ -2390,7 +2390,7 @@ export class CipherEncoder extends CipherHandler {
 
     public async searchForQuotes(qcount: number, action: (count: number, quote: string, author: string) => boolean): Promise<number> {
         let found = 0;
-        let questionType = QuestionTypes.GetQuestionTypeEntry(this.state.cipherType, this.state.curlang);
+        let questionType = QuestionTypes.GetQuestionTypeEntry(this.state.cipherType, this.state.cipherString, this.state.curlang);
         let lang = "english";
         if (questionType === undefined) {
             return found;

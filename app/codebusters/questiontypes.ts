@@ -436,13 +436,22 @@ export class QuestionTypes {
 
     /**
      * 
-     * @param qTitle 
-     * @param langauge
-     * @returns 
+     * @param cipherType Type of cipher
+     * @param guidance Any guidance string which may be associated with the question
+     * @param lang Language (en/es) for the question
+     * @returns Question type entry
      */
-    public static GetQuestionTypeEntry(cipherType: ICipherType, lang: string = 'en'): QuestionType {
+    public static GetQuestionTypeEntry(cipherType: ICipherType, guidance: string, lang: string = 'en'): QuestionType {
+        // See if we have guidance which may filter down the QuestionTypesEntries to a single entry.  If not, then we will just return the first entry that matches the cipherType and language.  If no match is found, then we will return undefined.
+        if (guidance[0] === '«' && guidance[guidance.length - 1] === '»') {
+            guidance = guidance.substring(1, guidance.length - 1);
+        } else {
+            guidance = undefined;
+        }
         let choice = this.QuestionTypesEntries.findIndex((elem) =>
-            elem.cipherType === cipherType && (elem.lang ?? 'en') === lang)
+            elem.cipherType === cipherType &&
+            (elem.guidance === guidance || guidance === undefined) &&
+            (elem.lang ?? 'en') === lang)
         if (choice === -1) {
             choice = this.QuestionTypesEntries.findIndex((elem) => elem.cipherType === cipherType)
         }

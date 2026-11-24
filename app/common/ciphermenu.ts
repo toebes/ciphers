@@ -39,15 +39,10 @@ export const CipherMenu: menuItem[] = [
             { title: 'Test Manager', href: 'TestManage.html' },
             { title: 'Test Builder', href: 'TestBuild.html' },
             { title: 'Test Slicer', href: 'TestSlicer.html' },
-            { title: 'Quote Manager', href: 'QuoteManager.html' },
             { title: 'Question Manager', href: 'TestQuestions.html' },
+            { title: 'Quote Manager', href: 'QuoteManager.html' },
+            { title: 'Quote Analyzer', href: 'QuoteAnalyze.html' },
             { title: '', classname: 'divider' },
-            {
-                title: 'Affine',
-                href: 'AffineEncrypt.html',
-                cipherType: ICipherType.Affine,
-                classname: 'chkmod menub',
-            },
             {
                 title: 'Aristocrat',
                 href: 'AristocratEncrypt.html',
@@ -91,16 +86,10 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menub menuc',
             },
             {
-                title: 'Dancing Men',
-                href: 'DancingMenEncrypt.html',
-                cipherType: ICipherType.DancingMen,
-                classname: 'chkmod menua',
-            },
-            {
-                title: 'Hill (2x2 and 3x3)',
-                href: 'HillEncrypt.html',
-                cipherType: ICipherType.Hill,
-                classname: 'chkmod menuc',
+                title: 'Fractionated Morse',
+                href: 'FractionatedMorseEncrypt.html',
+                cipherType: ICipherType.FractionatedMorse,
+                classname: 'chkmod menub menuc',
             },
             {
                 title: 'Homophonic',
@@ -109,9 +98,15 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menub menuc',
             },
             {
-                title: 'Morbit',
-                href: 'MorbitEncrypt.html',
-                cipherType: ICipherType.Morbit,
+                title: 'Knights Templar',
+                href: 'KnightsTemplarEncrypt.html',
+                cipherType: ICipherType.KnightsTemplar,
+                classname: 'chkmod menua',
+            },
+            {
+                title: 'Nihilist Substitution',
+                href: 'NihilistSubstitutionEncrypt.html',
+                cipherType: ICipherType.NihilistSubstitution,
                 classname: 'chkmod menub menuc',
             },
             {
@@ -127,41 +122,11 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menua',
             },
             {
-                title: 'Knights Templar',
-                href: 'KnightsTemplarEncrypt.html',
-                cipherType: ICipherType.KnightsTemplar,
-                classname: 'chkmod menua',
-            },
-            {
-                title: 'Pollux',
-                href: 'PolluxEncrypt.html',
-                cipherType: ICipherType.Pollux,
+                title: 'Porta',
+                href: 'VigenereEncrypt.html',
+                cipherType: ICipherType.Porta,
                 classname: 'chkmod menub menuc',
             },
-            {
-                title: 'Fractionated Morse',
-                href: 'FractionatedMorseEncrypt.html',
-                cipherType: ICipherType.FractionatedMorse,
-                classname: 'chkmod menub menuc',
-            },
-            {
-                title: 'Rail Fence',
-                href: 'RailFenceEncrypt.html',
-                cipherType: ICipherType.Railfence,
-                classname: 'chkmod menub',
-            },
-            // {
-            //     title: 'RSA',
-            //     href: 'RSAEncrypt.html',
-            //     cipherType: ICipherType.RSA,
-            //     classname: 'chkmod menuc',
-            // },
-            // {
-            //     title: "Running Key",
-            //     href: "RunningKeyEncoder.html",
-            //     cipherType: ICipherType.RunningKey,
-            //     classname: 'chkmod menua menub menuc'
-            // },
             {
                 title: 'Standard Galactic Alphabet',
                 href: 'StandardGalacticAlphabetEncrypt.html',
@@ -173,18 +138,6 @@ export const CipherMenu: menuItem[] = [
                 href: 'TapCodeEncrypt.html',
                 cipherType: ICipherType.TapCode,
                 classname: 'chkmod menua',
-            },
-            {
-                title: 'Nihilist Substitution',
-                href: 'NihilistSubstitutionEncrypt.html',
-                cipherType: ICipherType.NihilistSubstitution,
-                classname: 'chkmod menub menuc',
-            },
-            {
-                title: 'Porta',
-                href: 'VigenereEncrypt.html',
-                cipherType: ICipherType.Porta,
-                classname: 'chkmod menub menuc',
             },
             {
                 title: 'Vigen&egrave;re',
@@ -199,6 +152,61 @@ export const CipherMenu: menuItem[] = [
                 lang: 'es',
                 classname: 'chkmod menub menuc',
             },
+            {
+                title: 'Additional Ciphers',
+                classname: 'menubc',
+                menu: [
+                    {
+                        title: 'Affine',
+                        href: 'AffineEncrypt.html',
+                        cipherType: ICipherType.Affine,
+                        classname: 'chkmod menub',
+                    },
+                    {
+                        title: 'Dancing Men',
+                        href: 'DancingMenEncrypt.html',
+                        cipherType: ICipherType.DancingMen,
+                        classname: 'chkmod menua',
+                    },
+                    {
+                        title: 'Hill (2x2 and 3x3)',
+                        href: 'HillEncrypt.html',
+                        cipherType: ICipherType.Hill,
+                        classname: 'chkmod menuc',
+                    },
+                    {
+                        title: 'Morbit',
+                        href: 'MorbitEncrypt.html',
+                        cipherType: ICipherType.Morbit,
+                        classname: 'chkmod menub menuc',
+                    },
+                    {
+                        title: 'Pollux',
+                        href: 'PolluxEncrypt.html',
+                        cipherType: ICipherType.Pollux,
+                        classname: 'chkmod menub menuc',
+                    },
+                    {
+                        title: 'Rail Fence',
+                        href: 'RailFenceEncrypt.html',
+                        cipherType: ICipherType.Railfence,
+                        classname: 'chkmod menub',
+                    },
+                    {
+                        title: "Running Key",
+                        href: "RunningKeyEncoder.html",
+                        cipherType: ICipherType.RunningKey,
+                        classname: 'chkmod menua menub menuc'
+                    },
+                    {
+                        title: 'RSA',
+                        href: 'RSAEncrypt.html',
+                        cipherType: ICipherType.RSA,
+                        classname: 'chkmod menuc',
+                    },
+                ],
+            },
+
             { title: '', classname: 'divider' },
             {
                 title: 'Report a problem',

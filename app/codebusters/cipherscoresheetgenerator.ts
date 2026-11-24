@@ -1505,7 +1505,7 @@ export default class CipherScoreSheetGenerator {
                 `COUNTA(${scoreRange})+MATCH(TRIM(${finalScoreRef}),{"P","NS","DQ"},0)-1)`;
 
             const tieFormula =
-                `IF(COUNTIF(${wholeScoreColumn},${finalScoreRef})>1,"--TIE--","")`;
+                `IF(ISNUMBER(${finalScoreRef}),IF(COUNTIF(${wholeScoreColumn},${finalScoreRef})>1,"--TIE--",""),"")`;
 
             const rowTable: TableCell[][] = [[
                 { f: summaryTeamFormula(sourceTeam), s: this.STYLE_HEADER_BORDER_TB },

@@ -1461,7 +1461,7 @@ export default class CipherScoreSheetGenerator {
         const tiebreakerRange = `${tiebreakerLetter}:${tiebreakerLetter}`;
 
         const sortedTeamRange = `$A$${FIRST_TEAM_ROW + 1}:$C$${lastTeamRow + 1}`;
-        const sortedTeams = `_xlfn.SORT(${sortedTeamRange},3,1)`;
+        const sortedTeams = `_xlfn._xlws.SORT(${sortedTeamRange},3,1)`;
 
         const rankDisplayFormula =
             `INDEX(${sortedTeams},ROW()-${FIRST_TEAM_ROW},1) & " - " & ` +
@@ -1813,7 +1813,9 @@ export default class CipherScoreSheetGenerator {
                 sheet,
                 row,
                 FINAL_RANK_COL,
-                this.teamFormula(`RANK(${sourceScore},${finalScoreRange})`),
+                this.teamFormula(
+                    `IF(ISNUMBER(${sourceScore}),RANK(${sourceScore},${finalScoreRange}),"")`
+                ),
                 this.STYLE_BORDER_NONE_GRAY
             );
         }
@@ -1884,7 +1886,11 @@ export default class CipherScoreSheetGenerator {
             const rowTable: TableCell[][] = [[
                 { v: "", f: this.cellAddress(3, rankCol), s: this.STYLE_BORDER_RL_GRAY },
                 { v: "", f: this.cellAddress(0, rankCol), s: this.STYLE_BORDER_RL_GRAY },
-                { v: "", f: `CORREL(${questionRange},${finalCorrelationRange})`, s: this.STYLE_BORDER_RL_GRAY_FMT3DEC }
+                {
+                    v: "",
+                    f: `IFERROR(CORREL(${questionRange},${finalCorrelationRange}),"")`,
+                    s: this.STYLE_BORDER_RL_GRAY_FMT3DEC
+                }
             ]];
 
             this.writeCellTable(sheet, row, SUMMARY_COL, rowTable);
@@ -1946,7 +1952,7 @@ export default class CipherScoreSheetGenerator {
             const localScore = this.cellAddress(row, SCORE_COL);
 
             this.setNumericFormula(sheet, row, SCORE_COL, this.teamFormula(sourceScore), this.STYLE_BORDER_NONE_GRAY);
-            this.setNumericFormula(sheet, row, RANK_SCORE_COL, this.teamFormula(`RANK(${localScore},${finalScoreRange})`), this.STYLE_BORDER_NONE_GRAY);
+            this.setNumericFormula(sheet, row, RANK_SCORE_COL, this.teamFormula(`IF(ISNUMBER(${localScore}),RANK(${localScore},${finalScoreRange}),"")`), this.STYLE_BORDER_NONE_GRAY);
         }
 
         // ---------------------------------------------
@@ -2012,7 +2018,7 @@ export default class CipherScoreSheetGenerator {
             const rowTable: TableCell[][] = [[
                 { v: "", f: this.cellAddress(3, rankCol), s: this.STYLE_BORDER_RL_GRAY },
                 { v: "", f: this.cellAddress(0, rankCol), s: this.STYLE_BORDER_RL_GRAY },
-                { v: "", f: `CORREL(${questionRange},${finalCorrelationRange})`, s: this.STYLE_BORDER_RL_GRAY_FMT3DEC }
+                { v: "", f: `IFERROR(CORREL(${questionRange},${finalCorrelationRange}),"")`, s: this.STYLE_BORDER_RL_GRAY_FMT3DEC }
             ]];
 
             this.writeCellTable(sheet, row, SUMMARY_COL, rowTable);

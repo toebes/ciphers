@@ -390,7 +390,7 @@ export class CipherHomophonicEncoder extends CipherEncoder {
         for (let i = 0; i < pta.length; i++) {
             if (charset.indexOf(pta[i]) >= 0) {
                 plainChars.push(pta[i]);
-                cipherChars.push(cta[i]);
+                cipherChars.push(this.plainCt100(cta[i]));
             }
         }
         const plaintext = plainChars.join('');
